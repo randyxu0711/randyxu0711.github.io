@@ -1,0 +1,13 @@
+name: Test
+
+on:
+  push:
+    paths: [tools/**, .github/ISSUE_TEMPLATE/**, .github/workflows/test.yml]
+  pull_request:
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - run: pipx run pytest tools/share -q

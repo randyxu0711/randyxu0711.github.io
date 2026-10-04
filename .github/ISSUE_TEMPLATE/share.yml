@@ -1,0 +1,37 @@
+name: 📌 分享
+description: 分享一篇技術文章到網站
+title: "📌 分享"
+labels: [share]
+body:
+  # label 要跟 tools/share/share.py 的 LABELS 一字不差
+  - type: input
+    id: url
+    attributes:
+      label: 網址
+      placeholder: https://
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: 心得
+      description: 選填。寫了會顯示在列表上。
+  - type: dropdown
+    id: tags
+    attributes:
+      label: 分類
+      description: 選填,可多選。要加分類就在這裡加一行。
+      multiple: true
+      options:
+        - AI/LLM
+        - Frontend
+        - Backend
+        - DevOps/Infra
+        - Architecture
+        - Tooling
+        - Career
+  - type: input
+    id: title
+    attributes:
+      label: 標題(選填,抓錯時覆蓋)
+      description: 平常留空,會自動抓原文標題。

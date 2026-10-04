@@ -1,0 +1,9 @@
+{%- comment -%}
+  share 的連結一律直開原文、另開分頁(credit 屬於原作者)。沒有 link 的才連內部頁。
+  覆蓋 Chirpy 的 home / tag / archives / update-list 都用它。
+{%- endcomment -%}
+{%- if include.post.link -%}
+  href="{{ include.post.link | xml_escape }}" target="_blank" rel="noopener"
+{%- else -%}
+  href="{{ include.post.url | relative_url }}"
+{%- endif -%}

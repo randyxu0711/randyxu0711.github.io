@@ -1,0 +1,67 @@
+name: Share
+
+on:
+  issues:
+    types: [opened, edited, closed]
+
+# 兩個 issue 同時開也要一個一個寫進 _posts
+concurrency:
+  group: share
+  cancel-in-progress: false
+
+jobs:
+  share:
+    # 只處理 owner 開的、表單帶 share label 的 issue
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      contains(github.event.issue.labels.*.name, 'share')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    outputs:
+      status: ${{ steps.run.outputs.status }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: run
+        run: python3 tools/share/share.py _posts
+
+      - name: Commit
+        if: steps.run.outputs.status == 'published' || steps.run.outputs.status == 'removed'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A _posts
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "share: #${{ github.event.issue.number }} ${{ steps.run.outputs.status }}"
+          git pull --rebase
+          git push
+
+      - name: Reply on issue
+        if: steps.run.outputs.status != 'skip'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ github.event.issue.number }}
+          STATUS: ${{ steps.run.outputs.status }}
+          STATE: ${{ github.event.issue.state }}
+        run: |
+          gh issue comment "$N" --body-file "$RUNNER_TEMP/share-comment.md"
+          case "$STATUS" in
+            published)
+              gh issue edit "$N" --remove-label needs-fix 2>/dev/null || true
+              if [ "$STATE" = open ]; then gh issue close "$N" --reason completed; fi ;;
+            needs_fix)
+              gh label create needs-fix --color d93f0b --description "分享沒發布,要修" --force
+              gh issue edit "$N" --add-label needs-fix ;;
+          esac
+
+  # GITHUB_TOKEN 的 push 不會觸發 pages-deploy.yml,所以直接呼叫它
+  deploy:
+    needs: share
+    if: needs.share.outputs.status == 'published' || needs.share.outputs.status == 'removed'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages-deploy.yml

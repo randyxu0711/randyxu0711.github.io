@@ -1,0 +1,32 @@
+---
+---
+
+@use 'abstracts/variables' with (
+  $theme: '{{ site.theme_mode }}'
+);
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+  .bundle
+{%- endif -%}
+';
+
+/* append your custom style below */
+
+/* share:心得用引言樣式,標明是「我說的」 */
+#post-list .share-note {
+  margin: 0 0 1rem;
+  padding: 0.25rem 0 0.25rem 0.75rem;
+  border-left: 3px solid var(--link-color);
+  color: var(--text-color);
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+#post-list .share-source {
+  font-size: 0.85rem;
+}
