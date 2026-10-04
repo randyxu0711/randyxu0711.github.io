@@ -127,6 +127,7 @@ def post_paths_for_issue(posts_dir, issue_number):
 class Result:
     status: str
     comment: str = ""
+    title: str = ""
 
 
 def handle(event, posts_dir, fetch=fetch):
@@ -138,7 +139,7 @@ def handle(event, posts_dir, fetch=fetch):
         old = post_paths_for_issue(posts_dir, n)
         for p in old:
             p.unlink()
-        return Result("removed", "🗑️ 已從網站撤下。") if old else Result("skip")
+        return Result("removed", "已從網站撤下。") if old else Result("skip")
 
     if action not in ("opened", "edited"):
         return Result("skip")
@@ -146,7 +147,7 @@ def handle(event, posts_dir, fetch=fetch):
     fields = parse_issue_body(issue.get("body"))
     error = validate_url(fields["url"])
     if error:
-        return Result("needs_fix", f"⚠️ 沒有發布。{error}\n\n編輯這個 issue 修正後會自動重跑。")
+        return Result("needs_fix", f"沒有發布。{error}\n\n編輯這個 issue 修正後會自動重跑。")
 
     meta, fetch_error = fetch(fields["url"])
     name, content = build_post(fields, meta, n, issue["created_at"])
@@ -156,24 +157,25 @@ def handle(event, posts_dir, fetch=fetch):
     (posts_dir / name).write_text(content, encoding="utf-8")
 
     title = fields["title"] or meta["title"] or fields["url"]
-    lines = ["✅ 已上線(約一分鐘後可見)", "",
+    lines = ["已上線(約一分鐘後可見)", "",
              f"- **標題**:{title}",
              f"- **描述**:{meta['description'] or '(無)'}",
              f"- **縮圖**:{meta['image'] or '(無)'}"]
     if meta["image"]:
         lines += ["", f'<img src="{meta["image"]}" width="320">']
     if fetch_error:
-        lines += ["", f"⚠️ 抓不到原文資訊({fetch_error}),先用網址當標題。"
+        lines += ["", f"注意:抓不到原文資訊({fetch_error}),先用網址當標題。"
                       "可以編輯 issue 填「標題」欄位覆蓋。"]
     else:
         lines += ["", "抓錯了?編輯 issue 填「標題」欄位覆蓋即可。"]
-    return Result("published", "\n".join(lines))
+    return Result("published", "\n".join(lines), title)
 
 
 def main():
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     r = handle(event, sys.argv[1])
     Path(os.environ["RUNNER_TEMP"], "share-comment.md").write_text(r.comment, encoding="utf-8")
+    Path(os.environ["RUNNER_TEMP"], "share-title.txt").write_text(r.title[:200], encoding="utf-8")
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:
         out.write(f"status={r.status}\n")
     print(f"issue #{event['issue']['number']} {event['action']} → {r.status}")

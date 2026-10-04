@@ -168,6 +168,15 @@ def test_handle_publishes_and_writes_post(tmp_path):
     files = list(tmp_path.iterdir())
     assert [f.name for f in files] == ["2026-10-04-share-7.md"]
     assert "OG Title" in r.comment
+    assert r.title == "OG Title"
+
+
+def test_handle_title_override_and_fallback_to_url(tmp_path):
+    body = FORM_BODY.replace("_No response_", "我的標題")
+    r = share.handle(event("opened", body=body), tmp_path, fetch=lambda u: (META, None))
+    assert r.title == "我的標題"
+    r = share.handle(event("opened"), tmp_path, fetch=lambda u: (share.EMPTY_META, "HTTP 403"))
+    assert r.title == "https://example.com/post"
 
 
 def test_handle_edit_replaces_old_file_even_if_date_changed(tmp_path):

@@ -1,4 +1,5 @@
 name: Share
+run-name: "share #${{ github.event.issue.number }} ${{ github.event.action }}"
 
 on:
   issues:
@@ -50,6 +51,8 @@ jobs:
           case "$STATUS" in
             published)
               gh issue edit "$N" --remove-label needs-fix 2>/dev/null || true
+              # 標題換成文章標題,issue 列表才分得出來(GITHUB_TOKEN 的編輯不會再觸發這個 workflow)
+              gh issue edit "$N" --title "$(cat "$RUNNER_TEMP/share-title.txt")"
               if [ "$STATE" = open ]; then gh issue close "$N" --reason completed; fi ;;
             needs_fix)
               gh label create needs-fix --color d93f0b --description "分享沒發布,要修" --force

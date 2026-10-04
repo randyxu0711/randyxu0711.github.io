@@ -1,6 +1,6 @@
-name: 📌 分享
+name: 分享
 description: 分享一篇技術文章到網站
-title: "📌 分享"
+title: "分享"
 labels: [share]
 body:
   # label 要跟 tools/share/share.py 的 LABELS 一字不差

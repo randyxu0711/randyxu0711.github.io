@@ -13,7 +13,7 @@
 | 資料 | 每則分享一個 `_posts/<date>-share-<issue#>.md`,縮圖 hotlink 不存 repo |
 
 ```
-Issue(📌 分享表單)
+Issue(分享表單)
   └─ share.yml
        ├─ share job:  share.py 解析表單 → 抓 og → 寫 _posts → commit → 在 issue 留言
        └─ deploy job: workflow_call pages-deploy.yml(GITHUB_TOKEN 的 push 不會觸發其他 workflow)
@@ -21,11 +21,11 @@ Issue(📌 分享表單)
 
 ## 發文
 
-開 issue,選 **📌 分享** 表單。
+開 issue,選 **分享** 表單。
 
 | 欄位 | 必填 | 用途 |
 | --- | --- | --- |
-| 網址 | ✔ | 原文連結,需為 `http(s)://` |
+| 網址 | 是 | 原文連結,需為 `http(s)://` |
 | 心得 | | 有填時取代 og 描述,以引言樣式顯示 |
 | 分類 | | 多選,對應站上 tags;清單只定義在 `.github/ISSUE_TEMPLATE/share.yml` |
 | 標題 | | 覆蓋自動抓到的 og:title |
@@ -34,7 +34,7 @@ Issue(📌 分享表單)
 
 | 事件 | 結果 |
 | --- | --- |
-| opened / edited | 抓 og、寫入(或覆蓋)post、部署、留言回報抓到的內容並關閉 issue |
+| opened / edited | 抓 og、寫入(或覆蓋)post、部署、留言回報抓到的內容、issue 標題改成文章標題並關閉 |
 | 網址格式錯誤 | 不發布,留言並加上 `needs-fix` label;修正後編輯 issue 即重跑 |
 | og 抓取失敗 | 照常發布,以網址當標題,留言提醒可用「標題」欄位覆蓋 |
 | closed as **not planned** | 撤下該則 post 並重新部署 |
