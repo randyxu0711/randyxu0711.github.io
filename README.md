@@ -13,7 +13,7 @@
 | 資料 | 每則分享一個 `_posts/<date>-share-<issue#>.md`,縮圖 hotlink 不存 repo |
 
 ```
-Issue(分享表單)
+Issue(分享文章表單)
   └─ share.yml
        ├─ share job:  share.py 解析表單 → 抓 og → 寫 _posts → commit → 在 issue 留言
        └─ deploy job: workflow_call pages-deploy.yml(GITHUB_TOKEN 的 push 不會觸發其他 workflow)
@@ -21,7 +21,7 @@ Issue(分享表單)
 
 ## 發文
 
-開 issue,選 **分享** 表單。
+開 issue,選 **分享文章** 表單。
 
 | 欄位 | 必填 | 用途 |
 | --- | --- | --- |
