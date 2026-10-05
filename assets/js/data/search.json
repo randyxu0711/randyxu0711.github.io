@@ -11,6 +11,9 @@ swcache: true
     "categories": {{ post.categories | join: ', ' | jsonify }},
     "tags": {{ post.tags | join: ', ' | jsonify }},
     "date": {{ post.date | jsonify }},
+    "image": {{ post.image.path | default: post.image | default: '' | jsonify }},
+    "source": {{ post.source | default: '' | jsonify }},
+    "summary": {{ post.note | default: post.description | default: '' | jsonify }},
     {% capture content -%}{% include post-summary.html full_text=true %}{%- endcapture -%}
     "content": {{ content | jsonify }}
   }{% unless forloop.last %},{% endunless %}

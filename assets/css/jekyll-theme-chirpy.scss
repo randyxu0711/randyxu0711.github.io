@@ -30,3 +30,61 @@
 #post-list .share-source {
   font-size: 0.85rem;
 }
+
+/* 搜尋結果:跟首頁一樣帶縮圖的卡片 */
+#search-results .search-card {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+#search-results .search-thumb {
+  flex: 0 0 9rem;
+
+  &:empty {
+    display: none;
+  }
+
+  img {
+    width: 100%;
+    aspect-ratio: 1.91 / 1;
+    object-fit: cover;
+    border-radius: 0.5rem;
+  }
+
+  @media (max-width: 575.98px) {
+    flex-basis: 6rem;
+  }
+}
+
+#search-results .search-body {
+  flex: 1;
+  min-width: 0;
+
+  h2 {
+    line-height: 1.6rem;
+    margin-bottom: 0.25rem;
+  }
+
+  /* 整張卡片都可點 */
+  h2 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+}
+
+#search-results .search-meta {
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+#search-results .search-summary {
+  margin: 0;
+  font-size: 0.95rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
