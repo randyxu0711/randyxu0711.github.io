@@ -73,7 +73,7 @@ Welcome to my space.
 
 ## 經歷
 
-**Openfind 網擎資訊|Software Engineer**(2021/10 – 2024/4)
+**Openfind 網擎資訊 · Software Engineer**(2021/10 – 2024/4)
 
 參與企業郵件系統 Mail2000 核心開發:把 C 語言舊核心拆成可重用模組並設計 RESTful API,讓新舊介面共用同一套後端;以 keepalived 搭配腳本實作主備自動切換與資料庫自動復原;串接雙因素登入;參與開發 Outlook 同步工具。
 
@@ -135,7 +135,7 @@ This site holds my projects, plus technical articles I've read and think are wor
 
 ## Experience
 
-**Openfind | Software Engineer** (Oct 2021 – Apr 2024)
+**Openfind · Software Engineer** (Oct 2021 – Apr 2024)
 
 Worked on the core of Mail2000, an enterprise email system: split the legacy C core into reusable modules and designed RESTful APIs so old and new web UIs share one backend; built automatic failover and database recovery with keepalived and scripts; integrated two-factor login; contributed to an Outlook sync tool.
 

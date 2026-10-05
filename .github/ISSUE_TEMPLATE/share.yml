@@ -26,8 +26,14 @@ body:
         - AI/LLM
         - Frontend
         - Backend
+        - Database
         - DevOps/Infra
         - Architecture
+        - Security
+        - Testing
+        - Performance
+        - Programming Languages
+        - Open Source
         - Tooling
         - Career
   - type: input
