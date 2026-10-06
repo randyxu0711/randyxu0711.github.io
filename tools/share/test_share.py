@@ -222,3 +222,45 @@ def test_issue_form_labels_match_parser():
     form = Path(__file__).parents[2] / ".github/ISSUE_TEMPLATE/share.yml"
     labels = re.findall(r"^\s+label: (.+)$", form.read_text(encoding="utf-8"), flags=re.M)
     assert sorted(labels) == sorted(share.LABELS)
+
+
+# --- archive ------------------------------------------------------------------
+
+def test_build_post_writes_archive_url():
+    fields = share.parse_issue_body(FORM_BODY)
+    _, content = share.build_post(fields, META, 12, "2026-10-04T20:00:00Z")
+    assert front_matter(content)["archive"] == "https://web.archive.org/web/https://example.com/post"
+
+
+def test_handle_published_result_carries_link(tmp_path):
+    r = share.handle(event("opened"), tmp_path, fetch=lambda u: (META, None))
+    assert r.link == "https://example.com/post"
+
+
+def test_archive_warning_empty_when_save_succeeds():
+    assert share.archive_warning("https://a.com", save=lambda u: None) == ""
+
+
+def test_archive_warning_explains_failure():
+    msg = share.archive_warning("https://a.com", save=lambda u: "HTTP 520")
+    assert "HTTP 520" in msg and "Wayback" in msg
+
+
+def test_save_to_wayback_reports_errors_instead_of_raising():
+    def boom(req, timeout):
+        raise OSError("timed out")
+    assert share.save_to_wayback("https://a.com", opener=boom) == "timed out"
+
+
+def test_save_to_wayback_requests_save_endpoint():
+    seen = {}
+
+    class Resp:
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+
+    def fake(req, timeout):
+        seen["url"] = req.full_url
+        return Resp()
+    assert share.save_to_wayback("https://a.com/x?y=1", opener=fake) is None
+    assert seen["url"] == "https://web.archive.org/save/https://a.com/x?y=1"
