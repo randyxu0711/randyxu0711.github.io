@@ -32,3 +32,6 @@ assets/js/dist
 Thumbs.db
 
 __pycache__/
+
+# Goodreads 匯出檔含 Private Notes 與完整書單,永遠不進 repo
+/books/

@@ -1,0 +1,27 @@
+<header class="nav">
+  <div class="nav-inner">
+    <a class="nav-name" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <nav aria-label="主要">
+      <ul class="nav-links">
+        {%- for item in site.nav -%}
+          {%- if item.module -%}
+            {%- unless site.modules[item.module] -%}{%- continue -%}{%- endunless -%}
+            {%- assign book_count = site.data.books | size -%}
+            {%- if item.module == 'books' and book_count == 0 -%}{%- continue -%}{%- endif -%}
+          {%- endif -%}
+          {%- assign here = false -%}
+          {%- if page.url == item.url -%}{%- assign here = true -%}{%- endif -%}
+          <li><a href="{{ item.url | relative_url }}"{% if here %} aria-current="page"{% endif %}>{{ item.title }}</a></li>
+        {%- endfor -%}
+      </ul>
+    </nav>
+    <div class="nav-tools">
+      {% include slot.html name="header-tools" %}
+      <div class="seg" role="group" aria-label="主題" data-theme-switch hidden>
+        <button type="button" data-theme-set="system" aria-pressed="true">跟系統</button>
+        <button type="button" data-theme-set="light" aria-pressed="false">晝</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false">夜</button>
+      </div>
+    </div>
+  </div>
+</header>

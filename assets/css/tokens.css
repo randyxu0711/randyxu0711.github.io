@@ -1,0 +1,87 @@
+---
+---
+/* 第 1 層:原始值。數值來自 _config.yml 的 appearance,template 使用者只改那裡 */
+:root {
+  --h: {{ site.appearance.hue | default: 72 }};
+  --c: {{ site.appearance.chroma | default: 0.15 }};
+  --h-cool: calc(var(--h) + 190);  /* 底色偏向互補的冷色,讓琥珀透光感更明顯 */
+
+  --font-ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-code: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* 字級:base 16px、比例 1.25 */
+  --t-xs: 0.8rem; --t-sm: 0.875rem; --t-md: 1rem; --t-lg: 1.25rem;
+  --t-xl: 1.5625rem; --t-2xl: 1.953rem; --t-3xl: 2.441rem;
+
+  /* 膠框厚度依重要性分三級 */
+  --rim-card: {{ site.appearance.rim | default: '9px' }};
+  --rim-feature: calc(var(--rim-card) * 4 / 3);
+  --rim-compact: calc(var(--rim-card) * 5 / 9);
+  --r-frame: 20px;
+}
+
+/* ── 第 2 層:語意 token(晝) ─────────────── */
+:root {
+  --ground:     oklch(0.935 0.006 var(--h-cool));
+  --ground-2:   oklch(0.900 0.008 var(--h-cool));
+  --ink:        oklch(0.230 0.015 var(--h));
+  --ink-2:      oklch(0.460 0.018 var(--h));
+  --accent:     oklch(0.520 0.130 var(--h));
+  --well:       oklch(0.990 0.004 var(--h));
+  --well-line:  oklch(0.500 0.080 var(--h) / 0.18);
+  --well-shade: oklch(0.300 0.050 var(--h) / 0.14);
+  --resin:      oklch(0.820 var(--c) var(--h) / 0.55);
+  --resin-base: oklch(0.880 0.090 var(--h));
+  --edge-hi:    oklch(1 0 0 / 0.85);
+  --edge-lo:    oklch(0.450 0.120 var(--h) / 0.45);
+  --edge-line:  oklch(0.550 0.120 var(--h) / 0.35);
+  --glow:       oklch(0.720 0.170 var(--h) / 0.45);
+  --drop:       oklch(0.300 0.040 var(--h-cool) / 0.20);
+  --chip:       oklch(0.820 var(--c) var(--h) / 0.28);
+  --sheen:      oklch(1 0 0 / 0.55);
+  color-scheme: light;
+}
+
+/* ── 第 2 層:語意 token(夜) ─────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:     oklch(0.170 0.008 var(--h-cool));
+    --ground-2:   oklch(0.210 0.010 var(--h-cool));
+    --ink:        oklch(0.930 0.015 var(--h));
+    --ink-2:      oklch(0.720 0.020 var(--h));
+    --accent:     oklch(0.810 var(--c) var(--h));
+    --well:       oklch(0.215 0.010 var(--h));
+    --well-line:  oklch(0.800 0.100 var(--h) / 0.14);
+    --well-shade: oklch(0 0 0 / 0.55);
+    --resin:      oklch(0.700 var(--c) var(--h) / 0.32);
+    --resin-base: oklch(0.360 0.080 var(--h));
+    --edge-hi:    oklch(0.950 0.090 var(--h) / 0.55);
+    --edge-lo:    oklch(0 0 0 / 0.55);
+    --edge-line:  oklch(0.800 0.130 var(--h) / 0.30);
+    --glow:       oklch(0.750 0.170 var(--h) / 0.28);
+    --drop:       oklch(0 0 0 / 0.60);
+    --chip:       oklch(0.700 var(--c) var(--h) / 0.22);
+    --sheen:      oklch(0.950 0.080 var(--h) / 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground:     oklch(0.170 0.008 var(--h-cool));
+  --ground-2:   oklch(0.210 0.010 var(--h-cool));
+  --ink:        oklch(0.930 0.015 var(--h));
+  --ink-2:      oklch(0.720 0.020 var(--h));
+  --accent:     oklch(0.810 var(--c) var(--h));
+  --well:       oklch(0.215 0.010 var(--h));
+  --well-line:  oklch(0.800 0.100 var(--h) / 0.14);
+  --well-shade: oklch(0 0 0 / 0.55);
+  --resin:      oklch(0.700 var(--c) var(--h) / 0.32);
+  --resin-base: oklch(0.360 0.080 var(--h));
+  --edge-hi:    oklch(0.950 0.090 var(--h) / 0.55);
+  --edge-lo:    oklch(0 0 0 / 0.55);
+  --edge-line:  oklch(0.800 0.130 var(--h) / 0.30);
+  --glow:       oklch(0.750 0.170 var(--h) / 0.28);
+  --drop:       oklch(0 0 0 / 0.60);
+  --chip:       oklch(0.700 var(--c) var(--h) / 0.22);
+  --sheen:      oklch(0.950 0.080 var(--h) / 0.35);
+  color-scheme: dark;
+}

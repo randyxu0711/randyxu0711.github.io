@@ -1,0 +1,44 @@
+{%- comment -%}
+  share 卡。參數:post、variant(feature / card / compact,預設 card)。
+  整張卡片直接開原文;linkcheck 判定失效且有 archive 時改連封存版。
+{%- endcomment -%}
+{%- assign p = include.post -%}
+{%- assign variant = include.variant | default: 'card' -%}
+{%- capture lc_key -%}{{ p.issue }}{%- endcapture -%}
+{%- assign lc = site.data.linkcheck[lc_key] -%}
+{%- assign dead = false -%}
+{%- if site.modules.archive and lc.dead and p.archive -%}{%- assign dead = true -%}{%- endif -%}
+{%- assign href = p.link -%}
+{%- if dead -%}{%- assign href = p.archive -%}{%- endif -%}
+{%- capture text -%}{{ p.title }} {{ p.source }} {{ p.note }} {{ p.description }}{%- endcapture -%}
+<article class="share" data-tags="{{ p.tags | join: '|' | escape }}" data-text="{{ text | strip_newlines | downcase | escape }}" data-link="{{ p.link | escape }}">
+  <a class="gel share-card {{ variant }}{% if dead %} is-dead{% endif %}" href="{{ href | escape }}" target="_blank" rel="noopener"
+     {%- if p.image %} style="--img: url('{{ p.image | replace: "'", "%27" | escape }}')"{% endif %}>
+    <div class="well">
+      {%- if p.image %}
+      <img class="thumb" src="{{ p.image | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">
+      {%- endif %}
+      <div class="share-body">
+        <div class="share-meta">
+          <span class="src">{{ p.source }}{% include slot.html name="card-meta" post=p %}</span>
+          <time datetime="{{ p.date | date: '%Y-%m-%d' }}">{{ p.date | date: '%Y-%m-%d' }}</time>
+        </div>
+        {%- if variant == 'feature' %}
+        <h2 class="share-title">{{ p.title | escape }}</h2>
+        {%- else %}
+        <h3 class="share-title">{{ p.title | escape }}</h3>
+        {%- endif %}
+        {%- if variant != 'compact' %}
+          {%- if p.note %}
+        <p class="share-note">{{ p.note | escape | newline_to_br }}</p>
+          {%- elsif p.description %}
+        <p class="share-desc">{{ p.description | escape }}</p>
+          {%- endif %}
+          {%- if p.tags.size > 0 %}
+        <div class="tags">{% for t in p.tags %}<span class="tag">{{ t | escape }}</span>{% endfor %}</div>
+          {%- endif %}
+        {%- endif %}
+      </div>
+    </div>
+  </a>
+</article>
