@@ -1,8 +1,23 @@
 ---
 layout: default
 ---
-<ul>
-{%- for p in site.posts -%}
-  <li><a href="{{ p.link | escape }}" target="_blank" rel="noopener">{{ p.title }}</a></li>
-{%- endfor -%}
-</ul>
+{%- assign posts = site.posts -%}
+<section class="shelf" id="shelf" aria-label="分享的文章">
+  {%- if site.intro %}
+  <p class="intro">{{ site.intro }}</p>
+  {%- endif %}
+  {% include slot.html name="before-shelf" %}
+  {%- if posts.size == 0 %}
+  <p class="empty">還沒有分享的文章。開一個「分享文章」issue,就會出現在這裡。</p>
+  {%- else %}
+  {%- assign first = posts | first %}
+  {%- comment -%} include 的參數不接受 posts[0] 這種寫法,要先 assign {%- endcomment %}
+  <div class="shelf-feature">{% include share-card.html post=first variant="feature" %}</div>
+  <div class="grid" id="shelf-grid">
+    {%- for p in posts offset: 1 %}
+    {% include share-card.html post=p %}
+    {%- endfor %}
+  </div>
+  {%- endif %}
+  {% include slot.html name="after-shelf" %}
+</section>
