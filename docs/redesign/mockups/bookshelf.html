@@ -1,0 +1,497 @@
+<title>書架原型</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+
+/* Layout: 一欄說明文件(max 60rem),元件示範用真實資料;膠框只用在被示範的元件上,文件本身保持安靜。 */
+
+/* ── 第 1 層:原始值(template 使用者只動這層) ─────────────── */
+:root {
+  --h: 72;              /* 主色色相:琥珀 */
+  --c: 0.15;            /* 主色彩度 */
+  --h-cool: calc(var(--h) + 190);  /* 底色偏向互補的冷色,讓琥珀透光感更明顯 */
+
+  --font-ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-code: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* 字級:base 16px、比例 1.25 */
+  --t-xs: 0.8rem; --t-sm: 0.875rem; --t-md: 1rem; --t-lg: 1.25rem; --t-xl: 1.5625rem; --t-2xl: 1.953rem; --t-3xl: 2.441rem;
+
+  /* 膠框厚度依重要性分三級 */
+  --rim-feature: 12px; --rim-card: 9px; --rim-compact: 5px;
+  --r-frame: 20px;
+}
+
+/* ── 第 2 層:語意 token(晝) ─────────────── */
+:root, .scope-day {
+  --ground:     oklch(0.935 0.006 var(--h-cool));
+  --ground-2:   oklch(0.900 0.008 var(--h-cool));
+  --ink:        oklch(0.230 0.015 var(--h));
+  --ink-2:      oklch(0.460 0.018 var(--h));
+  --accent:     oklch(0.520 0.130 var(--h));
+  --well:       oklch(0.990 0.004 var(--h));
+  --well-line:  oklch(0.500 0.080 var(--h) / 0.18);
+  --well-shade: oklch(0.300 0.050 var(--h) / 0.14);
+  --resin:      oklch(0.820 var(--c) var(--h) / 0.55);
+  --resin-base: oklch(0.880 0.090 var(--h));
+  --edge-hi:    oklch(1 0 0 / 0.85);
+  --edge-lo:    oklch(0.450 0.120 var(--h) / 0.45);
+  --edge-line:  oklch(0.550 0.120 var(--h) / 0.35);
+  --glow:       oklch(0.720 0.170 var(--h) / 0.45);
+  --drop:       oklch(0.300 0.040 var(--h-cool) / 0.20);
+  --chip:       oklch(0.820 var(--c) var(--h) / 0.28);
+  --sheen:      oklch(1 0 0 / 0.55);
+  color-scheme: light;
+}
+
+/* ── 第 2 層:語意 token(夜) ─────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:     oklch(0.170 0.008 var(--h-cool));
+    --ground-2:   oklch(0.210 0.010 var(--h-cool));
+    --ink:        oklch(0.930 0.015 var(--h));
+    --ink-2:      oklch(0.720 0.020 var(--h));
+    --accent:     oklch(0.810 var(--c) var(--h));
+    --well:       oklch(0.215 0.010 var(--h));
+    --well-line:  oklch(0.800 0.100 var(--h) / 0.14);
+    --well-shade: oklch(0 0 0 / 0.55);
+    --resin:      oklch(0.700 var(--c) var(--h) / 0.32);
+    --resin-base: oklch(0.360 0.080 var(--h));
+    --edge-hi:    oklch(0.950 0.090 var(--h) / 0.55);
+    --edge-lo:    oklch(0 0 0 / 0.55);
+    --edge-line:  oklch(0.800 0.130 var(--h) / 0.30);
+    --glow:       oklch(0.750 0.170 var(--h) / 0.28);
+    --drop:       oklch(0 0 0 / 0.60);
+    --chip:       oklch(0.700 var(--c) var(--h) / 0.22);
+    --sheen:      oklch(0.950 0.080 var(--h) / 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"], .scope-night {
+  --ground:     oklch(0.170 0.008 var(--h-cool));
+  --ground-2:   oklch(0.210 0.010 var(--h-cool));
+  --ink:        oklch(0.930 0.015 var(--h));
+  --ink-2:      oklch(0.720 0.020 var(--h));
+  --accent:     oklch(0.810 var(--c) var(--h));
+  --well:       oklch(0.215 0.010 var(--h));
+  --well-line:  oklch(0.800 0.100 var(--h) / 0.14);
+  --well-shade: oklch(0 0 0 / 0.55);
+  --resin:      oklch(0.700 var(--c) var(--h) / 0.32);
+  --resin-base: oklch(0.360 0.080 var(--h));
+  --edge-hi:    oklch(0.950 0.090 var(--h) / 0.55);
+  --edge-lo:    oklch(0 0 0 / 0.55);
+  --edge-line:  oklch(0.800 0.130 var(--h) / 0.30);
+  --glow:       oklch(0.750 0.170 var(--h) / 0.28);
+  --drop:       oklch(0 0 0 / 0.60);
+  --chip:       oklch(0.700 var(--c) var(--h) / 0.22);
+  --sheen:      oklch(0.950 0.080 var(--h) / 0.35);
+  color-scheme: dark;
+}
+.scope-day, .scope-night { background: var(--ground); color: var(--ink); }
+
+/* ── 文件本身 ─────────────── */
+html { font-size: 16px; }
+body {
+  background: var(--ground); color: var(--ink);
+  font-family: var(--font-ui); font-size: var(--t-md); line-height: 1.75;
+  padding: 0 16px;
+  -webkit-font-smoothing: antialiased;
+}
+.doc { max-width: 60rem; margin: 0 auto; padding-block: 0 6rem; display: grid; gap: 4.5rem; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.35; margin: 0; }
+h1 { font-size: var(--t-3xl); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: var(--t-2xl); font-weight: 700; }
+h3 { font-size: var(--t-lg); font-weight: 700; }
+p { margin: 0; }
+.prose { max-width: 38rem; display: grid; gap: 0.9rem; color: var(--ink-2); }
+.prose strong { color: var(--ink); font-weight: 500; }
+section { display: grid; gap: 1.75rem; min-width: 0; }
+section > header { display: grid; gap: 0.75rem; }
+code { font-family: var(--font-code); font-size: 0.88em; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* 控制列 */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  margin: 0 -16px; padding: 0.6rem 16px;
+  background: color-mix(in oklch, var(--ground) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--well-line);
+}
+.bar-inner { max-width: 60rem; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; font-size: var(--t-sm); }
+.bar-inner .name { font-weight: 700; margin-right: auto; }
+.seg { display: inline-flex; border-radius: 999px; padding: 3px; background: var(--chip); gap: 2px; }
+.seg button {
+  font: inherit; color: var(--ink-2); background: none; border: 0; border-radius: 999px;
+  padding: 0.15rem 0.8rem; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--well); color: var(--ink); box-shadow: 0 1px 2px var(--drop); }
+.hue { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink-2); }
+.hue input { width: 8rem; accent-color: var(--accent); }
+.hue output { font-variant-numeric: tabular-nums; min-width: 2.2em; color: var(--ink); }
+.linkbtn { font: inherit; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 開場 */
+.intro { padding-top: 3.5rem; display: grid; gap: 2.5rem; }
+.intro .prose { font-size: var(--t-lg); line-height: 1.7; max-width: 34rem; }
+
+/* ── 材質:膠框 ─────────────── */
+.gel {
+  --rim: var(--rim-card);
+  position: relative; isolation: isolate; overflow: hidden;
+  display: block; color: inherit; text-decoration: none;
+  border-radius: var(--r-frame);
+  padding: var(--rim);
+  background: var(--resin-base);
+  box-shadow:
+    inset 0 1px 0 0 var(--edge-hi),
+    inset 0 -2px 3px -1px var(--edge-lo),
+    inset 0 0 0 1px var(--edge-line),
+    0 1px 2px var(--drop),
+    0 18px 34px -14px var(--glow),
+    0 28px 56px -30px var(--drop);
+  transition: transform 220ms cubic-bezier(.2,.7,.2,1), box-shadow 220ms;
+}
+/* 縮圖暈進膠框:每張卡的框色來自它自己的圖 */
+.gel::before {
+  content: ""; position: absolute; inset: -24px; z-index: -1;
+  background:
+    linear-gradient(170deg, var(--sheen) 0%, transparent 28%),
+    linear-gradient(var(--resin), var(--resin)),
+    var(--img, linear-gradient(transparent, transparent)) center / cover;
+  filter: blur(14px) saturate(1.35);
+}
+/* 跟著游標走的高光 */
+.gel::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(28rem circle at var(--mx, 30%) var(--my, 0%), var(--sheen), transparent 45%);
+  mix-blend-mode: soft-light; opacity: 0; transition: opacity 220ms;
+}
+a.gel:hover, a.gel:focus-visible { transform: translateY(-3px); box-shadow:
+    inset 0 1px 0 0 var(--edge-hi), inset 0 -2px 3px -1px var(--edge-lo), inset 0 0 0 1px var(--edge-line),
+    0 1px 2px var(--drop), 0 26px 44px -16px var(--glow), 0 36px 64px -30px var(--drop); }
+a.gel:hover::after, a.gel:focus-visible::after { opacity: 1; }
+.gel:focus-visible { outline-offset: 4px; }
+
+.well {
+  position: relative; overflow: hidden;
+  border-radius: calc(var(--r-frame) - var(--rim));
+  background: var(--well);
+}
+.well::after { /* 內凹:框比內容高一階 */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 2px 5px var(--well-shade), inset 0 0 0 1px var(--well-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gel, .gel::after { transition: none; }
+  a.gel:hover, a.gel:focus-visible { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .gel::before { filter: none; background: var(--resin-base); }
+}
+@supports not (color: oklch(0.5 0.1 70)) {
+  .gel { background: #c9902e; }
+}
+
+
+
+/* ── 書架原型 ─────────────── */
+.doc { gap: 3rem; }
+.intro { padding-top: 2.5rem; gap: 1rem; }
+.intro .prose { font-size: var(--t-md); }
+.rows { display: grid; gap: 2.25rem; }
+.row-head { display: flex; align-items: baseline; gap: 0.75rem; margin-bottom: 0.75rem; }
+.row-head .stars { color: var(--accent); letter-spacing: 0.08em; font-size: var(--t-lg); }
+.row-head .n { color: var(--ink-2); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+
+/* 書脊牆:膠框是展示櫃,底部的框就是層板 */
+.case { --rim: var(--rim-card); }
+.case .well {
+  --slot: 12.5rem; --board: 9px;
+  display: flex; flex-wrap: wrap; align-content: flex-start; gap: var(--board) 3px;
+  padding: 16px 16px 0;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 var(--slot), var(--resin-base) var(--slot) calc(var(--slot) + var(--board))) content-box,
+    var(--well);
+}
+.slot { height: var(--slot); display: flex; align-items: flex-end; }
+.spine {
+  --w: 28px; --ht: 90%;
+  width: var(--w); height: var(--ht);
+  border: 0; padding: 0.7rem 0 0.6rem; margin: 0; cursor: pointer;
+  font: inherit; font-size: 0.8rem; font-weight: 500; line-height: 1;
+  color: var(--spine-ink); background:
+    linear-gradient(90deg, rgb(255 255 255 / 0.22), transparent 16%, transparent 80%, rgb(0 0 0 / 0.28)),
+    var(--col);
+  border-radius: 3px 3px 1px 1px;
+  writing-mode: vertical-rl; text-orientation: upright;
+  display: flex; justify-content: space-between; align-items: center; overflow: hidden;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 1px 2px var(--drop);
+  transition: transform 200ms cubic-bezier(.2,.7,.2,1);
+}
+.spine .ti { overflow: hidden; white-space: nowrap; text-overflow: clip; }
+.spine .au { font-size: 0.66rem; font-weight: 400; opacity: 0.75; overflow: hidden; white-space: nowrap; max-height: 40%; }
+.spine:hover, .spine:focus-visible { transform: translateY(-10px); }
+.spine:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 封面牆 */
+.covers { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 1.25rem; }
+.cover-card { --rim: 6px; --r-frame: 14px; cursor: pointer; border: 0; font: inherit; text-align: left; width: 100%; }
+.cover-card .meta { padding: 0.55rem 0.65rem 0.7rem; display: grid; gap: 0.15rem; }
+.cover-card .meta b { font-size: var(--t-sm); font-weight: 500; color: var(--ink); line-height: 1.4; }
+.cover-card .meta span { font-size: var(--t-xs); color: var(--ink-2); }
+button.gel:hover, button.gel:focus-visible { transform: translateY(-3px); }
+button.gel:hover::after, button.gel:focus-visible::after { opacity: 1; }
+
+/* 示意封面:實站是 Goodreads 封面圖,載入失敗時就長這樣 */
+.cover {
+  aspect-ratio: 2 / 3; max-width: 100%;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.16), transparent 40%), var(--col);
+  color: var(--spine-ink); display: grid; align-content: space-between; padding: 12% 11%;
+}
+.cover .ti { font-size: 1.05rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.cover .au { font-size: 0.72rem; opacity: 0.8; }
+
+/* 翻開的書 */
+dialog.book {
+  border: 0; padding: 16px; background: transparent; color: var(--ink);
+  max-width: min(46rem, 100vw); width: 100%; overflow: visible;
+}
+dialog.book::backdrop { background: color-mix(in oklch, var(--ground) 70%, transparent); backdrop-filter: blur(6px); }
+.book-card { --rim: var(--rim-feature); }
+.book-card .well { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
+.book-card .cover { padding: 14% 12%; }
+.book-card .cover .ti { font-size: 1.5rem; }
+.book-info { padding: 1.5rem 1.6rem; display: grid; gap: 0.7rem; align-content: start; min-width: 0; }
+.book-info h2 { font-size: var(--t-xl); }
+.book-info .by { color: var(--ink-2); }
+.book-info .stars { color: var(--accent); font-size: var(--t-lg); letter-spacing: 0.08em; }
+.book-info .facts { font-size: var(--t-sm); color: var(--ink-2); display: grid; gap: 0.15rem; }
+.book-info .gr { font-size: var(--t-sm); margin-top: 0.4rem; }
+.book-nav { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-top: 1rem; }
+.navbtn {
+  font: inherit; font-size: var(--t-lg); width: 2.6rem; height: 2.6rem; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--chip); color: var(--ink);
+}
+.navbtn:disabled { opacity: 0.35; cursor: default; }
+.book-nav .pos { font-size: var(--t-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; min-width: 4em; text-align: center; }
+.closebtn { position: absolute; top: 2px; right: 2px; z-index: 3; }
+.book-stage { position: relative; touch-action: pan-y; }
+.book-stage.in-l .book-card { animation: inL 260ms cubic-bezier(.2,.7,.2,1); }
+.book-stage.in-r .book-card { animation: inR 260ms cubic-bezier(.2,.7,.2,1); }
+.book-stage.open .book-card { animation: rise 280ms cubic-bezier(.2,.7,.2,1); }
+@keyframes inL { from { transform: translateX(-40px); opacity: 0; } }
+@keyframes inR { from { transform: translateX(40px); opacity: 0; } }
+@keyframes rise { from { transform: translateY(24px) scale(0.96); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .spine { transition: none; }
+  .book-stage .book-card { animation: none !important; }
+}
+@media (max-width: 600px) {
+  .book-card .well { grid-template-columns: 1fr; }
+  .book-card .cover { aspect-ratio: 3 / 2; align-content: end; gap: 0.5rem; }
+  .book-info { padding: 1.1rem 1.2rem 1.3rem; }
+  .case .well { --slot: 10.5rem; }
+}
+.hint { font-size: var(--t-sm); color: var(--ink-2); }
+.cmp { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1rem; }
+.cmp .tier p + p { margin-top: 0.3rem; }
+
+</style>
+
+<div class="bar">
+  <div class="bar-inner">
+    <span class="name">書架原型</span>
+    <div class="seg" role="group" aria-label="排法">
+      <button type="button" data-view="spines" aria-pressed="true">書脊牆</button>
+      <button type="button" data-view="covers" aria-pressed="false">封面牆</button>
+    </div>
+    <div class="seg" role="group" aria-label="主題">
+      <button type="button" data-theme-set="system" aria-pressed="true">跟系統</button>
+      <button type="button" data-theme-set="light" aria-pressed="false">晝</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false">夜</button>
+    </div>
+  </div>
+</div>
+
+<main class="doc">
+  <div class="intro">
+    <h1>書架</h1>
+    <div class="prose">
+      <p>同一份書單的兩種排法,上方可以切換。點任何一本會翻開,翻開後可以左右滑動、按方向鍵,或按兩側按鈕,翻到同一個評分的前後本。</p>
+      <p>書名、作者是真的書,<strong>頁數、評分和顏色都是示意</strong>。實站的書脊顏色會從封面算出來,翻開後顯示的是 Goodreads 的封面圖。這裡的封面是圖片載入失敗時的備用樣式。</p>
+    </div>
+  </div>
+
+  <div class="rows" id="rows"></div>
+
+  <section>
+    <header><h2>兩種排法差在哪</h2></header>
+    <div class="cmp">
+      <div class="tier">
+        <h3>書脊牆</h3>
+        <p>一列放得下三四十本,300 本大概捲兩三個畫面就看完。總覽不載入任何圖片。</p>
+        <p>總覽時看不到封面,要靠書名認書。膠框在這裡是展示櫃,不是卡片。</p>
+      </div>
+      <div class="tier">
+        <h3>封面牆</h3>
+        <p>跟 share 卡片的風格最一致,封面一眼就認得出來。</p>
+        <p>手機上一列只放得下兩三本,300 本要捲很久,封面圖片也要一路載入。</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog class="book" id="book" aria-label="書">
+  <div class="book-stage" id="stage">
+    <div class="gel book-card">
+      <div class="well">
+        <div class="cover" id="b-cover"><span class="ti" id="b-cti"></span><span class="au" id="b-cau"></span></div>
+        <div class="book-info">
+          <h2 id="b-title"></h2>
+          <div class="by" id="b-author"></div>
+          <div class="stars" id="b-stars"></div>
+          <div class="facts"><span id="b-pages"></span></div>
+          <a class="gr" id="b-gr" href="https://www.goodreads.com" target="_blank" rel="noopener">在 Goodreads 查看</a>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="navbtn closebtn" id="b-close" aria-label="闔上">×</button>
+  </div>
+  <div class="book-nav">
+    <button type="button" class="navbtn" id="b-prev" aria-label="上一本">‹</button>
+    <span class="pos" id="b-pos"></span>
+    <button type="button" class="navbtn" id="b-next" aria-label="下一本">›</button>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  var books = [
+    ['百年孤寂','馬奎斯',416,5,'#7a3b1f'], ['卡拉馬助夫兄弟們','杜斯妥也夫斯基',1200,5,'#2f3e46'],
+    ['異鄉人','卡繆',160,5,'#d9c7a1'], ['白鯨記','梅爾維爾',688,5,'#1f4e5f'],
+    ['老人與海','海明威',128,5,'#3a7ca5'], ['雪國','川端康成',192,5,'#e8e4dc'],
+    ['追憶似水年華','普魯斯特',720,5,'#8c5e3c'], ['戰爭與和平','托爾斯泰',1500,5,'#4a2c2a'],
+    ['罪與罰','杜斯妥也夫斯基',640,4,'#5c1a1b'], ['大亨小傳','費茲傑羅',224,4,'#c9a227'],
+    ['一九八四','歐威爾',368,4,'#b22222'], ['人間失格','太宰治',176,4,'#2b2b2b'],
+    ['安娜．卡列尼娜','托爾斯泰',960,4,'#6b2d5c'], ['變形記','卡夫卡',112,4,'#8a9a5b'],
+    ['包法利夫人','福樓拜',448,4,'#9c6644'], ['傲慢與偏見','珍．奧斯汀',432,4,'#a3b18a'],
+    ['咆哮山莊','艾蜜莉．勃朗特',416,4,'#344e41'], ['蒼蠅王','高汀',288,4,'#d4a373'],
+    ['長日將盡','石黑一雄',304,4,'#e9d8a6'], ['玫瑰的名字','艾可',640,4,'#3d405b'],
+    ['挪威的森林','村上春樹',384,3,'#3f7d20'], ['美麗新世界','赫胥黎',320,3,'#4895ef'],
+    ['簡愛','夏綠蒂．勃朗特',560,3,'#7f5539'], ['唐吉訶德','塞萬提斯',1100,3,'#bc6c25'],
+    ['麥田捕手','沙林傑',256,3,'#c1121f']
+  ].map(function (b, i) { return { t: b[0], a: b[1], p: b[2], r: b[3], c: b[4], i: i }; });
+
+  function inkFor(hex) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
+    var l = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+    return l > 0.6 ? '#1c1a17' : '#f7f3ea';
+  }
+  function stars(r) { return '★★★★★'.slice(0, r) + '☆☆☆☆☆'.slice(0, 5 - r); }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  var groups = [5, 4, 3].map(function (r) { return { r: r, list: books.filter(function (b) { return b.r === r; }) }; });
+  var rows = document.getElementById('rows');
+  var view = 'spines';
+
+  function render() {
+    rows.textContent = '';
+    groups.forEach(function (g) {
+      var sec = el('section');
+      var head = el('div', 'row-head');
+      var st = el('span', 'stars', stars(g.r)); st.setAttribute('aria-label', g.r + ' 顆星');
+      head.appendChild(st); head.appendChild(el('span', 'n', g.list.length + ' 本'));
+      sec.appendChild(head);
+      if (view === 'spines') {
+        var cs = el('div', 'gel case'); var well = el('div', 'well'); cs.appendChild(well);
+        g.list.forEach(function (b, k) {
+          var slot = el('div', 'slot');
+          var sp = el('button', 'spine'); sp.type = 'button';
+          sp.style.setProperty('--w', Math.round(Math.min(58, Math.max(24, 18 + b.p / 26))) + 'px');
+          sp.style.setProperty('--ht', (84 + (b.t.length * 7 + b.p) % 14) + '%');
+          sp.style.setProperty('--col', b.c); sp.style.setProperty('--spine-ink', inkFor(b.c));
+          sp.setAttribute('aria-label', b.t + ',' + b.a);
+          sp.appendChild(el('span', 'ti', b.t)); sp.appendChild(el('span', 'au', b.a));
+          sp.addEventListener('click', function () { openBook(g.list, k); });
+          slot.appendChild(sp); well.appendChild(slot);
+        });
+        sec.appendChild(cs);
+      } else {
+        var grid = el('div', 'covers');
+        g.list.forEach(function (b, k) {
+          var card = el('button', 'gel cover-card'); card.type = 'button';
+          card.style.setProperty('--img', 'linear-gradient(' + b.c + ',' + b.c + ')');
+          var well = el('div', 'well');
+          var cv = el('div', 'cover'); cv.style.setProperty('--col', b.c); cv.style.setProperty('--spine-ink', inkFor(b.c));
+          cv.appendChild(el('span', 'ti', b.t)); cv.appendChild(el('span', 'au', b.a));
+          var meta = el('div', 'meta'); meta.appendChild(el('b', null, b.t)); meta.appendChild(el('span', null, b.a));
+          well.appendChild(cv); well.appendChild(meta); card.appendChild(well);
+          card.addEventListener('click', function () { openBook(g.list, k); });
+          grid.appendChild(card);
+        });
+        sec.appendChild(grid);
+      }
+      rows.appendChild(sec);
+    });
+  }
+
+  var dlg = document.getElementById('book'), stage = document.getElementById('stage');
+  var cur = null, idx = 0, opener = null;
+  function fill(dir) {
+    var b = cur[idx];
+    var cv = document.getElementById('b-cover');
+    cv.style.setProperty('--col', b.c); cv.style.setProperty('--spine-ink', inkFor(b.c));
+    stage.querySelector('.book-card').style.setProperty('--img', 'linear-gradient(' + b.c + ',' + b.c + ')');
+    document.getElementById('b-cti').textContent = b.t;
+    document.getElementById('b-cau').textContent = b.a;
+    document.getElementById('b-title').textContent = b.t;
+    document.getElementById('b-author').textContent = b.a;
+    var s = document.getElementById('b-stars'); s.textContent = stars(b.r); s.setAttribute('aria-label', '5 顆星中的 ' + b.r + ' 顆');
+    document.getElementById('b-pages').textContent = b.p + ' 頁(示意)';
+    document.getElementById('b-gr').href = 'https://www.goodreads.com/search?q=' + encodeURIComponent(b.t);
+    document.getElementById('b-pos').textContent = (idx + 1) + ' / ' + cur.length;
+    document.getElementById('b-prev').disabled = idx === 0;
+    document.getElementById('b-next').disabled = idx === cur.length - 1;
+    stage.classList.remove('in-l', 'in-r', 'open'); void stage.offsetWidth;
+    stage.classList.add(dir);
+  }
+  function openBook(list, k) { opener = document.activeElement; cur = list; idx = k; fill('open'); dlg.showModal(); }
+  function go(d) { var n = idx + d; if (!cur || n < 0 || n >= cur.length) return; idx = n; fill(d > 0 ? 'in-r' : 'in-l'); }
+  document.getElementById('b-prev').addEventListener('click', function () { go(-1); });
+  document.getElementById('b-next').addEventListener('click', function () { go(1); });
+  document.getElementById('b-close').addEventListener('click', function () { dlg.close(); });
+  dlg.addEventListener('close', function () { if (opener) opener.focus(); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+  dlg.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowRight') { go(1); e.preventDefault(); }
+    if (e.key === 'ArrowLeft') { go(-1); e.preventDefault(); }
+  });
+  var sx = null;
+  stage.addEventListener('pointerdown', function (e) { sx = e.clientX; });
+  stage.addEventListener('pointerup', function (e) {
+    if (sx == null) return; var dx = e.clientX - sx; sx = null;
+    if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+  });
+
+  document.querySelectorAll('[data-view]').forEach(function (b, _, all) {
+    b.addEventListener('click', function () {
+      view = b.dataset.view;
+      all.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+      render();
+    });
+  });
+  var root = document.documentElement;
+  document.querySelectorAll('[data-theme-set]').forEach(function (b, _, all) {
+    b.addEventListener('click', function () {
+      var v = b.dataset.themeSet;
+      if (v === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', v);
+      all.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+  render();
+})();
+</script>
