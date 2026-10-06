@@ -1,1 +1,18 @@
-/* shelf-filter */
+/* 書架篩選 */
+.filters { display: flex; flex-wrap: wrap; gap: 0.6rem 0.75rem; align-items: center; }
+.filters[hidden] { display: none; } /* 上一行的 display: flex 會蓋掉 hidden 屬性 */
+.filter-q input {
+  font: inherit; font-size: var(--t-sm); color: var(--ink);
+  background: var(--well); border: 0; border-radius: 999px;
+  padding: 0.35rem 0.9rem; width: min(18rem, 100%);
+  box-shadow: inset 0 1px 2px var(--well-shade), 0 0 0 1px var(--well-line);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chipbtn { font: inherit; font-size: var(--t-sm); cursor: pointer; padding: 0.2rem 0.85rem; border-radius: 999px; border: 0; background: var(--chip); color: var(--ink); }
+.chipbtn .n { color: var(--ink-2); font-variant-numeric: tabular-nums; margin-left: 0.3rem; }
+.chipbtn[aria-pressed="true"] { background: var(--accent); color: var(--well); }
+.chipbtn[aria-pressed="true"] .n { color: inherit; opacity: 0.8; }
+.filters .count { margin-left: auto; font-size: var(--t-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.keys { margin: 0; font-size: var(--t-xs); color: var(--ink-2); }
+.keys kbd { font-family: var(--font-code); padding: 0.05rem 0.4rem; border-radius: 5px; background: var(--well); color: var(--ink); box-shadow: 0 0 0 1px var(--well-line); }
+@media (hover: none) { .keys { display: none; } }
