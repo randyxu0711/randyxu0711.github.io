@@ -30,7 +30,7 @@
 
 ```bash
 docker run --rm -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -w /srv ruby:3.4 bash -c \
-  "git config --global --add safe.directory /srv && bundle install --quiet && JEKYLL_ENV=production bundle exec jekyll build && \
+  "bundle install --quiet && JEKYLL_ENV=production bundle exec jekyll build && \
    bundle exec htmlproofer _site --disable-external --ignore-urls '/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/'"
 ```
 
@@ -38,7 +38,7 @@ docker run --rm -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -w /srv ruby:3
 
 ```bash
 docker run --rm -p 4000:4000 -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -w /srv ruby:3.4 bash -c \
-  "git config --global --add safe.directory /srv && bundle install --quiet && bundle exec jekyll serve -H 0.0.0.0 -l"
+  "bundle install --quiet && bundle exec jekyll serve -H 0.0.0.0 -l"
 ```
 
 ## Review Focus
@@ -48,6 +48,20 @@ docker run --rm -p 4000:4000 -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -
 3. **tag 名稱含 `/` 與空白**(`AI/LLM`、`Programming Languages`):篩選與網址 hash 來回轉換不失真。→ Task 4 的手動檢查清單逐一列出。
 4. **Goodreads CSV 的真實格式**:UTF-8 BOM、CRLF、心得欄含逗號/引號/換行、ISBN 是 `="..."` 形式、日期 `2024/03/02`、空的頁數。→ Task 9 的 fixture 全部涵蓋。
 5. **外文書名放在直排書脊**:拉丁字母要橫躺(`text-orientation: mixed`),過長要截斷,不能撐破書脊。→ Task 11 的手動檢查。
+
+## Wave 1 完成後的實際狀況(Wave 2 起必讀)
+
+Wave 1(Task 1–3、6–9)已合進 `redesign`。實作時與上面計畫不同、後續 task 要知道的事:
+
+- **share 不產生內部頁是靠 `_plugins/no-post-output.rb`**,不是 `collections.posts.output`(Jekyll 會強制設回 true,那個設定已從 `_config.yml` 拿掉)。
+- `.gitignore` 用的是 `/books/`(只忽略根目錄),`assets/modules/books/` 不受影響。
+- head 的行內主題 script 也認 `system`:訪客選「跟系統」後不會被 `appearance.mode` 蓋回去。
+- 建置指令(上面的 JEKYLL_BUILD)容器裡不跑 `git config`;worktree 的 `.git` 檔在容器內找不到。
+- 本機沒有 pytest:用 `uvx --with pillow pytest tools -q`。
+- 若 `git` 指令被 RTK hook 擋下,改用 `/usr/bin/git`。
+- Docker Desktop 可能沒在執行:`docker version` 失敗時,從 Windows 啟動 Docker Desktop,約 15 秒後可用。
+- 第一次建置會重裝 gem(約 5–6 分鐘),之後有快取。
+- `tools/books/books.py` 已完成且與計畫程式碼一致;`_posts` 已全部補上 `archive`。
 
 ---
 
@@ -2576,7 +2590,7 @@ jobs:
 
 - [ ] **Step 2: 更新 `CLAUDE.md`**
 
-把〈架構〉與〈一則 share〉兩節改寫成新架構:Jekyll 無主題、三層 token(`assets/css/tokens.css` ← `_config.yml` 的 `appearance`)、`.gel` 材質、插槽與模組(`_config.yml` 的 `modules:`、`_includes/modules/<m>/`、`assets/modules/<m>/`)、share 不產生內部頁(`collections.posts.output: false`)、`archive` 欄位與 `_data/linkcheck.json`、書單流程(`bash tools/books/run.sh`,CSV 永不進 repo)。刪掉「升級 Chirpy 時要逐一對照這些覆蓋檔」。〈測試〉改成 `python3 -m pytest tools`。〈之後再說〉換成 SPEC 的清單。
+把〈架構〉與〈一則 share〉兩節改寫成新架構:Jekyll 無主題、三層 token(`assets/css/tokens.css` ← `_config.yml` 的 `appearance`)、`.gel` 材質、插槽與模組(`_config.yml` 的 `modules:`、`_includes/modules/<m>/`、`assets/modules/<m>/`)、share 不產生內部頁(`_plugins/no-post-output.rb`)、`archive` 欄位與 `_data/linkcheck.json`、書單流程(`bash tools/books/run.sh`,CSV 永不進 repo)。刪掉「升級 Chirpy 時要逐一對照這些覆蓋檔」。〈測試〉改成 `python3 -m pytest tools`。〈之後再說〉換成 SPEC 的清單。
 
 - [ ] **Step 3: 更新 `README.md`**
 
