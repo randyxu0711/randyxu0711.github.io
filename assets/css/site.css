@@ -88,3 +88,14 @@ img { max-width: 100%; }
 
 /* 格狀 */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.75rem; align-items: start; }
+
+/* About */
+.lang-switch { display: inline-flex; border-radius: 999px; padding: 3px; background: var(--chip); gap: 2px; margin-bottom: 1.5rem; }
+.lang-switch button { font: inherit; font-size: var(--t-sm); color: var(--ink-2); background: none; border: 0; border-radius: 999px; padding: 0.15rem 0.9rem; cursor: pointer; }
+.lang-switch button[aria-pressed="true"] { background: var(--well); color: var(--ink); box-shadow: 0 1px 2px var(--drop); }
+.lang-en, body[data-about-lang="en"] .lang-zh { display: none; }
+body[data-about-lang="en"] .lang-en { display: block; }
+.proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.5rem; margin: 1rem 0 2rem; }
+.project-card .thumb { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; }
+.project-summary { -webkit-line-clamp: unset; }
+.project-highlights { margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; }

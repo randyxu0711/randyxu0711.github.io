@@ -1,26 +1,8 @@
 ---
 # the default layout is 'page'
-icon: fas fa-info-circle
+title: 關於
 order: 4
 ---
-
-<style>
-  .lang-switch { display: inline-flex; border: 1px solid var(--main-border-color, rgba(128,128,128,.3)); border-radius: 999px; overflow: hidden; margin-bottom: 1.5rem; }
-  .lang-switch button { border: 0; background: none; color: inherit; padding: .25rem .9rem; font-size: .85rem; opacity: .6; }
-  .lang-switch button[aria-pressed="true"] { background: var(--main-border-color, rgba(128,128,128,.2)); opacity: 1; }
-  .lang-en, body[data-about-lang="en"] .lang-zh { display: none; }
-  body[data-about-lang="en"] .lang-en { display: block; }
-  .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; margin: 1rem 0 2rem; }
-  .proj-card { display: flex; flex-direction: column; border: 1px solid var(--main-border-color, rgba(128,128,128,.25)); border-radius: .75rem; overflow: hidden; color: inherit !important; text-decoration: none !important; border-bottom-width: 1px !important; transition: transform .15s, box-shadow .15s; }
-  .proj-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
-  .proj-thumb { aspect-ratio: 2 / 1; background: center / cover no-repeat; border-bottom: 1px solid var(--main-border-color, rgba(128,128,128,.25)); }
-  .proj-body { padding: .9rem 1rem 1rem; display: flex; flex-direction: column; flex: 1; }
-  .proj-body h3 { font-size: 1.15rem; margin: 0 0 .5rem; }
-  .proj-body p { font-size: .9rem; line-height: 1.6; margin: 0 0 .5rem; opacity: .85; }
-  .proj-body ul { font-size: .85rem; line-height: 1.55; margin: 0 0 .5rem; padding-left: 1.1rem; opacity: .75; }
-  .proj-lang { margin-top: auto; padding-top: .4rem; font-size: .8rem; opacity: .7; }
-  .proj-lang::before { content: ""; display: inline-block; width: .6rem; height: .6rem; border-radius: 50%; background: #3572A5; margin-right: .35rem; }
-</style>
 
 <div class="lang-switch" role="group" aria-label="Language">
   <button type="button" data-set-lang="zh" aria-pressed="true">中</button>
@@ -43,32 +25,7 @@ Welcome to my space.
 ## Projects
 
 <div class="proj-grid" markdown="0">
-  <a class="proj-card" href="https://github.com/randyxu0711/hyenovel" target="_blank" rel="noopener">
-    <div class="proj-thumb" style="background-image: url(https://opengraph.githubassets.com/1/randyxu0711/hyenovel)"></div>
-    <div class="proj-body">
-      <h3><i class="fab fa-github"></i> hyenovel</h3>
-      <p>文學小說與創作,對很多人來說不容易找到人分享或對談。於是我做了 hyenovel,讓 AI 對文字給出回饋,為創作者提供另一個角度,留一點反思其他可能性的空間。</p>
-      <ul>
-        <li>「分析」與「評論」由兩個隔離的 agent 負責,判斷互不污染</li>
-        <li>每條論點都要引用原文,程式逐字比對,找不到出處就擋下</li>
-        <li>找出串流瓶頸,回應時間從 83 秒降到 20 秒</li>
-      </ul>
-      <span class="proj-lang">Python · FastAPI · React · TypeScript</span>
-    </div>
-  </a>
-  <a class="proj-card" href="https://github.com/randyxu0711/wpSBOOT" target="_blank" rel="noopener">
-    <div class="proj-thumb" style="background-image: url(https://opengraph.githubassets.com/1/randyxu0711/wpSBOOT)"></div>
-    <div class="proj-body">
-      <h3><i class="fab fa-github"></i> wpSBOOT</h3>
-      <p>政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法,我負責開發它的網頁伺服器:上傳序列,以四種比對工具產生 Super-MSA。</p>
-      <ul>
-        <li>PostgreSQL 工作佇列 + heartbeat,worker 崩潰時工作可被接手</li>
-        <li>Docker Compose 部署,74 個自動化測試,含容器內實跑 4 種比對工具</li>
-        <li>結果頁記錄工具版本,方便重現</li>
-      </ul>
-      <span class="proj-lang">Python · FastAPI · PostgreSQL · Docker</span>
-    </div>
-  </a>
+{%- for pr in site.data.projects %}{% include project-card.html project=pr lang="zh" %}{% endfor %}
 </div>
 
 ## 經歷
@@ -105,32 +62,7 @@ This site holds my projects, plus technical articles I've read and think are wor
 ## Projects
 
 <div class="proj-grid" markdown="0">
-  <a class="proj-card" href="https://github.com/randyxu0711/hyenovel" target="_blank" rel="noopener">
-    <div class="proj-thumb" style="background-image: url(https://opengraph.githubassets.com/1/randyxu0711/hyenovel)"></div>
-    <div class="proj-body">
-      <h3><i class="fab fa-github"></i> hyenovel</h3>
-      <p>Literary fiction and creative writing aren't easy to share or talk through with others. hyenovel lets an AI respond to your text, giving writers another angle and some room to reconsider other possibilities.</p>
-      <ul>
-        <li>Analysis and critique run in two isolated agents, so judgment stays independent</li>
-        <li>Every claim must quote the source; code verifies it verbatim and blocks anything it can't find</li>
-        <li>Found a streaming bottleneck and cut response time from 83s to 20s</li>
-      </ul>
-      <span class="proj-lang">Python · FastAPI · React · TypeScript</span>
-    </div>
-  </a>
-  <a class="proj-card" href="https://github.com/randyxu0711/wpSBOOT" target="_blank" rel="noopener">
-    <div class="proj-thumb" style="background-image: url(https://opengraph.githubassets.com/1/randyxu0711/wpSBOOT)"></div>
-    <div class="proj-body">
-      <h3><i class="fab fa-github"></i> wpSBOOT</h3>
-      <p>A phylogenetic method from Prof. Jia-Ming Chang's lab at NCCU, published in <i>Bioinformatics</i>. I build its web server: upload sequences, get a Super-MSA built from four aligners.</p>
-      <ul>
-        <li>PostgreSQL job queue with heartbeats, so crashed jobs get picked up</li>
-        <li>Docker Compose deployment, 74 automated tests including all 4 aligners run in-container</li>
-        <li>Every result page records tool versions for reproducibility</li>
-      </ul>
-      <span class="proj-lang">Python · FastAPI · PostgreSQL · Docker</span>
-    </div>
-  </a>
+{%- for pr in site.data.projects %}{% include project-card.html project=pr lang="en" %}{% endfor %}
 </div>
 
 ## Experience
