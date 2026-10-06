@@ -1,0 +1,11 @@
+{%- assign b = include.book -%}
+<button type="button" class="gel cover-card" data-row="{{ include.row }}" data-index="{{ include.index }}"
+        {%- if b.cover %} style="--img: url('{{ b.cover | replace: "'", "%27" | escape }}');{% if b.color %} --col: {{ b.color }}; --spine-ink: {{ b.ink }};{% endif %}"{% endif %}>
+  <span class="well">
+    <span class="cover">
+      {%- if b.cover %}<img src="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">{% endif -%}
+      <span class="cover-fallback"><span class="ti">{{ b.title | escape }}</span><span class="au">{{ b.author | escape }}</span></span>
+    </span>
+    <span class="meta"><b>{{ b.title | escape }}</b><span>{{ b.author | escape }}</span></span>
+  </span>
+</button>

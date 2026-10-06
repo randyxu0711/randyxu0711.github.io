@@ -14,3 +14,6 @@
 *.png binary
 *.jpg binary
 *.ico binary
+
+# Goodreads CSV fixture 要保留 BOM 與 CRLF(測試真實匯出格式)
+tools/books/fixtures/*.csv -text

@@ -1,0 +1,10 @@
+{%- comment -%}
+  插槽:把啟用中、有宣告這個插槽的模組片段插進來。
+  用法:{% include slot.html name="card-meta" post=post %}
+{%- endcomment -%}
+{%- for m in site.modules -%}
+  {%- if m[1].slots contains include.name -%}
+    {%- capture slot_path -%}modules/{{ m[0] }}/{{ include.name }}.html{%- endcapture -%}
+    {%- include {{ slot_path }} post=include.post -%}
+  {%- endif -%}
+{%- endfor -%}

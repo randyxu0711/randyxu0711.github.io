@@ -1,0 +1,5 @@
+/* 已開過 */
+.seen-mark { display: none; }
+.share.is-seen .seen-mark { display: inline; }
+.share.is-seen .gel { --resin: var(--chip); --glow: transparent; }
+.share.is-seen .share-title { color: var(--ink-2); }

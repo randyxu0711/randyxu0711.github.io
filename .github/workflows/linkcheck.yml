@@ -1,0 +1,45 @@
+name: Link check
+run-name: "link check"
+
+on:
+  schedule:
+    - cron: "0 18 * * 0"   # 每週一 02:00(台北)
+  workflow_dispatch:
+
+# 跟 share 共用,避免同時 push
+concurrency:
+  group: share
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.run.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - id: run
+        run: python3 tools/linkcheck/linkcheck.py _posts _data/linkcheck.json
+
+      - name: Commit
+        if: steps.run.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _data/linkcheck.json
+          git commit -m "linkcheck: 更新失效連結"
+          git pull --rebase
+          git push
+
+  # GITHUB_TOKEN 的 push 不會觸發 pages-deploy.yml,所以直接呼叫它
+  deploy:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages-deploy.yml

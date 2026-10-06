@@ -7,8 +7,8 @@
 
 | 元件 | 說明 |
 | --- | --- |
-| 主題 | [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy),版本鎖在 `Gemfile` |
-| 建置/部署 | GitHub Actions(`.github/workflows/pages-deploy.yml`),本機不需要 Ruby |
+| 版面 | 自己寫的 Jekyll 版面,不用主題(設計與決策見 [`docs/redesign/SPEC.md`](docs/redesign/SPEC.md)) |
+| 建置/部署 | GitHub Actions(`.github/workflows/pages-deploy.yml`);本機用 Docker 建置,不需要 Ruby |
 | 發文 | GitHub Issue Form → `share.yml` workflow → `tools/share/share.py`(純 stdlib) |
 | 資料 | 每則分享一個 `_posts/<date>-share-<issue#>.md`,縮圖 hotlink 不存 repo |
 
@@ -42,7 +42,9 @@ Issue(分享文章表單)
 
 只處理 repo owner 開的、帶 `share` label 的 issue。同時多則 issue 會排隊依序處理。
 
-從送出到上線約 1 分鐘;瀏覽器若還是舊版,是 PWA 快取,點「有新內容」提示或強制重新整理。
+從送出到上線約 1 分鐘;瀏覽器若還是舊版,強制重新整理(`Ctrl+Shift+R`)。
+
+發布時會順便請 Wayback Machine 存一份。`linkcheck.yml` 每週檢查原文,連續兩週連不到(404 / 410 / 網域不存在)的卡片會改連封存版。
 
 ### Bookmarklet(桌面瀏覽器)
 
@@ -63,17 +65,35 @@ javascript:(()=>{const u='https://github.com/randyxu0711/randyxu0711.github.io/i
 
 ## 新增 Project
 
-Projects 列在 About 頁,手寫卡片於 `_tabs/about.md`,複製一個 `<a class="proj-card">` 區塊改 repo 名與簡介即可。
+Projects 列在 About 頁,資料在 `_data/projects.yml`:複製一段,改 `name`、`repo`、中英文的 `summary` 與 `highlights`、`stack` 即可。
 縮圖用 GitHub 自動產生的 `https://opengraph.githubassets.com/1/<owner>/<repo>`。
+
+## 書單
+
+1. Goodreads → My Books → Import and Export → Export Library,下載 CSV。
+2. 放到 `books/goodreads_library_export.csv`(`books/` 已 gitignore,CSV 含私人筆記,不要 commit)。
+3. 執行 `bash tools/books/run.sh`(需要 Docker),會更新 `_data/books.json` 與 `_data/book_covers.json`。
+4. commit 這兩個檔並 push,網站會自動部署。
+
+不想公開的書,在 Goodreads 放進 `hide` 書架。封面只抓新加的書,已經抓過的會跳過。
+
+## 開關功能與外觀
+
+- `_config.yml` 的 `modules:` 一行一個功能(篩選、已開過、封存版、書單),註解掉就關掉。
+- `_config.yml` 的 `appearance:` 改主色色相(`hue`,琥珀 = 72)、彩度、預設主題與卡片框厚。
 
 ## 開發
 
 ```bash
-python3 -m pytest tools/share   # 發文腳本測試(表單解析、驗證、og 抽取、產生 md)
+uvx --with pillow pytest tools -q   # 所有 Python 工具的測試(發文、遷移、連結檢查、書單)
+
+# 本機建置 + 檢查連結
+docker run --rm -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -w /srv ruby:3.4 bash -c \
+  "bundle install --quiet && bundle exec jekyll build && bundle exec htmlproofer _site --disable-external"
+
+# 本機預覽(http://localhost:4000)
+docker run --rm -p 4000:4000 -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -w /srv ruby:3.4 bash -c \
+  "bundle install --quiet && bundle exec jekyll serve -H 0.0.0.0 -l"
 ```
 
-push 到 `tools/**` 時 CI 也會跑同一組測試(`.github/workflows/test.yml`)。
-
-覆蓋 Chirpy 的檔案(升級主題時需逐一比對):
-`_layouts/{home,tag,archives}.html`、`_includes/{update-list,search-loader,share-link,metadata-hook}.html`、
-`assets/js/data/search.json`。設計決策與約束見 [`CLAUDE.md`](CLAUDE.md)。
+push 到 `tools/**` 時 CI 也會跑同一組測試(`.github/workflows/test.yml`)。設計決策與約束見 [`CLAUDE.md`](CLAUDE.md)。

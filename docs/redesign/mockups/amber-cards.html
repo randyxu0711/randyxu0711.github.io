@@ -1,0 +1,1002 @@
+<title>琥珀卡片設計稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+/* Layout: 一欄說明文件(max 60rem),元件示範用真實資料;膠框只用在被示範的元件上,文件本身保持安靜。 */
+
+/* ── 第 1 層:原始值(template 使用者只動這層) ─────────────── */
+:root {
+  --h: 72;              /* 主色色相:琥珀 */
+  --c: 0.15;            /* 主色彩度 */
+  --h-cool: calc(var(--h) + 190);  /* 底色偏向互補的冷色,讓琥珀透光感更明顯 */
+
+  --font-ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-code: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+
+  /* 字級:base 16px、比例 1.25 */
+  --t-xs: 0.8rem; --t-sm: 0.875rem; --t-md: 1rem; --t-lg: 1.25rem; --t-xl: 1.5625rem; --t-2xl: 1.953rem; --t-3xl: 2.441rem;
+
+  /* 膠框厚度依重要性分三級 */
+  --rim-feature: 12px; --rim-card: 9px; --rim-compact: 5px;
+  --r-frame: 20px;
+}
+
+/* ── 第 2 層:語意 token(晝) ─────────────── */
+:root, .scope-day {
+  --ground:     oklch(0.935 0.006 var(--h-cool));
+  --ground-2:   oklch(0.900 0.008 var(--h-cool));
+  --ink:        oklch(0.230 0.015 var(--h));
+  --ink-2:      oklch(0.460 0.018 var(--h));
+  --accent:     oklch(0.520 0.130 var(--h));
+  --well:       oklch(0.990 0.004 var(--h));
+  --well-line:  oklch(0.500 0.080 var(--h) / 0.18);
+  --well-shade: oklch(0.300 0.050 var(--h) / 0.14);
+  --resin:      oklch(0.820 var(--c) var(--h) / 0.55);
+  --resin-base: oklch(0.880 0.090 var(--h));
+  --edge-hi:    oklch(1 0 0 / 0.85);
+  --edge-lo:    oklch(0.450 0.120 var(--h) / 0.45);
+  --edge-line:  oklch(0.550 0.120 var(--h) / 0.35);
+  --glow:       oklch(0.720 0.170 var(--h) / 0.45);
+  --drop:       oklch(0.300 0.040 var(--h-cool) / 0.20);
+  --chip:       oklch(0.820 var(--c) var(--h) / 0.28);
+  --sheen:      oklch(1 0 0 / 0.55);
+  color-scheme: light;
+}
+
+/* ── 第 2 層:語意 token(夜) ─────────────── */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground:     oklch(0.170 0.008 var(--h-cool));
+    --ground-2:   oklch(0.210 0.010 var(--h-cool));
+    --ink:        oklch(0.930 0.015 var(--h));
+    --ink-2:      oklch(0.720 0.020 var(--h));
+    --accent:     oklch(0.810 var(--c) var(--h));
+    --well:       oklch(0.215 0.010 var(--h));
+    --well-line:  oklch(0.800 0.100 var(--h) / 0.14);
+    --well-shade: oklch(0 0 0 / 0.55);
+    --resin:      oklch(0.700 var(--c) var(--h) / 0.32);
+    --resin-base: oklch(0.360 0.080 var(--h));
+    --edge-hi:    oklch(0.950 0.090 var(--h) / 0.55);
+    --edge-lo:    oklch(0 0 0 / 0.55);
+    --edge-line:  oklch(0.800 0.130 var(--h) / 0.30);
+    --glow:       oklch(0.750 0.170 var(--h) / 0.28);
+    --drop:       oklch(0 0 0 / 0.60);
+    --chip:       oklch(0.700 var(--c) var(--h) / 0.22);
+    --sheen:      oklch(0.950 0.080 var(--h) / 0.35);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"], .scope-night {
+  --ground:     oklch(0.170 0.008 var(--h-cool));
+  --ground-2:   oklch(0.210 0.010 var(--h-cool));
+  --ink:        oklch(0.930 0.015 var(--h));
+  --ink-2:      oklch(0.720 0.020 var(--h));
+  --accent:     oklch(0.810 var(--c) var(--h));
+  --well:       oklch(0.215 0.010 var(--h));
+  --well-line:  oklch(0.800 0.100 var(--h) / 0.14);
+  --well-shade: oklch(0 0 0 / 0.55);
+  --resin:      oklch(0.700 var(--c) var(--h) / 0.32);
+  --resin-base: oklch(0.360 0.080 var(--h));
+  --edge-hi:    oklch(0.950 0.090 var(--h) / 0.55);
+  --edge-lo:    oklch(0 0 0 / 0.55);
+  --edge-line:  oklch(0.800 0.130 var(--h) / 0.30);
+  --glow:       oklch(0.750 0.170 var(--h) / 0.28);
+  --drop:       oklch(0 0 0 / 0.60);
+  --chip:       oklch(0.700 var(--c) var(--h) / 0.22);
+  --sheen:      oklch(0.950 0.080 var(--h) / 0.35);
+  color-scheme: dark;
+}
+.scope-day, .scope-night { background: var(--ground); color: var(--ink); }
+
+/* ── 文件本身 ─────────────── */
+html { font-size: 16px; }
+body {
+  background: var(--ground); color: var(--ink);
+  font-family: var(--font-ui); font-size: var(--t-md); line-height: 1.75;
+  padding: 0 16px;
+  -webkit-font-smoothing: antialiased;
+}
+.doc { max-width: 60rem; margin: 0 auto; padding-block: 0 6rem; display: grid; gap: 4.5rem; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.35; margin: 0; }
+h1 { font-size: var(--t-3xl); font-weight: 700; letter-spacing: -0.01em; }
+h2 { font-size: var(--t-2xl); font-weight: 700; }
+h3 { font-size: var(--t-lg); font-weight: 700; }
+p { margin: 0; }
+.prose { max-width: 38rem; display: grid; gap: 0.9rem; color: var(--ink-2); }
+.prose strong { color: var(--ink); font-weight: 500; }
+section { display: grid; gap: 1.75rem; min-width: 0; }
+section > header { display: grid; gap: 0.75rem; }
+code { font-family: var(--font-code); font-size: 0.88em; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+/* 控制列 */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  margin: 0 -16px; padding: 0.6rem 16px;
+  background: color-mix(in oklch, var(--ground) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--well-line);
+}
+.bar-inner { max-width: 60rem; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 0.75rem 1.5rem; align-items: center; font-size: var(--t-sm); }
+.bar-inner .name { font-weight: 700; margin-right: auto; }
+.seg { display: inline-flex; border-radius: 999px; padding: 3px; background: var(--chip); gap: 2px; }
+.seg button {
+  font: inherit; color: var(--ink-2); background: none; border: 0; border-radius: 999px;
+  padding: 0.15rem 0.8rem; cursor: pointer;
+}
+.seg button[aria-pressed="true"] { background: var(--well); color: var(--ink); box-shadow: 0 1px 2px var(--drop); }
+.hue { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--ink-2); }
+.hue input { width: 8rem; accent-color: var(--accent); }
+.hue output { font-variant-numeric: tabular-nums; min-width: 2.2em; color: var(--ink); }
+.linkbtn { font: inherit; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+
+/* 開場 */
+.intro { padding-top: 3.5rem; display: grid; gap: 2.5rem; }
+.intro .prose { font-size: var(--t-lg); line-height: 1.7; max-width: 34rem; }
+
+/* ── 材質:膠框 ─────────────── */
+.gel {
+  --rim: var(--rim-card);
+  position: relative; isolation: isolate; overflow: hidden;
+  display: block; color: inherit; text-decoration: none;
+  border-radius: var(--r-frame);
+  padding: var(--rim);
+  background: var(--resin-base);
+  box-shadow:
+    inset 0 1px 0 0 var(--edge-hi),
+    inset 0 -2px 3px -1px var(--edge-lo),
+    inset 0 0 0 1px var(--edge-line),
+    0 1px 2px var(--drop),
+    0 18px 34px -14px var(--glow),
+    0 28px 56px -30px var(--drop);
+  transition: transform 220ms cubic-bezier(.2,.7,.2,1), box-shadow 220ms;
+}
+/* 縮圖暈進膠框:每張卡的框色來自它自己的圖 */
+.gel::before {
+  content: ""; position: absolute; inset: -24px; z-index: -1;
+  background:
+    linear-gradient(170deg, var(--sheen) 0%, transparent 28%),
+    linear-gradient(var(--resin), var(--resin)),
+    var(--img, linear-gradient(transparent, transparent)) center / cover;
+  filter: blur(14px) saturate(1.35);
+}
+/* 跟著游標走的高光 */
+.gel::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none; border-radius: inherit;
+  background: radial-gradient(28rem circle at var(--mx, 30%) var(--my, 0%), var(--sheen), transparent 45%);
+  mix-blend-mode: soft-light; opacity: 0; transition: opacity 220ms;
+}
+a.gel:hover, a.gel:focus-visible { transform: translateY(-3px); box-shadow:
+    inset 0 1px 0 0 var(--edge-hi), inset 0 -2px 3px -1px var(--edge-lo), inset 0 0 0 1px var(--edge-line),
+    0 1px 2px var(--drop), 0 26px 44px -16px var(--glow), 0 36px 64px -30px var(--drop); }
+a.gel:hover::after, a.gel:focus-visible::after { opacity: 1; }
+.gel:focus-visible { outline-offset: 4px; }
+
+.well {
+  position: relative; overflow: hidden;
+  border-radius: calc(var(--r-frame) - var(--rim));
+  background: var(--well);
+}
+.well::after { /* 內凹:框比內容高一階 */
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  box-shadow: inset 0 2px 5px var(--well-shade), inset 0 0 0 1px var(--well-line);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gel, .gel::after { transition: none; }
+  a.gel:hover, a.gel:focus-visible { transform: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .gel::before { filter: none; background: var(--resin-base); }
+}
+@supports not (color: oklch(0.5 0.1 70)) {
+  .gel { background: #c9902e; }
+}
+
+/* ── 元件:Share 卡 ─────────────── */
+.thumb {
+  aspect-ratio: 1.91 / 1; max-width: 100%;
+  background: var(--img) center / cover;
+  display: grid; place-items: end start; padding: 0.6rem 0.75rem;
+  color: oklch(1 0 0 / 0.82); font-size: var(--t-xs); letter-spacing: 0.02em;
+}
+.share-body { display: grid; gap: 0.6rem; padding: 1rem 1.15rem 1.15rem; min-width: 0; }
+.share-meta { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--t-xs); color: var(--ink-2); }
+.share-meta .src { display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-meta .src svg { flex: none; width: 0.85em; height: 0.85em; }
+.share-meta time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.share-title { font-size: var(--t-lg); font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; }
+.share-note { font-size: var(--t-md); line-height: 1.8; color: var(--ink); }
+.share-desc { font-size: var(--t-sm); line-height: 1.7; color: var(--ink-2);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.2rem; }
+.tag { font-size: var(--t-xs); padding: 0.1rem 0.6rem; border-radius: 999px; background: var(--chip); color: var(--ink); }
+
+/* 變體:精選(橫式,框最厚) */
+.gel.feature { --rim: var(--rim-feature); }
+.feature .well { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+.feature .thumb { aspect-ratio: auto; min-height: 100%; }
+.feature .share-body { padding: 1.5rem 1.6rem; align-content: center; gap: 0.85rem; }
+.feature .share-title { font-size: var(--t-xl); }
+@media (max-width: 720px) {
+  .feature .well { grid-template-columns: 1fr; }
+  .feature .thumb { aspect-ratio: 1.91 / 1; }
+  .feature .share-body { padding: 1.1rem 1.2rem 1.3rem; }
+}
+
+/* 變體:精簡(搜尋結果,框最薄) */
+.gel.compact { --rim: var(--rim-compact); --r-frame: 14px; }
+.compact .well { display: grid; grid-template-columns: 8.5rem minmax(0, 1fr); gap: 0; }
+.compact .thumb { aspect-ratio: auto; height: 100%; min-height: 4.6rem; padding: 0; }
+.compact .share-body { padding: 0.7rem 0.95rem; gap: 0.25rem; }
+.compact .share-title { font-size: var(--t-md); line-height: 1.5; }
+.compact .share-desc { -webkit-line-clamp: 1; }
+@media (max-width: 480px) { .compact .well { grid-template-columns: 5.5rem minmax(0, 1fr); } }
+
+/* 格狀 */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.75rem; align-items: start; }
+.stack { display: grid; gap: 1rem; }
+
+/* Project 卡 */
+.proj .share-body ul { margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; }
+.stackline { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* 晝夜並排 */
+.pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; }
+.panel { border-radius: 14px; padding: 1.5rem; display: grid; gap: 1.25rem; align-content: start; box-shadow: inset 0 0 0 1px var(--well-line); min-width: 0; }
+.panel h3 { font-size: var(--t-md); }
+.panel .cap { font-size: var(--t-sm); color: var(--ink-2); }
+.swatches { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.sw { display: grid; gap: 0.3rem; font-size: var(--t-xs); color: var(--ink-2); min-width: 0; }
+.sw i { display: block; height: 2.6rem; border-radius: 8px; box-shadow: inset 0 0 0 1px var(--well-line); }
+.sw b { color: var(--ink); font-weight: 500; }
+
+/* 構造拆解 */
+.layers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 1.5rem; }
+.layer { display: grid; gap: 0.75rem; align-content: start; }
+.layer .demo { height: 8.5rem; }
+.layer p { font-size: var(--t-sm); color: var(--ink-2); }
+.layer h3 { font-size: var(--t-md); }
+.l1 { border-radius: 20px; background: var(--well); box-shadow: 0 1px 2px var(--drop), 0 28px 56px -30px var(--drop); }
+.l2 { box-shadow: 0 1px 2px var(--drop), 0 28px 56px -30px var(--drop); }
+.l2::after, .l3::after { display: none; }
+.l2 .well::after { display: none; }
+.l2 { --img: none; }
+.l2::before { filter: none; }
+.l3::before { filter: none; }
+.l3 { --img: none; box-shadow: inset 0 1px 0 0 var(--edge-hi), inset 0 -2px 3px -1px var(--edge-lo), inset 0 0 0 1px var(--edge-line), 0 1px 2px var(--drop), 0 28px 56px -30px var(--drop); }
+.demo .well { height: 100%; }
+
+/* 線框、程式碼、表格 */
+.wire-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 17rem), 1fr)); gap: 1.25rem; }
+.wire { display: grid; gap: 0.6rem; align-content: start; min-width: 0; }
+.wire pre, .code {
+  margin: 0; overflow-x: auto; padding: 1rem 1.1rem; border-radius: 10px;
+  background: var(--ground-2); color: var(--ink); font-family: var(--font-code); font-size: 0.78rem; line-height: 1.5;
+}
+.wire h3 { font-size: var(--t-md); display: flex; gap: 0.6rem; align-items: baseline; }
+.wire p { font-size: var(--t-sm); color: var(--ink-2); }
+.pick { font-size: var(--t-xs); font-weight: 500; padding: 0.05rem 0.55rem; border-radius: 999px; background: var(--chip); color: var(--ink); }
+.wire.chosen pre { box-shadow: inset 0 0 0 2px var(--accent); }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: var(--t-sm); min-width: 34rem; }
+th, td { text-align: left; vertical-align: top; padding: 0.6rem 0.9rem 0.6rem 0; border-bottom: 1px solid var(--well-line); }
+th { font-weight: 500; color: var(--ink-2); }
+td code { color: var(--accent); }
+
+.tiers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: 1rem; }
+.tier { display: grid; gap: 0.5rem; align-content: start; padding: 1.1rem 1.2rem; border-radius: 12px; background: var(--ground-2); min-width: 0; }
+.tier h3 { font-size: var(--t-md); }
+.tier p { font-size: var(--t-sm); color: var(--ink-2); }
+.tier code { font-size: 0.78rem; color: var(--ink); overflow-wrap: anywhere; }
+
+.qs { display: grid; gap: 1rem; margin: 0; padding-left: 1.4rem; max-width: 40rem; }
+.qs li { padding-left: 0.3rem; }
+.qs li p { color: var(--ink-2); font-size: var(--t-sm); margin-top: 0.2rem; }
+.note-small { font-size: var(--t-sm); color: var(--ink-2); }
+
+/* 書架示範:原地篩選、已開過、鍵盤 */
+.shelf { display: grid; gap: 1.25rem; }
+.filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.chipbtn {
+  font: inherit; font-size: var(--t-sm); cursor: pointer;
+  padding: 0.2rem 0.85rem; border-radius: 999px; border: 0;
+  background: var(--chip); color: var(--ink);
+}
+.chipbtn .n { color: var(--ink-2); font-variant-numeric: tabular-nums; margin-left: 0.3rem; }
+.chipbtn[aria-pressed="true"] { background: var(--accent); color: var(--well); }
+.chipbtn[aria-pressed="true"] .n { color: inherit; opacity: 0.8; }
+.filters .count { margin-left: auto; font-size: var(--t-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.seen-mark { display: none; }
+.gel.seen { --resin: var(--chip); --glow: transparent; }
+.gel.seen .share-title { color: var(--ink-2); }
+.gel.seen .seen-mark { display: inline; }
+.keys { font-size: var(--t-sm); color: var(--ink-2); display: flex; flex-wrap: wrap; gap: 0.4rem 1.25rem; }
+kbd {
+  font-family: var(--font-code); font-size: 0.78rem; padding: 0.05rem 0.4rem; border-radius: 5px;
+  background: var(--well); color: var(--ink); box-shadow: inset 0 -1px 0 var(--well-line), 0 0 0 1px var(--well-line);
+}
+.empty { font-size: var(--t-sm); color: var(--ink-2); }
+
+/* 模組清單 */
+.mods { display: grid; gap: 2rem; }
+.modgroup { display: grid; gap: 0.9rem; }
+.modgroup > p { font-size: var(--t-sm); color: var(--ink-2); max-width: 40rem; }
+.modlist { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr)); gap: 0.9rem; }
+.mod { display: grid; gap: 0.4rem; align-content: start; padding: 1rem 1.1rem; border-radius: 12px; background: var(--ground-2); min-width: 0; }
+.mod h4 { margin: 0; font-size: var(--t-md); display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
+.mod p { font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; }
+.when { font-size: var(--t-xs); font-weight: 400; padding: 0.02rem 0.5rem; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--edge-line); color: var(--ink-2); }
+.mod.star { box-shadow: inset 0 0 0 2px var(--accent); }
+</style>
+
+<div class="bar">
+  <div class="bar-inner">
+    <span class="name">琥珀卡片設計稿</span>
+    <div class="seg" role="group" aria-label="主題">
+      <button type="button" data-theme-set="system" aria-pressed="true">跟系統</button>
+      <button type="button" data-theme-set="light" aria-pressed="false">晝</button>
+      <button type="button" data-theme-set="dark" aria-pressed="false">夜</button>
+    </div>
+    <label class="hue" for="hue">主色色相
+      <input id="hue" type="range" min="0" max="360" value="72">
+      <output id="hue-out" for="hue">72</output>
+      <button type="button" class="linkbtn" id="hue-reset">還原琥珀</button>
+    </label>
+  </div>
+</div>
+
+<main class="doc">
+
+  <div class="intro">
+    <header style="display:grid;gap:1rem">
+      <h1>把每則轉發封進琥珀</h1>
+      <div class="prose">
+        <p>琥珀會把東西原封不動保存下來。這個站做的事情很像:原文是別人的,我只是把它框起來,標明這是我覺得值得留下的。所以卡片的外框做成一圈有厚度的透明琥珀樹脂,原文的縮圖會透過樹脂暈出顏色。琥珀色只出現在框和光線上,文字本身保持中性。</p>
+      </div>
+    </header>
+
+    <a class="gel feature" href="https://webflow.sysdig.com/blog/security-briefing-september-2026" target="_blank" rel="noopener"
+       style="--img: linear-gradient(135deg, #0f5e6b 0%, #12a39a 45%, #f3c14b 100%)">
+      <div class="well">
+        <div class="thumb">示意縮圖,實站載入 og:image</div>
+        <div class="share-body">
+          <div class="share-meta">
+            <span class="src"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M9 2h5v5h-1.5V4.6L7.6 9.5 6.5 8.4l4.9-4.9H9V2zM3 4h4v1.5H4.5v6h6V9H12v4H3V4z"/></svg>webflow.sysdig.com</span>
+            <time datetime="2026-10-06">2026-10-06</time>
+          </div>
+          <h2 class="share-title">Security briefing: September 2026 | Sysdig</h2>
+          <p class="share-note">這期的重點是 agent 被拿來當攻擊工具的速度。示意心得,實站顯示你在 issue 裡寫的那段。</p>
+          <div class="tags"><span class="tag">AI/LLM</span><span class="tag">Security</span></div>
+        </div>
+      </div>
+    </a>
+    <p class="note-small">把游標移到卡片上,高光會跟著移動。上面的主色滑桿可以把整套換成別的顏色,這就是 template 使用者唯一要調的地方。</p>
+  </div>
+
+  <section id="themes">
+    <header>
+      <h2>晝與夜</h2>
+      <div class="prose">
+        <p>兩套配色共用同一組語意 token,只換數值。<strong>晝</strong>是日光從背後穿過琥珀:底色偏冷灰,卡片下方會映出琥珀色的光影。<strong>夜</strong>是燈下的琥珀:底色是帶點藍的煙燻灰,框比較暗、比較透,光影收斂成一圈微光。</p>
+        <p>兩邊的強調色都調過,當成文字顏色時對比度都在 4.5:1 以上。晝用深琥珀,夜用亮琥珀。</p>
+      </div>
+    </header>
+    <div class="pair">
+      <div class="panel scope-day">
+        <h3>晝</h3>
+        <div class="swatches">
+          <div class="sw"><i style="background:var(--ground)"></i><b>底色</b>ground</div>
+          <div class="sw"><i style="background:var(--well)"></i><b>內容區</b>well</div>
+          <div class="sw"><i style="background:var(--resin-base)"></i><b>樹脂</b>resin</div>
+          <div class="sw"><i style="background:var(--ink)"></i><b>文字</b>ink</div>
+          <div class="sw"><i style="background:var(--ink-2)"></i><b>次要文字</b>ink-2</div>
+          <div class="sw"><i style="background:var(--accent)"></i><b>強調</b>accent</div>
+        </div>
+        <a class="gel compact" href="https://blog.bytebytego.com/p/ep226-api-concepts-every-software" target="_blank" rel="noopener"
+           style="--img: linear-gradient(135deg, #f2f2f2 0%, #e9a84a 50%, #c4442e 100%)">
+          <div class="well">
+            <div class="thumb"></div>
+            <div class="share-body">
+              <div class="share-meta"><span class="src">blog.bytebytego.com</span><time datetime="2026-10-04">2026-10-04</time></div>
+              <h3 class="share-title">EP226: API Concepts Every Software Engineer Should Know</h3>
+            </div>
+          </div>
+        </a>
+      </div>
+      <div class="panel scope-night">
+        <h3>夜</h3>
+        <div class="swatches">
+          <div class="sw"><i style="background:var(--ground)"></i><b>底色</b>ground</div>
+          <div class="sw"><i style="background:var(--well)"></i><b>內容區</b>well</div>
+          <div class="sw"><i style="background:var(--resin-base)"></i><b>樹脂</b>resin</div>
+          <div class="sw"><i style="background:var(--ink)"></i><b>文字</b>ink</div>
+          <div class="sw"><i style="background:var(--ink-2)"></i><b>次要文字</b>ink-2</div>
+          <div class="sw"><i style="background:var(--accent)"></i><b>強調</b>accent</div>
+        </div>
+        <a class="gel compact" href="https://blog.bytebytego.com/p/ep226-api-concepts-every-software" target="_blank" rel="noopener"
+           style="--img: linear-gradient(135deg, #f2f2f2 0%, #e9a84a 50%, #c4442e 100%)">
+          <div class="well">
+            <div class="thumb"></div>
+            <div class="share-body">
+              <div class="share-meta"><span class="src">blog.bytebytego.com</span><time datetime="2026-10-04">2026-10-04</time></div>
+              <h3 class="share-title">EP226: API Concepts Every Software Engineer Should Know</h3>
+            </div>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section id="anatomy">
+    <header>
+      <h2>膠框的構造</h2>
+      <div class="prose">
+        <p>立體感是四層疊出來的,每一層都是一個 token,可以個別調整或關掉。下面從左到右,一次加一層。</p>
+      </div>
+    </header>
+    <div class="layers">
+      <div class="layer">
+        <div class="demo l1"></div>
+        <h3>1. 平面卡片</h3>
+        <p>內容區加上投影。到這一步就是一般的卡片。</p>
+      </div>
+      <div class="layer">
+        <div class="demo gel l2"><div class="well"></div></div>
+        <h3>2. 加一圈樹脂框</h3>
+        <p>內容區往內縮 <code>--rim</code>,露出的那一圈是半透明琥珀。</p>
+      </div>
+      <div class="layer">
+        <div class="demo gel l3"><div class="well"></div></div>
+        <h3>3. 邊緣與內凹</h3>
+        <p>框的上緣亮、下緣暗,內容區有內陰影,看起來像嵌在框裡。</p>
+      </div>
+      <div class="layer">
+        <div class="demo gel" style="--img: linear-gradient(135deg, #6d4aff 0%, #2b1d70 55%, #ff7a59 100%)"><div class="well"></div></div>
+        <h3>4. 透光</h3>
+        <p>縮圖模糊後透進樹脂,卡片下方映出琥珀色的光影。沒有縮圖的卡片就只有琥珀色。</p>
+      </div>
+    </div>
+    <p class="note-small">框的厚度表示重要程度:精選 12px、一般 9px、搜尋結果 5px。圓角也跟著角色走:外框 20px,內容區等於外框減掉框厚,標籤是膠囊形。</p>
+  </section>
+
+  <section id="components">
+    <header>
+      <h2>元件</h2>
+      <div class="prose">
+        <p>用目前站上的四則 share 和兩個 project 示範。每個元件都只吃 front matter 裡已經有的欄位,沒有的欄位就收起來,不留空位。</p>
+        <p>心得用正常字色和字級,沒有心得時顯示原文摘要,用小一號的灰字。靠字色和字級區分就夠了,不再用左邊那條色帶。</p>
+      </div>
+    </header>
+
+    <div class="grid">
+      <a class="gel" href="https://www.copilotkit.ai/blog/ag-ui-1.0" target="_blank" rel="noopener"
+         style="--img: linear-gradient(135deg, #6d4aff 0%, #2b1d70 55%, #ff7a59 100%)">
+        <div class="well">
+          <div class="thumb">示意縮圖</div>
+          <div class="share-body">
+            <div class="share-meta"><span class="src">copilotkit.ai</span><time datetime="2026-10-04">2026-10-04</time></div>
+            <h3 class="share-title">Introducing AG-UI 1.0: a stable spec for connecting any agent to any application</h3>
+            <p class="share-desc">We're releasing AG-UI 1.0, the open protocol that connects AI agents to user-facing applications, with a full specification and a JSON Schema that the TypeScript, Python and .NET SDKs are now generated from.</p>
+            <div class="tags"><span class="tag">AI/LLM</span></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="gel" href="https://noted.lol/libredb-studio/" target="_blank" rel="noopener"
+         style="--img: linear-gradient(135deg, #1e3a2f 0%, #3fae7a 55%, #d8f0c2 100%)">
+        <div class="well">
+          <div class="thumb">示意縮圖</div>
+          <div class="share-body">
+            <div class="share-meta"><span class="src">noted.lol</span><time datetime="2026-10-05">2026-10-05</time></div>
+            <h3 class="share-title">LibreDB Studio: open-source, free, self-hosted SQL IDE that runs in your browser, for 46 databases</h3>
+            <p class="share-note">自架的瀏覽器版 SQL IDE,不用開 SSH tunnel。示意心得。</p>
+            <div class="tags"><span class="tag">Backend</span></div>
+          </div>
+        </div>
+      </a>
+
+      <a class="gel" href="https://blog.bytebytego.com/p/ep226-api-concepts-every-software" target="_blank" rel="noopener">
+        <div class="well">
+          <div class="share-body">
+            <div class="share-meta"><span class="src">blog.bytebytego.com</span><time datetime="2026-10-04">2026-10-04</time></div>
+            <h3 class="share-title">EP226: API Concepts Every Software Engineer Should Know</h3>
+            <p class="share-desc">Sending a request and reading JSON is one thing. Designing an API that other people can rely on is something where things get complicated.</p>
+            <div class="tags"><span class="tag">Backend</span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <p class="note-small">第三張是縮圖載入失敗或沒有 og:image 的樣子:內容區直接從標題開始,框變成純琥珀色。</p>
+
+    <h3>搜尋結果</h3>
+    <div class="stack">
+      <a class="gel compact" href="https://www.copilotkit.ai/blog/ag-ui-1.0" target="_blank" rel="noopener"
+         style="--img: linear-gradient(135deg, #6d4aff 0%, #2b1d70 55%, #ff7a59 100%)">
+        <div class="well">
+          <div class="thumb"></div>
+          <div class="share-body">
+            <div class="share-meta"><span class="src">copilotkit.ai</span><time datetime="2026-10-04">2026-10-04</time></div>
+            <h3 class="share-title">Introducing AG-UI 1.0: a stable spec for connecting any agent to any application</h3>
+            <p class="share-desc">We're releasing AG-UI 1.0, the open protocol that connects AI agents to user-facing applications.</p>
+          </div>
+        </div>
+      </a>
+      <a class="gel compact" href="https://noted.lol/libredb-studio/" target="_blank" rel="noopener"
+         style="--img: linear-gradient(135deg, #1e3a2f 0%, #3fae7a 55%, #d8f0c2 100%)">
+        <div class="well">
+          <div class="thumb"></div>
+          <div class="share-body">
+            <div class="share-meta"><span class="src">noted.lol</span><time datetime="2026-10-05">2026-10-05</time></div>
+            <h3 class="share-title">LibreDB Studio: open-source, free, self-hosted SQL IDE that runs in your browser</h3>
+            <p class="share-desc">LibreDB Studio is a free, open-source database editor that runs in Docker.</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <h3>Project</h3>
+    <div class="grid">
+      <a class="gel proj" href="https://github.com/randyxu0711/hyenovel" target="_blank" rel="noopener"
+         style="--img: linear-gradient(135deg, #24292f 0%, #57606a 60%, #d0d7de 100%)">
+        <div class="well">
+          <div class="thumb">GitHub 預覽圖</div>
+          <div class="share-body">
+            <h3 class="share-title">hyenovel</h3>
+            <p class="share-desc" style="-webkit-line-clamp:unset">文學小說與創作,對很多人來說不容易找到人分享或對談。於是我做了 hyenovel,讓 AI 對文字給出回饋,為創作者提供另一個角度。</p>
+            <ul>
+              <li>「分析」與「評論」由兩個隔離的 agent 負責</li>
+              <li>每條論點都要引用原文,程式逐字比對</li>
+              <li>回應時間從 83 秒降到 20 秒</li>
+            </ul>
+            <div class="stackline"><span class="tag">Python</span><span class="tag">FastAPI</span><span class="tag">React</span><span class="tag">TypeScript</span></div>
+          </div>
+        </div>
+      </a>
+      <a class="gel proj" href="https://github.com/randyxu0711/wpSBOOT" target="_blank" rel="noopener"
+         style="--img: linear-gradient(135deg, #24292f 0%, #57606a 60%, #d0d7de 100%)">
+        <div class="well">
+          <div class="thumb">GitHub 預覽圖</div>
+          <div class="share-body">
+            <h3 class="share-title">wpSBOOT</h3>
+            <p class="share-desc" style="-webkit-line-clamp:unset">政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法,我負責開發它的網頁伺服器。</p>
+            <ul>
+              <li>PostgreSQL 工作佇列加 heartbeat,worker 崩潰可被接手</li>
+              <li>Docker Compose 部署,74 個自動化測試</li>
+            </ul>
+            <div class="stackline"><span class="tag">Python</span><span class="tag">FastAPI</span><span class="tag">PostgreSQL</span><span class="tag">Docker</span></div>
+          </div>
+        </div>
+      </a>
+    </div>
+    <p class="note-small">技術清單改成標籤,取代現在用 · 串起來的那一行。Project 跟 share 共用同一個卡片外殼,只差內容區的欄位。</p>
+  </section>
+
+  <section id="layout">
+    <header>
+      <h2>首頁版面</h2>
+      <div class="prose">
+        <p>拿掉 Chirpy 的左側欄,改成頂部一條細導覽列,寬度留給卡片。三種排法如下,我建議 B。</p>
+      </div>
+    </header>
+    <div class="wire-row">
+      <div class="wire">
+        <h3>A. 單欄長卷</h3>
+<pre>┌──────────────────────────┐
+│ Randy Xu   分享 標籤 關於 ◐│
+├──────────────────────────┤
+│ ┏━━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃ 標題          ┃ 縮圖 ┃ │
+│ ┃ 心得/摘要     ┃      ┃ │
+│ ┗━━━━━━━━━━━━━━━━━━━━━━┛ │
+│ ┏━━━━━━━━━━━━━━━━━━━━━━┓ │
+│ ┃ 標題          ┃ 縮圖 ┃ │
+│ ┗━━━━━━━━━━━━━━━━━━━━━━┛ │
+└──────────────────────────┘</pre>
+        <p>最接近現在的樣子。好讀,但一屏只看得到兩三則,縮圖也小。</p>
+      </div>
+      <div class="wire chosen">
+        <h3>B. 精選加格狀 <span class="pick">建議</span></h3>
+<pre>┌──────────────────────────┐
+│ Randy Xu   分享 標籤 關於 ◐│
+│ 一句自介                  │
+├──────────────────────────┤
+│ ┏━━━━━━━━━━━━━┳━━━━━━━━━┓ │
+│ ┃    縮圖     ┃ 最新一則 ┃ │
+│ ┃             ┃ 心得     ┃ │
+│ ┗━━━━━━━━━━━━━┻━━━━━━━━━┛ │
+│ ┏━━━━━━━━━━┓ ┏━━━━━━━━━━┓ │
+│ ┃  縮圖    ┃ ┃  縮圖    ┃ │
+│ ┃ 標題     ┃ ┃ 標題     ┃ │
+│ ┗━━━━━━━━━━┛ ┗━━━━━━━━━━┛ │
+└──────────────────────────┘</pre>
+        <p>最新一則用精選卡,其餘兩欄。og 圖都是 1.91:1,格狀最能讓縮圖發揮。手機上自動變一欄。</p>
+      </div>
+      <div class="wire">
+        <h3>C. 側欄個人卡</h3>
+<pre>┌───────┬──────────────────┐
+│ ┏━━━┓ │ ┏━━━━━━━━━━━━━━┓ │
+│ ┃頭像┃ │ ┃ 縮圖  標題    ┃ │
+│ ┗━━━┛ │ ┗━━━━━━━━━━━━━━┛ │
+│ Randy │ ┏━━━━━━━━━━━━━━┓ │
+│ 自介  │ ┃ 縮圖  標題    ┃ │
+│ 連結  │ ┗━━━━━━━━━━━━━━┛ │
+│ 標籤  │                  │
+└───────┴──────────────────┘</pre>
+        <p>跟 Chirpy 一樣是個人資料在左。辨識度高,但卡片可用寬度最窄。</p>
+      </div>
+    </div>
+    <p class="note-small">B 的自介只放一行,點「關於」才看完整內容。精選卡就是開場那張,框最厚,整頁只有它一張。</p>
+  </section>
+
+  <section id="ux">
+    <header>
+      <h2>從部落格變成書架</h2>
+      <div class="prose">
+        <p>你說得對,換了外觀,用起來還是跟現在一樣:照時間排的文章列表,點 tag 會跳到另一頁。這是部落格的用法。但你的站是在收藏別人的文章,訪客要做的是<strong>在一堆好文章裡找到自己想看的</strong>,比較像在逛書架。</p>
+        <p>所以首頁改成可以原地篩選的書架。下面這組是能操作的:點 tag 篩選,點過的卡片會標成已開過,也可以用鍵盤操作。</p>
+      </div>
+    </header>
+
+    <div class="shelf" id="shelf">
+      <div class="filters" role="group" aria-label="依 tag 篩選">
+        <button type="button" class="chipbtn" data-tag="AI/LLM" aria-pressed="false">AI/LLM<span class="n">2</span></button>
+        <button type="button" class="chipbtn" data-tag="Backend" aria-pressed="false">Backend<span class="n">2</span></button>
+        <button type="button" class="chipbtn" data-tag="Security" aria-pressed="false">Security<span class="n">1</span></button>
+        <span class="count" id="shelf-count">4 則</span>
+      </div>
+      <div class="grid" id="shelf-grid">
+        <a class="gel" data-tags="AI/LLM Security" data-id="4" href="https://webflow.sysdig.com/blog/security-briefing-september-2026" target="_blank" rel="noopener"
+           style="--img: linear-gradient(135deg, #0f5e6b 0%, #12a39a 45%, #f3c14b 100%)">
+          <div class="well"><div class="thumb">示意縮圖</div><div class="share-body">
+            <div class="share-meta"><span class="src">webflow.sysdig.com<span class="seen-mark">,已開過</span></span><time datetime="2026-10-06">2026-10-06</time></div>
+            <h3 class="share-title">Security briefing: September 2026 | Sysdig</h3>
+            <div class="tags"><span class="tag">AI/LLM</span><span class="tag">Security</span></div>
+          </div></div>
+        </a>
+        <a class="gel" data-tags="Backend" data-id="3" href="https://noted.lol/libredb-studio/" target="_blank" rel="noopener"
+           style="--img: linear-gradient(135deg, #1e3a2f 0%, #3fae7a 55%, #d8f0c2 100%)">
+          <div class="well"><div class="thumb">示意縮圖</div><div class="share-body">
+            <div class="share-meta"><span class="src">noted.lol<span class="seen-mark">,已開過</span></span><time datetime="2026-10-05">2026-10-05</time></div>
+            <h3 class="share-title">LibreDB Studio: open-source, free, self-hosted SQL IDE that runs in your browser</h3>
+            <div class="tags"><span class="tag">Backend</span></div>
+          </div></div>
+        </a>
+        <a class="gel" data-tags="Backend" data-id="2" href="https://blog.bytebytego.com/p/ep226-api-concepts-every-software" target="_blank" rel="noopener"
+           style="--img: linear-gradient(135deg, #f2f2f2 0%, #e9a84a 50%, #c4442e 100%)">
+          <div class="well"><div class="thumb">示意縮圖</div><div class="share-body">
+            <div class="share-meta"><span class="src">blog.bytebytego.com<span class="seen-mark">,已開過</span></span><time datetime="2026-10-04">2026-10-04</time></div>
+            <h3 class="share-title">EP226: API Concepts Every Software Engineer Should Know</h3>
+            <div class="tags"><span class="tag">Backend</span></div>
+          </div></div>
+        </a>
+        <a class="gel" data-tags="AI/LLM" data-id="1" href="https://www.copilotkit.ai/blog/ag-ui-1.0" target="_blank" rel="noopener"
+           style="--img: linear-gradient(135deg, #6d4aff 0%, #2b1d70 55%, #ff7a59 100%)">
+          <div class="well"><div class="thumb">示意縮圖</div><div class="share-body">
+            <div class="share-meta"><span class="src">copilotkit.ai<span class="seen-mark">,已開過</span></span><time datetime="2026-10-04">2026-10-04</time></div>
+            <h3 class="share-title">Introducing AG-UI 1.0: a stable spec for connecting any agent to any application</h3>
+            <div class="tags"><span class="tag">AI/LLM</span></div>
+          </div></div>
+        </a>
+      </div>
+      <p class="empty" id="shelf-empty" hidden>沒有同時符合這些 tag 的文章。少選一個 tag 試試。</p>
+      <div class="keys">
+        <span><kbd>j</kbd> <kbd>k</kbd> 下一則、上一則</span>
+        <span><kbd>Enter</kbd> 開原文</span>
+        <span><kbd>/</kbd> 搜尋(實站才有)</span>
+        <button type="button" class="linkbtn" id="seen-reset">清除已開過</button>
+      </div>
+    </div>
+
+    <div class="prose">
+      <p>跟現在比,差別有三個:</p>
+      <p><strong>篩選不換頁。</strong>tag 可以複選,篩選結果會記在網址上(例如 <code>/#security</code>),複製給別人看到的就是同一組。原本的 tag 頁面就不需要了。</p>
+      <p><strong>記得訪客看過哪些。</strong>只存在訪客自己的瀏覽器,不會傳到任何地方。常回來的人一眼就知道哪些是新的。</p>
+      <p><strong>可以只用鍵盤操作。</strong>你的訪客多半是工程師,這個會用得到。</p>
+    </div>
+  </section>
+
+  <section id="modules">
+    <header>
+      <h2>之後可以加的功能</h2>
+      <div class="prose">
+        <p>GitHub Pages 只能放靜態檔案,但搭配 Actions,功能可以在三個時機執行:<strong>發文時</strong>(issue 觸發 Action)、<strong>定期</strong>(Action 排程),或是<strong>在訪客的瀏覽器裡</strong>(讀建置時產生的 JSON)。下面的功能都在這三種範圍內,不需要伺服器。</p>
+        <p>每個功能都是獨立模組,可以單獨開或關。外框標起來的那個,是我最推薦先做的。</p>
+      </div>
+    </header>
+
+    <div class="mods">
+      <div class="modgroup">
+        <h3>保存</h3>
+        <p>跟琥珀的概念最貼近的一組。轉發的價值在於原文還連得到,但連結遲早會失效。</p>
+        <div class="modlist">
+          <div class="mod star"><h4>封存備份 <span class="when">發文時</span><span class="when">定期</span></h4>
+            <p>發文時請 Wayback Machine 存一份,封存網址寫進 front matter。之後每週檢查原文還在不在,失效的卡片會改連封存版,並標示「原文已下架」。</p></div>
+          <div class="mod"><h4>縮圖備份 <span class="when">發文時</span></h4>
+            <p>og 圖片現在是直接連到對方網站的,對方一換網址就破圖。可以選擇在發文時縮成小圖存進 repo。</p></div>
+        </div>
+      </div>
+
+      <div class="modgroup">
+        <h3>找文章</h3>
+        <div class="modlist">
+          <div class="mod"><h4>快捷面板 <span class="when">瀏覽器</span></h4>
+            <p>按 <kbd>⌘</kbd> <kbd>K</kbd> 打開,可以搜尋文章、跳到 tag、切換主題。取代現在的搜尋框。</p></div>
+          <div class="mod"><h4>專題 <span class="when">建置時</span></h4>
+            <p>把幾篇文章排成有順序的閱讀清單,例如「Agent 安全入門,5 篇」。issue 表單多一個選填欄位就好。</p></div>
+          <div class="mod"><h4>相關轉發 <span class="when">建置時</span></h4>
+            <p>依 tag 和標題相似度,在卡片或專題頁列出相關的幾篇。</p></div>
+          <div class="mod"><h4>隨機一篇 <span class="when">瀏覽器</span></h4>
+            <p>從書架隨機抽一張卡片。程式很少,適合當第一個用來驗證模組架構的功能。</p></div>
+        </div>
+      </div>
+
+      <div class="modgroup">
+        <h3>看見你在讀什麼</h3>
+        <div class="modlist">
+          <div class="mod"><h4>閱讀足跡 <span class="when">建置時</span></h4>
+            <p>像 GitHub contribution 那種方格圖,一格一天,顏色深淺代表那天轉發了幾則。</p></div>
+          <div class="mod"><h4>常讀來源 <span class="when">建置時</span></h4>
+            <p>統計你最常轉發哪些網站,依網域列出。</p></div>
+          <div class="mod"><h4>每個 tag 一個 RSS <span class="when">建置時</span></h4>
+            <p>只想看 Security 的人,可以只訂閱那一個 tag。</p></div>
+        </div>
+      </div>
+
+      <div class="modgroup">
+        <h3>新的內容類型</h3>
+        <p>share 只是其中一種。書單、project 也可以照同一套方式運作:有自己的 issue 表單、自己的卡片變體、自己的列表頁。</p>
+        <div class="modlist">
+          <div class="mod"><h4>書架 <span class="when">發文時</span></h4>
+            <p>開 issue 加一本書。書名、作者、封面、一句話,沿用 share 的流程。</p></div>
+          <div class="mod"><h4>Projects 資料化 <span class="when">建置時</span></h4>
+            <p>從 <code>about.md</code> 的手寫 HTML,改成 <code>_data/projects.yml</code>。</p></div>
+        </div>
+      </div>
+
+      <div class="modgroup">
+        <h3>要用到外部服務的</h3>
+        <p>預設不開。需要另外申請帳號或 API key,也比較可能有費用。</p>
+        <div class="modlist">
+          <div class="mod"><h4>中文摘要 <span class="when">發文時</span></h4>
+            <p>英文文章在發文時用 Claude API 產生兩三句中文摘要,卡片上會標示「AI 摘要」。需要把 API key 存成 repo secret。</p></div>
+          <div class="mod"><h4>留言 <span class="when">瀏覽器</span></h4>
+            <p>用 giscus,留言存在 repo 的 GitHub Discussions 裡。</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="plug">
+    <header>
+      <h2>怎麼做到可選、可插、可換</h2>
+      <div class="prose">
+        <p>可以替換的東西分成三類,各自有固定的資料夾結構和規則。新增一種東西,不需要改到其他兩類。</p>
+      </div>
+    </header>
+
+    <div class="tiers">
+      <div class="tier">
+        <h3>外觀</h3>
+        <p>色相、彩度、框厚、字型,也就是上面的三層 token。換外觀等於換一個 token 檔。</p>
+        <code>themes/amber.css</code>
+      </div>
+      <div class="tier">
+        <h3>內容類型</h3>
+        <p>一份欄位定義,issue 表單、<code>share.py</code> 的驗證和卡片都從這份產生。欄位定義只有這一份,跟現在 tag 清單的做法一樣。</p>
+        <code>types/share/schema.yml</code>
+      </div>
+      <div class="tier">
+        <h3>模組</h3>
+        <p>一個資料夾就是一個功能,掛在版面上預留的插槽。在設定裡刪掉一行,這個功能就關掉了。</p>
+        <code>modules/archive/</code>
+      </div>
+    </div>
+
+    <div class="wire-row">
+      <div class="wire">
+        <h3>版面上的插槽</h3>
+<pre>┌───────────────────────────────┐
+│ 站名   導覽     [header-tools] │ ← 快捷面板、主題切換
+├───────────────────────────────┤
+│ [before-shelf]                │ ← 閱讀足跡、專題入口
+│ ┏━━━━━━━━━━━━┓ ┏━━━━━━━━━━━━┓ │
+│ ┃ 卡片       ┃ ┃ 卡片       ┃ │
+│ ┃[card-meta] ┃ ┃[card-meta] ┃ │ ← 已開過、原文已下架
+│ ┗━━━━━━━━━━━━┛ ┗━━━━━━━━━━━━┛ │
+│ [after-shelf]                 │ ← 常讀來源、隨機一篇
+├───────────────────────────────┤
+│ [footer]                      │ ← RSS、留言
+└───────────────────────────────┘</pre>
+      </div>
+      <div class="wire">
+        <h3>一個模組裡有什麼</h3>
+<pre>modules/archive/
+  module.yml      名稱、掛在哪個插槽、
+                  需要哪些欄位
+  card-meta.html  插進插槽的片段
+  archive.css     只能用語意 token
+  archive.js      選填,瀏覽器端
+  action.py       選填,發文時或排程跑
+  test_archive.py 有 action.py 就要有
+
+# _config.yml
+modules:
+  - shelf-filter
+  - archive
+  # - comments    ← 註解掉就關掉</pre>
+      </div>
+    </div>
+
+    <h3>模組要遵守的規則</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>規則</th><th>為什麼</th></tr></thead>
+        <tbody>
+          <tr><td>關掉 JavaScript,卡片和連結照樣能用</td><td>模組只負責加功能。就算它壞掉,也不會讓整頁看不到</td></tr>
+          <tr><td>模組之間不互相呼叫,只共用建置時產生的 <code>shares.json</code></td><td>關掉任何一個,其他模組照常運作</td></tr>
+          <tr><td>樣式只引用語意 token</td><td>換外觀時,模組不用跟著改</td></tr>
+          <tr><td>新增欄位一律選填,舊文章沒有這個欄位也要能顯示</td><td>開一個新模組時,不用回頭補舊資料</td></tr>
+          <tr><td>有 <code>action.py</code> 就要有測試</td><td>跟現在 <code>tools/share</code> 的規則一樣</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-small">不論框架最後選 Jekyll 還是 Hugo,這套結構都套得上:插槽對應到 include 或 partial,<code>shares.json</code> 兩邊都能在建置時產生。</p>
+  </section>
+
+  <section id="template">
+    <header>
+      <h2>Template 化</h2>
+      <div class="prose">
+        <p>目標是別人 fork 之後,改 4 個設定就能變成自己的站,完全不用碰 CSS。做法是把樣式分成三層,上層只能引用下層。</p>
+      </div>
+    </header>
+
+    <div class="tiers">
+      <div class="tier">
+        <h3>原始值</h3>
+        <p>色相、彩度、框厚、圓角、字型。template 使用者只改這層。</p>
+        <code>--h: 72; --c: 0.15; --rim-card: 9px;</code>
+      </div>
+      <div class="tier">
+        <h3>語意 token</h3>
+        <p>底色、文字、樹脂、光影。晝夜各一組,用 oklch 從色相算出來,換色相時兩套會一起變。</p>
+        <code>--resin: oklch(0.82 var(--c) var(--h) / 0.55);</code>
+      </div>
+      <div class="tier">
+        <h3>元件</h3>
+        <p>膠框材質 <code>.gel</code> 加上內容區。元件只引用語意 token,不寫任何色碼。</p>
+        <code>.gel { padding: var(--rim); }</code>
+      </div>
+    </div>
+
+    <h3>使用者要改的設定</h3>
+<pre class="code"># _config.yml
+theme:
+  hue: 72          # 主色色相。琥珀 72,試試 200 是海玻璃、340 是玫瑰石英
+  chroma: 0.15     # 彩度,0 就是無色透明壓克力
+  mode: system     # system / light / dark
+  rim: 9px         # 一般卡片的框厚,精選和搜尋結果會跟著等比例變</pre>
+
+    <h3>元件規格</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>元件</th><th>吃的欄位</th><th>變體</th><th>欄位沒有時</th></tr></thead>
+        <tbody>
+          <tr><td>Share 卡</td><td><code>title</code> <code>link</code> <code>source</code> <code>date</code> <code>image</code> <code>note</code> <code>description</code> <code>tags</code></td><td>精選、一般、精簡</td><td>沒有圖:收起縮圖區,框變純琥珀。沒有心得:顯示摘要</td></tr>
+          <tr><td>Project 卡</td><td><code>name</code> <code>repo</code> <code>summary</code> <code>highlights</code> <code>stack</code></td><td>一般</td><td>縮圖改用 GitHub 自動產生的預覽圖</td></tr>
+          <tr><td>標籤</td><td><code>tag</code></td><td>無</td><td>不顯示</td></tr>
+          <tr><td>語言切換</td><td><code>langs</code></td><td>無</td><td>只有一種語言時不顯示</td></tr>
+          <tr><td>導覽列</td><td><code>site.title</code> <code>tabs</code></td><td>無</td><td>不適用</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note-small">Project 目前是手寫在 <code>about.md</code> 裡的 HTML。template 化之後改成 <code>_data/projects.yml</code>,加一個 project 就是加一段 YAML,跟加 tag 一樣。</p>
+
+    <h3>舊瀏覽器和輔助設定</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>情況</th><th>處理方式</th></tr></thead>
+        <tbody>
+          <tr><td>不支援 oklch</td><td>改用一組固定色碼,只有琥珀一種顏色</td></tr>
+          <tr><td>系統開了「減少透明度」</td><td>樹脂改成不透明,縮圖不再透進框裡</td></tr>
+          <tr><td>系統開了「減少動態」</td><td>卡片不浮起,高光不做淡入</td></tr>
+          <tr><td>Windows 高對比模式</td><td>陰影和半透明都會被系統拿掉,另外補一條實線外框</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="questions">
+    <header>
+      <h2>需要你決定的事</h2>
+    </header>
+    <ol class="qs">
+      <li><strong>首頁用 B(精選加格狀,上方可以篩選)嗎?</strong><p>或者你比較想保留現在的單欄。</p></li>
+      <li><strong>縮圖透進框裡這個效果要留嗎?</strong><p>這是外觀上最有辨識度的地方,代價是每張卡的框色都不一樣。</p></li>
+      <li><strong>第一批要做哪些模組?</strong><p>我的建議是書架篩選、已開過、封存備份。前兩個改變使用體驗,第三個最能代表這個站。</p></li>
+      <li><strong>Template 要開放到哪裡?</strong><p>外觀、內容類型、模組三類都開放,或是第一版只開放外觀和模組。</p></li>
+    </ol>
+  </section>
+
+</main>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var themeBtns = document.querySelectorAll('[data-theme-set]');
+  themeBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var v = b.getAttribute('data-theme-set');
+      if (v === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', v);
+      themeBtns.forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    });
+  });
+
+  var hue = document.getElementById('hue');
+  var out = document.getElementById('hue-out');
+  function setHue(v) { root.style.setProperty('--h', v); out.textContent = v; hue.value = v; }
+  hue.addEventListener('input', function () { setHue(hue.value); });
+  document.getElementById('hue-reset').addEventListener('click', function () { setHue(72); });
+
+  document.querySelectorAll('a.gel').forEach(function (card) {
+    card.addEventListener('pointermove', function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    });
+  });
+  var grid = document.getElementById('shelf-grid');
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('a.gel'));
+  var chips = document.querySelectorAll('#shelf .chipbtn');
+  var KEY = 'amber-seen';
+  function loadSeen() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
+  function saveSeen(a) { try { localStorage.setItem(KEY, JSON.stringify(a)); } catch (e) {} }
+  var seen = loadSeen();
+  function paintSeen() { cards.forEach(function (c) { c.classList.toggle('seen', seen.indexOf(c.dataset.id) !== -1); }); }
+  cards.forEach(function (c) {
+    c.addEventListener('click', function () {
+      if (seen.indexOf(c.dataset.id) === -1) { seen.push(c.dataset.id); saveSeen(seen); }
+      setTimeout(paintSeen, 300);
+    });
+  });
+  document.getElementById('seen-reset').addEventListener('click', function () { seen = []; saveSeen(seen); paintSeen(); });
+  paintSeen();
+
+  function applyFilter() {
+    var on = Array.prototype.filter.call(chips, function (b) { return b.getAttribute('aria-pressed') === 'true'; })
+      .map(function (b) { return b.dataset.tag; });
+    var n = 0;
+    cards.forEach(function (c) {
+      var tags = c.dataset.tags.split(' ');
+      var ok = on.every(function (t) { return tags.indexOf(t) !== -1; });
+      c.hidden = !ok; if (ok) n++;
+    });
+    document.getElementById('shelf-count').textContent = n + ' 則';
+    document.getElementById('shelf-empty').hidden = n !== 0;
+  }
+  chips.forEach(function (b) {
+    b.addEventListener('click', function () {
+      b.setAttribute('aria-pressed', String(b.getAttribute('aria-pressed') !== 'true'));
+      applyFilter();
+    });
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.metaKey || e.ctrlKey || e.altKey) return;
+    var t = e.target.tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA') return;
+    if (e.key !== 'j' && e.key !== 'k') return;
+    var vis = cards.filter(function (c) { return !c.hidden; });
+    if (!vis.length) return;
+    var i = vis.indexOf(document.activeElement);
+    i = e.key === 'j' ? Math.min(i + 1, vis.length - 1) : Math.max(i - 1, 0);
+    vis[i].focus();
+    vis[i].scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    e.preventDefault();
+  });
+})();
+</script>

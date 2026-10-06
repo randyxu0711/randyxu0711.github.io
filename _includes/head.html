@@ -1,0 +1,28 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+{% seo %}
+<link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+<link rel="icon" href="{{ '/assets/img/favicons/favicon.svg' | relative_url }}" type="image/svg+xml">
+<link rel="icon" href="{{ '/assets/img/favicons/favicon-96x96.png' | relative_url }}" sizes="96x96" type="image/png">
+<link rel="icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" sizes="any">
+<link rel="apple-touch-icon" href="{{ '/assets/img/favicons/apple-touch-icon.png' | relative_url }}">
+<script>
+  // 繪製前套用主題,避免閃一下另一個主題
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('theme'); } catch (e) {}
+    if (t !== 'light' && t !== 'dark' && t !== 'system') t = '{{ site.appearance.mode | default: "system" }}';
+    if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+  })();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="{{ '/assets/css/tokens.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/gel.css' | relative_url }}">
+<link rel="stylesheet" href="{{ '/assets/css/site.css' | relative_url }}">
+{%- for m in site.modules %}
+<link rel="stylesheet" href="{{ '/assets/modules/' | append: m[0] | append: '/' | append: m[0] | append: '.css' | relative_url }}">
+<script defer src="{{ '/assets/modules/' | append: m[0] | append: '/' | append: m[0] | append: '.js' | relative_url }}"></script>
+{%- endfor %}
+<script defer src="{{ '/assets/js/theme.js' | relative_url }}"></script>

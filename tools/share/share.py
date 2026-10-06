@@ -23,6 +23,7 @@ LABELS = {"網址": "url", "心得": "note", "分類": "tags", "標題(選填,�
 EMPTY_META = {"title": "", "description": "", "image": ""}
 MAX_BYTES = 1_500_000
 USER_AGENT = "Mozilla/5.0 (compatible; ShareBot/1.0; +https://randyxu0711.github.io)"
+ARCHIVE_PREFIX = "https://web.archive.org/web/"
 
 
 def parse_issue_body(body):
@@ -97,12 +98,37 @@ def _domain(url):
     return host[4:] if host.startswith("www.") else host
 
 
+def archive_url(link):
+    """指向 Wayback 最新快照的固定網址;有沒有快照由 Wayback 決定。"""
+    return ARCHIVE_PREFIX + link
+
+
+def save_to_wayback(link, opener=urllib.request.urlopen):
+    """請 Wayback 存一份。回傳 None 表示成功,否則回錯誤訊息;不丟例外,不擋發布。"""
+    try:
+        req = urllib.request.Request("https://web.archive.org/save/" + link,
+                                     headers={"User-Agent": USER_AGENT})
+        with opener(req, timeout=60):
+            return None
+    except Exception as e:  # 網路錯誤種類太多,一律回報
+        return str(e) or type(e).__name__
+
+
+def archive_warning(link, save=save_to_wayback):
+    error = save(link)
+    if not error:
+        return ""
+    return (f"\n\n注意:送存 Wayback Machine 失敗({error})。"
+            "原文之後若失效,封存版可能沒有內容。")
+
+
 def build_post(fields, meta, issue_number, created_at):
     when = datetime.fromisoformat(created_at.replace("Z", "+00:00")).astimezone(TZ)
     fm = {
         "title": fields["title"] or meta["title"] or fields["url"],
         "date": when.strftime("%Y-%m-%d %H:%M:%S %z"),
         "link": fields["url"],
+        "archive": archive_url(fields["url"]),
         "source": _domain(fields["url"]),
         "description": meta["description"],
         "image": meta["image"],
@@ -128,6 +154,7 @@ class Result:
     status: str
     comment: str = ""
     title: str = ""
+    link: str = ""
 
 
 def handle(event, posts_dir, fetch=fetch):
@@ -168,12 +195,14 @@ def handle(event, posts_dir, fetch=fetch):
                       "可以編輯 issue 填「標題」欄位覆蓋。"]
     else:
         lines += ["", "抓錯了?編輯 issue 填「標題」欄位覆蓋即可。"]
-    return Result("published", "\n".join(lines), title)
+    return Result("published", "\n".join(lines), title, fields["url"])
 
 
 def main():
     event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
     r = handle(event, sys.argv[1])
+    if r.status == "published":
+        r.comment += archive_warning(r.link)
     Path(os.environ["RUNNER_TEMP"], "share-comment.md").write_text(r.comment, encoding="utf-8")
     Path(os.environ["RUNNER_TEMP"], "share-title.txt").write_text(r.title[:200], encoding="utf-8")
     with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as out:

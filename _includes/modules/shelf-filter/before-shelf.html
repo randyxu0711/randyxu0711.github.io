@@ -1,0 +1,18 @@
+{%- comment -%} 書架篩選:tag 複選(AND)+ 文字篩選。JS 啟動前保持 hidden。 {%- endcomment -%}
+<div class="filters" id="shelf-filters" hidden>
+  <label class="filter-q" for="shelf-q">
+    <span class="visually-hidden">篩選文章</span>
+    <input id="shelf-q" type="search" placeholder="篩選標題、來源、心得" autocomplete="off" enterkeyhint="search">
+  </label>
+  <div class="chips" role="group" aria-label="依 tag 篩選">
+    {%- assign names = "" | split: "" -%}
+    {%- for t in site.tags -%}{%- assign names = names | push: t[0] -%}{%- endfor -%}
+    {%- assign names = names | sort -%}
+    {%- for name in names %}
+    <button type="button" class="chipbtn" data-tag="{{ name | escape }}" aria-pressed="false">{{ name | escape }}<span class="n">{{ site.tags[name].size }}</span></button>
+    {%- endfor %}
+  </div>
+  <span class="count" id="shelf-count" aria-live="polite"></span>
+</div>
+<p class="empty" id="shelf-empty" hidden>沒有符合的文章。少選一個 tag,或把篩選文字改短試試。</p>
+<p class="keys" id="shelf-keys" hidden><kbd>/</kbd> 篩選 <kbd>j</kbd> <kbd>k</kbd> 下一則、上一則 <kbd>Enter</kbd> 開原文</p>

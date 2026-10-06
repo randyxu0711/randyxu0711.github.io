@@ -1,0 +1,25 @@
+<dialog class="book" id="book" aria-label="書">
+  <div class="book-stage" id="book-stage">
+    <div class="gel book-card">
+      <div class="well">
+        <div class="cover" id="b-cover">
+          <img id="b-img" alt="" hidden data-proofer-ignore>
+          <span class="cover-fallback"><span class="ti" id="b-cti"></span><span class="au" id="b-cau"></span></span>
+        </div>
+        <div class="book-info">
+          <h2 id="b-title"></h2>
+          <div class="by" id="b-author"></div>
+          <div class="stars" id="b-stars"></div>
+          <div class="facts" id="b-pages"></div>
+          <a class="gr" id="b-gr" href="https://www.goodreads.com/" target="_blank" rel="noopener">在 Goodreads 查看</a>
+        </div>
+      </div>
+    </div>
+    <button type="button" class="navbtn closebtn" id="b-close" aria-label="闔上">×</button>
+  </div>
+  <div class="book-nav">
+    <button type="button" class="navbtn" id="b-prev" aria-label="上一本">‹</button>
+    <span class="pos" id="b-pos"></span>
+    <button type="button" class="navbtn" id="b-next" aria-label="下一本">›</button>
+  </div>
+</dialog>
