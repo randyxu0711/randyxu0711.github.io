@@ -53,7 +53,7 @@ defaults:
 exclude:
   - docs
   - tools
-  - books
+  - books/            # 只排除放 CSV 的目錄;寫成 books 會連 books.md 一起排除
   - CLAUDE.md
   - README.md
   - LICENSE
