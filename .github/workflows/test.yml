@@ -10,4 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: pipx run pytest tools/share -q
+      - run: pip install pytest pillow
+      - run: python3 -m pytest tools -q
