@@ -1,21 +1,35 @@
 ---
 # the default layout is 'page'
 title: 關於
+title_key: nav.about
 order: 4
 ---
 
-<div class="lang-switch" role="group" aria-label="Language">
-  <button type="button" data-set-lang="zh" aria-pressed="true">中</button>
-  <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
-</div>
-
+<div class="profile">
+  <img class="avatar" src="{{ '/assets/img/avatar.jpg' | relative_url }}" alt="Randy Xu" width="160" height="160" decoding="async">
+  <div class="profile-text">
 <div class="lang-zh" lang="zh-Hant" markdown="1">
 
-Welcome to my space.
+<p class="profile-lead">Welcome to my space.</p>
 
 嗨,我是 Randy,軟體工程師。曾在 Openfind 擔任 Software Engineer,現在大部分時間在研究 AI agent,用 Claude Agent SDK 做些自己想用的工具。工作之外,喜歡讀世界經典文學。
 
 這裡放我的 projects,還有我讀到、覺得值得一看的技術文章。
+
+</div>
+<div class="lang-en" lang="en" markdown="1">
+
+<p class="profile-lead">Welcome to my space.</p>
+
+Hi, I'm Randy, a software engineer. I previously worked as a Software Engineer at Openfind; these days I spend most of my time on AI agents, building tools I actually want to use with the Claude Agent SDK. Outside of code, I read a lot of world classic literature.
+
+This site holds my projects, plus technical articles I've read and think are worth your time.
+
+</div>
+  </div>
+</div>
+
+<div class="lang-zh" lang="zh-Hant" markdown="1">
 
 ## 最近關注
 
@@ -30,9 +44,14 @@ Welcome to my space.
 
 ## 經歷
 
-**Openfind 網擎資訊 · Software Engineer**(2021/10 – 2024/4)
+**Openfind 網擎資訊**,Software Engineer(2021/10 – 2024/4)
 
-參與企業郵件系統 Mail2000 核心開發:把 C 語言舊核心拆成可重用模組並設計 RESTful API,讓新舊介面共用同一套後端;以 keepalived 搭配腳本實作主備自動切換與資料庫自動復原;串接雙因素登入;參與開發 Outlook 同步工具。
+參與企業郵件系統 Mail2000 的核心開發:
+
+- 把 C 語言的舊核心拆成可重用的模組,並設計 RESTful API,讓新舊兩套網頁介面共用同一個後端
+- 用 keepalived 搭配腳本,做到主備機自動切換與資料庫自動復原
+- 串接雙因素登入
+- 參與開發 Outlook 同步工具
 
 ## 技能
 
@@ -48,12 +67,6 @@ Welcome to my space.
 
 <div class="lang-en" lang="en" markdown="1">
 
-Welcome to my space.
-
-Hi, I'm Randy, a software engineer. I previously worked as a Software Engineer at Openfind; these days I spend most of my time on AI agents, building tools I actually want to use with the Claude Agent SDK. Outside of code, I read a lot of world classic literature.
-
-This site holds my projects, plus technical articles I've read and think are worth your time.
-
 ## Currently Exploring
 
 - **Making AI agents controllable and verifiable**: building multi-agent apps with the Claude Agent SDK — every claim the AI makes should have a source, permissions should never overreach, and AI output should stay separate from testable program logic.
@@ -67,9 +80,14 @@ This site holds my projects, plus technical articles I've read and think are wor
 
 ## Experience
 
-**Openfind · Software Engineer** (Oct 2021 – Apr 2024)
+**Openfind**, Software Engineer (Oct 2021 – Apr 2024)
 
-Worked on the core of Mail2000, an enterprise email system: split the legacy C core into reusable modules and designed RESTful APIs so old and new web UIs share one backend; built automatic failover and database recovery with keepalived and scripts; integrated two-factor login; contributed to an Outlook sync tool.
+Worked on the core of Mail2000, an enterprise email system:
+
+- Split the legacy C core into reusable modules and designed RESTful APIs, so the old and new web UIs share one backend
+- Built automatic failover and database recovery with keepalived and scripts
+- Integrated two-factor login
+- Contributed to an Outlook sync tool
 
 ## Skills
 
@@ -82,25 +100,3 @@ Worked on the core of Mail2000, an enterprise email system: split the legacy C c
 B.S. in Computer Science, National Chengchi University (2016 – 2020)
 
 </div>
-
-<script>
-  (function () {
-    var buttons = document.querySelectorAll('[data-set-lang]');
-    function apply(lang) {
-      document.body.setAttribute('data-about-lang', lang);
-      for (var i = 0; i < buttons.length; i++) {
-        buttons[i].setAttribute('aria-pressed', String(buttons[i].getAttribute('data-set-lang') === lang));
-      }
-    }
-    var saved = null;
-    try { saved = localStorage.getItem('about-lang'); } catch (e) {}
-    apply(saved || (/^zh/i.test(navigator.language || '') ? 'zh' : 'en'));
-    for (var i = 0; i < buttons.length; i++) {
-      buttons[i].addEventListener('click', function () {
-        var lang = this.getAttribute('data-set-lang');
-        apply(lang);
-        try { localStorage.setItem('about-lang', lang); } catch (e) {}
-      });
-    }
-  })();
-</script>

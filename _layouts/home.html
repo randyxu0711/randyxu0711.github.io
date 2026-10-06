@@ -2,13 +2,10 @@
 layout: default
 ---
 {%- assign posts = site.posts -%}
-<section class="shelf" id="shelf" aria-label="分享的文章">
-  {%- if site.intro %}
-  <p class="intro">{{ site.intro }}</p>
-  {%- endif %}
+<section class="shelf" id="shelf" aria-label="分享的文章" data-i18n-attr="aria-label:shelf.label">
   {% include slot.html name="before-shelf" %}
   {%- if posts.size == 0 %}
-  <p class="empty">還沒有分享的文章。開一個「分享文章」issue,就會出現在這裡。</p>
+  <p class="empty" data-i18n="shelf.none">{% include t.html k="shelf.none" %}</p>
   {%- else %}
   {%- assign first = posts | first %}
   {%- comment -%} include 的參數不接受 posts[0] 這種寫法,要先 assign {%- endcomment %}

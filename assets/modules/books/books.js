@@ -25,7 +25,8 @@
   var dlg = document.getElementById('book'), stage = document.getElementById('book-stage');
   var $ = function (id) { return document.getElementById(id); };
   var cur = null, idx = 0, opener = null;
-  function stars(n) { return n ? '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n) : '未評分'; }
+  function t(key, n) { return window.siteI18n ? window.siteI18n.t(key, n) : key; }
+  function stars(n) { return n ? '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n) : t('books.unrated'); }
   function fill(dir) {
     var b = cur[idx];
     var card = stage.querySelector('.book-card');
@@ -40,14 +41,15 @@
     $('b-cti').textContent = b.title; $('b-cau').textContent = b.author;
     $('b-title').textContent = b.title; $('b-author').textContent = b.author;
     var s = $('b-stars'); s.textContent = stars(b.rating);
-    s.setAttribute('aria-label', b.rating ? '5 顆星中的 ' + b.rating + ' 顆' : '未評分');
-    $('b-pages').textContent = b.pages ? b.pages + ' 頁' : '';
+    s.setAttribute('aria-label', b.rating ? t('books.stars_of', b.rating) : t('books.unrated'));
+    $('b-pages').textContent = b.pages ? t('books.pages', b.pages) : '';
     $('b-gr').href = b.url;
     $('b-pos').textContent = (idx + 1) + ' / ' + cur.length;
     $('b-prev').disabled = idx === 0;
     $('b-next').disabled = idx === cur.length - 1;
-    stage.classList.remove('in-l', 'in-r', 'open'); void stage.offsetWidth; stage.classList.add(dir);
+    stage.classList.remove('in-l', 'in-r', 'open'); void stage.offsetWidth; if (dir) stage.classList.add(dir);
   }
+  document.addEventListener('langchange', function () { if (cur && dlg.open) fill(''); });
   function go(d) { var n = idx + d; if (!cur || n < 0 || n >= cur.length) return; idx = n; fill(d > 0 ? 'in-r' : 'in-l'); }
   root.addEventListener('click', function (e) {
     var t = e.target.closest('[data-row][data-index]');
