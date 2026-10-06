@@ -99,5 +99,14 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .project-card .thumb { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; }
 .project-summary { -webkit-line-clamp: unset; }
 .project-highlights { margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; }
-.about-banner { --rim: var(--rim-compact); margin: 0 0 2rem; }
-.about-banner img { display: block; width: 100%; height: clamp(9rem, 22vw, 13rem); object-fit: cover; object-position: 20% 45%; }
+/* About 開頭:頭像 + 自介,不加框 */
+.profile { display: grid; grid-template-columns: 8rem minmax(0, 1fr); gap: 1.75rem; align-items: center; margin: 0 0 2.5rem; }
+.profile .avatar { display: block; width: 8rem; height: 8rem; border-radius: 50%; object-fit: cover; }
+.profile-text p { margin: 0 0 0.75rem; }
+.profile-text p:last-child { margin-bottom: 0; }
+.page-body .profile-text p { color: var(--ink); }
+.page-body .profile-text .profile-lead { color: var(--ink-2); font-size: var(--t-sm); margin-bottom: 0.4rem; }
+@media (max-width: 560px) {
+  .profile { grid-template-columns: 1fr; gap: 1.1rem; }
+  .profile .avatar { width: 6rem; height: 6rem; }
+}

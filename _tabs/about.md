@@ -5,17 +5,31 @@ title_key: nav.about
 order: 4
 ---
 
-<figure class="gel about-banner" style="--img: url('{{ '/assets/img/about-banner.jpg' | relative_url }}')">
-  <div class="well"><img src="{{ '/assets/img/about-banner.jpg' | relative_url }}" alt="Randy Xu" width="1200" height="450" decoding="async"></div>
-</figure>
-
+<div class="profile">
+  <img class="avatar" src="{{ '/assets/img/avatar.jpg' | relative_url }}" alt="Randy Xu" width="160" height="160" decoding="async">
+  <div class="profile-text">
 <div class="lang-zh" lang="zh-Hant" markdown="1">
 
-Welcome to my space.
+<p class="profile-lead">Welcome to my space.</p>
 
 嗨,我是 Randy,軟體工程師。曾在 Openfind 擔任 Software Engineer,現在大部分時間在研究 AI agent,用 Claude Agent SDK 做些自己想用的工具。工作之外,喜歡讀世界經典文學。
 
 這裡放我的 projects,還有我讀到、覺得值得一看的技術文章。
+
+</div>
+<div class="lang-en" lang="en" markdown="1">
+
+<p class="profile-lead">Welcome to my space.</p>
+
+Hi, I'm Randy, a software engineer. I previously worked as a Software Engineer at Openfind; these days I spend most of my time on AI agents, building tools I actually want to use with the Claude Agent SDK. Outside of code, I read a lot of world classic literature.
+
+This site holds my projects, plus technical articles I've read and think are worth your time.
+
+</div>
+  </div>
+</div>
+
+<div class="lang-zh" lang="zh-Hant" markdown="1">
 
 ## 最近關注
 
@@ -52,12 +66,6 @@ Welcome to my space.
 </div>
 
 <div class="lang-en" lang="en" markdown="1">
-
-Welcome to my space.
-
-Hi, I'm Randy, a software engineer. I previously worked as a Software Engineer at Openfind; these days I spend most of my time on AI agents, building tools I actually want to use with the Claude Agent SDK. Outside of code, I read a lot of world classic literature.
-
-This site holds my projects, plus technical articles I've read and think are worth your time.
 
 ## Currently Exploring
 
