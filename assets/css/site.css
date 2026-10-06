@@ -99,3 +99,5 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .project-card .thumb { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; }
 .project-summary { -webkit-line-clamp: unset; }
 .project-highlights { margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; }
+.about-banner { --rim: var(--rim-compact); margin: 0 0 2rem; }
+.about-banner img { display: block; width: 100%; height: clamp(9rem, 22vw, 13rem); object-fit: cover; object-position: 20% 45%; }
