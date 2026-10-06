@@ -1,0 +1,33 @@
+---
+layout: default
+---
+{%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
+<section class="books" id="books" data-view="{{ site.books.default_view | default: 'spines' }}">
+  <header class="books-head">
+    <h1 class="page-title">{{ page.title }}</h1>
+    <div class="seg" role="group" aria-label="排法" data-view-switch hidden>
+      <button type="button" data-view-set="spines" aria-pressed="false">書脊</button>
+      <button type="button" data-view-set="covers" aria-pressed="false">封面</button>
+    </div>
+  </header>
+  {%- for r in ratings -%}
+    {%- assign rn = r | plus: 0 -%}
+    {%- assign list = site.data.books | where: "rating", r -%}
+    {%- if list.size == 0 -%}{%- continue -%}{%- endif -%}
+  <section class="book-row" data-row="{{ r }}">
+    <h2 class="row-head">
+      {%- if rn == 0 -%}<span class="stars-label">未評分</span>
+      {%- else -%}<span class="stars" aria-label="{{ rn }} 顆星">{% for i in (1..rn) %}★{% endfor %}</span>{%- endif -%}
+      <span class="n">{{ list.size }} 本</span>
+    </h2>
+    <div class="gel case view-spines"><div class="well">
+      {%- for b in list -%}{% include book-spine.html book=b row=r index=forloop.index0 %}{%- endfor -%}
+    </div></div>
+    <div class="covers view-covers">
+      {%- for b in list -%}{% include book-cover.html book=b row=r index=forloop.index0 %}{%- endfor -%}
+    </div>
+  </section>
+  {%- endfor -%}
+</section>
+{% include book-dialog.html %}
+<script type="application/json" id="books-data">{{ site.data.books | jsonify | replace: "</", "<\/" }}</script>
