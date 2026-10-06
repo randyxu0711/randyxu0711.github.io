@@ -2,7 +2,12 @@
 
 source "https://rubygems.org"
 
-gem "jekyll-theme-chirpy", "7.6.0" # 鎖死:有覆蓋 layout,升級要逐一對照(見 CLAUDE.md)
+gem "jekyll", "~> 4.4"
+
+group :jekyll_plugins do
+  gem "jekyll-seo-tag", "~> 2.8"
+  gem "jekyll-sitemap", "~> 1.4"
+end
 
 gem "html-proofer", "~> 5.0", group: :test
 
