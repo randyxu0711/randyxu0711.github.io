@@ -1,0 +1,31 @@
+- name: hyenovel
+  repo: randyxu0711/hyenovel
+  summary:
+    zh: 文學小說與創作,對很多人來說不容易找到人分享或對談。於是我做了 hyenovel,讓 AI 對文字給出回饋,為創作者提供另一個角度,留一點反思其他可能性的空間。
+    en: Literary fiction and creative writing aren't easy to share or talk through with others. hyenovel lets an AI respond to your text, giving writers another angle and some room to reconsider other possibilities.
+  highlights:
+    zh:
+      - 「分析」與「評論」由兩個隔離的 agent 負責,判斷互不污染
+      - 每條論點都要引用原文,程式逐字比對,找不到出處就擋下
+      - 找出串流瓶頸,回應時間從 83 秒降到 20 秒
+    en:
+      - Analysis and critique run in two isolated agents, so judgment stays independent
+      - Every claim must quote the source; code verifies it verbatim and blocks anything it can't find
+      - Found a streaming bottleneck and cut response time from 83s to 20s
+  stack: [Python, FastAPI, React, TypeScript]
+
+- name: wpSBOOT
+  repo: randyxu0711/wpSBOOT
+  summary:
+    zh: 政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法,我負責開發它的網頁伺服器:上傳序列,以四種比對工具產生 Super-MSA。
+    en: "A phylogenetic method from Prof. Jia-Ming Chang's lab at NCCU, published in <i>Bioinformatics</i>. I build its web server: upload sequences, get a Super-MSA built from four aligners."
+  highlights:
+    zh:
+      - PostgreSQL 工作佇列 + heartbeat,worker 崩潰時工作可被接手
+      - Docker Compose 部署,74 個自動化測試,含容器內實跑 4 種比對工具
+      - 結果頁記錄工具版本,方便重現
+    en:
+      - PostgreSQL job queue with heartbeats, so crashed jobs get picked up
+      - Docker Compose deployment, 74 automated tests including all 4 aligners run in-container
+      - Every result page records tool versions for reproducibility
+  stack: [Python, FastAPI, PostgreSQL, Docker]
