@@ -1,0 +1,52 @@
+/* 版面與共用元件。只用語意 token。 */
+html { font-size: 16px; }
+body {
+  margin: 0; background: var(--ground); color: var(--ink);
+  font-family: var(--font-ui); font-size: var(--t-md); line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
+img { max-width: 100%; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.main { max-width: 72rem; margin: 0 auto; padding: 2rem 16px 5rem; }
+
+/* 導覽列 */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  background: color-mix(in oklch, var(--ground) 82%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--well-line);
+}
+.nav-inner { max-width: 72rem; margin: 0 auto; padding: 0.6rem 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.5rem; }
+.nav-name { font-weight: 700; color: var(--ink); text-decoration: none; }
+.nav-links { display: flex; gap: 1.1rem; list-style: none; margin: 0; padding: 0; }
+.nav-links a { color: var(--ink-2); text-decoration: none; }
+.nav-links a[aria-current="page"] { color: var(--ink); font-weight: 500; }
+.nav-links a:hover { color: var(--ink); }
+.nav-tools { margin-left: auto; display: flex; align-items: center; gap: 0.75rem; }
+
+/* 分段按鈕、文字按鈕、膠囊標籤 */
+.seg { display: inline-flex; border-radius: 999px; padding: 3px; background: var(--chip); gap: 2px; }
+.seg button { font: inherit; font-size: var(--t-sm); color: var(--ink-2); background: none; border: 0; border-radius: 999px; padding: 0.15rem 0.8rem; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--well); color: var(--ink); box-shadow: 0 1px 2px var(--drop); }
+.linkbtn { font: inherit; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+.tag { font-size: var(--t-xs); padding: 0.1rem 0.6rem; border-radius: 999px; background: var(--chip); color: var(--ink); white-space: nowrap; }
+.tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+
+/* 一般頁 */
+.page { max-width: 46rem; }
+.page-title { font-size: var(--t-2xl); margin: 0 0 1.5rem; }
+.page-body { color: var(--ink); }
+.page-body h2 { font-size: var(--t-xl); margin: 2.5rem 0 0.75rem; }
+.page-body p, .page-body li { color: var(--ink-2); }
+.page-body strong { color: var(--ink); font-weight: 500; }
+
+.empty { color: var(--ink-2); font-size: var(--t-sm); }
+
+/* footer */
+.footer { border-top: 1px solid var(--well-line); }
+.footer-inner { max-width: 72rem; margin: 0 auto; padding: 1.5rem 16px 2.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-size: var(--t-sm); color: var(--ink-2); }
+.footer-inner a { color: var(--ink-2); }
