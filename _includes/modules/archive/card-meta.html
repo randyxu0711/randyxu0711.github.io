@@ -1,4 +1,4 @@
 {%- capture lc_key -%}{{ include.post.issue }}{%- endcapture -%}
 {%- if site.data.linkcheck[lc_key].dead and include.post.archive -%}
-<span class="archive-mark">,原文已下架,這是封存版</span>
+<span class="archive-mark" data-i18n="archive.mark">{% include t.html k="archive.mark" %}</span>
 {%- endif -%}

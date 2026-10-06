@@ -11,6 +11,8 @@ h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
 img { max-width: 100%; }
 /* 元件常設 display: flex / inline-flex,會蓋掉 hidden 屬性 */
 [hidden] { display: none !important; }
+/* 整段內容的中英兩份:依 <html data-lang> 只顯示一份(沒有 JS 時預設中文) */
+html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: none !important; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .main { max-width: 72rem; margin: 0 auto; padding: 2rem 16px 5rem; }
@@ -54,7 +56,6 @@ img { max-width: 100%; }
 .footer-inner a { color: var(--ink-2); }
 
 /* ── share 卡 ── */
-.intro { color: var(--ink-2); font-size: var(--t-lg); max-width: 38rem; margin: 0.5rem 0 2rem; }
 .shelf { display: grid; gap: 1.75rem; }
 .share { min-width: 0; }
 /* 精選卡被篩選掉時,不要留下一格空白 */
@@ -94,11 +95,6 @@ img { max-width: 100%; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.75rem; align-items: start; }
 
 /* About */
-.lang-switch { display: inline-flex; border-radius: 999px; padding: 3px; background: var(--chip); gap: 2px; margin-bottom: 1.5rem; }
-.lang-switch button { font: inherit; font-size: var(--t-sm); color: var(--ink-2); background: none; border: 0; border-radius: 999px; padding: 0.15rem 0.9rem; cursor: pointer; }
-.lang-switch button[aria-pressed="true"] { background: var(--well); color: var(--ink); box-shadow: 0 1px 2px var(--drop); }
-.lang-en, body[data-about-lang="en"] .lang-zh { display: none; }
-body[data-about-lang="en"] .lang-en { display: block; }
 .proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.5rem; margin: 1rem 0 2rem; }
 .project-card .thumb { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; }
 .project-summary { -webkit-line-clamp: unset; }

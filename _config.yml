@@ -6,7 +6,6 @@ timezone: Asia/Taipei
 title: Randy Xu
 description: >-
   Randy Xu 的個人頁:自己的 projects,與轉發的技術文章。
-intro: 嗨,我是 Randy。這裡放我讀到、覺得值得一看的技術文章,以及我讀過的書。
 url: "https://randyxu0711.github.io"
 baseurl: ""
 
@@ -17,9 +16,9 @@ github:
   username: randyxu0711
 
 nav:
-  - { title: 分享, url: / }
-  - { title: 書架, url: /books/, module: books }
-  - { title: 關於, url: /about/ }
+  - { title: 分享, key: nav.shares, url: / }
+  - { title: 書架, key: nav.books, url: /books/, module: books }
+  - { title: 關於, key: nav.about, url: /about/ }
 
 appearance:
   hue: 72          # 主色色相

@@ -17,6 +17,11 @@
 - **版面不寫個人資料**:名字、自介、導覽在 `_config.yml`,projects 在 `_data/projects.yml`,自介全文在 `_tabs/about.md`。
 - 沒有 JS 時卡片與連結照樣能用;模組的控制項先 `hidden`,JS 啟動後才顯示(全站有 `[hidden] { display: none !important }`)。
 - 只用 tags,不用 categories。
+- **中英切換**(全站):介面文字只寫在 `_data/i18n.yml`(`zh` / `en`,英文單數用 `en_one`)。版面標 `data-i18n="鍵"`
+  (屬性用 `data-i18n-attr="屬性:鍵"`,數字用 `data-i18n-n`),預設中文由 `{% include t.html k="鍵" %}` 輸出;
+  `assets/js/i18n.js` 依 `<html data-lang>` 換字,模組用 `window.siteI18n.t()` 並監聽 `langchange`。
+  整段內容(About、404)寫 `.lang-zh` / `.lang-en` 兩份,CSS 只顯示一份。share 的標題與心得不翻譯。
+  `t.html` 的 `{n}` 要先在 tag 裡 assign:Liquid 的 `{{ }}` 遇到單一個右大括號就會當成結尾。
 
 ## 一則 share = 一個 `_posts/<date>-share-<issue#>.md`
 front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照網址)/ `source`(網域)/

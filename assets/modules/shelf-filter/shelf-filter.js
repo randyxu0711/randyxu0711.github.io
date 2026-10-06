@@ -43,10 +43,31 @@
       it.hidden = !ok;
       if (ok) n++;
     });
-    count.textContent = n + ' 則';
+    shown = n;
+    paintCount();
     empty.hidden = n !== 0;
     writeHash(tags, q.value.trim());
   }
+
+  var shown = items.length;
+  function paintCount() {
+    var i18n = window.siteI18n;
+    count.textContent = i18n ? i18n.t('filter.count', shown) : shown + ' 則';
+  }
+  document.addEventListener('langchange', paintCount);
+
+  // 快捷鍵說明:收在篩選列最右邊的 ? 按鈕裡
+  var keysBtn = document.getElementById('shelf-keys-btn');
+  var keysPop = document.getElementById('shelf-keys');
+  function toggleKeys(open) {
+    var next = open === undefined ? keysPop.hidden : open;
+    keysPop.hidden = !next;
+    keysBtn.setAttribute('aria-expanded', String(next));
+  }
+  keysBtn.addEventListener('click', function () { toggleKeys(); });
+  document.addEventListener('click', function (e) {
+    if (!keysPop.hidden && !e.target.closest('.keys')) toggleKeys(false);
+  });
 
   var init = readHash();
   chips.forEach(function (c) {
@@ -63,6 +84,8 @@
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     var tag = (e.target.tagName || '').toLowerCase();
     var typing = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+    if (e.key === 'Escape' && !keysPop.hidden) { toggleKeys(false); keysBtn.focus(); return; }
+    if (e.key === '?' && !typing) { toggleKeys(); e.preventDefault(); return; }
     if (e.key === '/' && !typing) { q.focus(); e.preventDefault(); return; }
     if (typing || (e.key !== 'j' && e.key !== 'k')) return;
     var cards = items.filter(function (it) { return !it.hidden; })
@@ -77,6 +100,5 @@
   });
 
   box.hidden = false;
-  document.getElementById('shelf-keys').hidden = false;
   apply();
 })();

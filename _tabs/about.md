@@ -1,13 +1,9 @@
 ---
 # the default layout is 'page'
 title: 關於
+title_key: nav.about
 order: 4
 ---
-
-<div class="lang-switch" role="group" aria-label="Language">
-  <button type="button" data-set-lang="zh" aria-pressed="true">中</button>
-  <button type="button" data-set-lang="en" aria-pressed="false">EN</button>
-</div>
 
 <div class="lang-zh" lang="zh-Hant" markdown="1">
 
@@ -82,25 +78,3 @@ Worked on the core of Mail2000, an enterprise email system: split the legacy C c
 B.S. in Computer Science, National Chengchi University (2016 – 2020)
 
 </div>
-
-<script>
-  (function () {
-    var buttons = document.querySelectorAll('[data-set-lang]');
-    function apply(lang) {
-      document.body.setAttribute('data-about-lang', lang);
-      for (var i = 0; i < buttons.length; i++) {
-        buttons[i].setAttribute('aria-pressed', String(buttons[i].getAttribute('data-set-lang') === lang));
-      }
-    }
-    var saved = null;
-    try { saved = localStorage.getItem('about-lang'); } catch (e) {}
-    apply(saved || (/^zh/i.test(navigator.language || '') ? 'zh' : 'en'));
-    for (var i = 0; i < buttons.length; i++) {
-      buttons[i].addEventListener('click', function () {
-        var lang = this.getAttribute('data-set-lang');
-        apply(lang);
-        try { localStorage.setItem('about-lang', lang); } catch (e) {}
-      });
-    }
-  })();
-</script>

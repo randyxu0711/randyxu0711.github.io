@@ -1,10 +1,10 @@
-{%- comment -%} 書架篩選:tag 複選(AND)+ 文字篩選。JS 啟動前保持 hidden。 {%- endcomment -%}
+{%- comment -%} 書架篩選:tag 複選(AND)+ 文字篩選。JS 啟動前保持 hidden。快捷鍵說明收在最右邊的 ? 按鈕裡。 {%- endcomment -%}
 <div class="filters" id="shelf-filters" hidden>
   <label class="filter-q" for="shelf-q">
-    <span class="visually-hidden">篩選文章</span>
-    <input id="shelf-q" type="search" placeholder="篩選標題、來源、心得" autocomplete="off" enterkeyhint="search">
+    <span class="visually-hidden" data-i18n="filter.label">{% include t.html k="filter.label" %}</span>
+    <input id="shelf-q" type="search" placeholder="{% include t.html k="filter.placeholder" %}" data-i18n-attr="placeholder:filter.placeholder" autocomplete="off" enterkeyhint="search">
   </label>
-  <div class="chips" role="group" aria-label="依 tag 篩選">
+  <div class="chips" role="group" aria-label="{% include t.html k="filter.tags" %}" data-i18n-attr="aria-label:filter.tags">
     {%- assign names = "" | split: "" -%}
     {%- for t in site.tags -%}{%- assign names = names | push: t[0] -%}{%- endfor -%}
     {%- assign names = names | sort -%}
@@ -13,6 +13,17 @@
     {%- endfor %}
   </div>
   <span class="count" id="shelf-count" aria-live="polite"></span>
+  <div class="keys">
+    <button type="button" class="keys-btn" id="shelf-keys-btn" aria-expanded="false" aria-controls="shelf-keys"
+            aria-label="{% include t.html k="keys.button" %}" data-i18n-attr="aria-label:keys.button;title:keys.button" title="{% include t.html k="keys.button" %}">?</button>
+    <div class="keys-pop" id="shelf-keys" hidden>
+      <dl>
+        <dt><kbd>/</kbd></dt><dd data-i18n="keys.filter">{% include t.html k="keys.filter" %}</dd>
+        <dt><kbd>j</kbd> <kbd>k</kbd></dt><dd data-i18n="keys.move">{% include t.html k="keys.move" %}</dd>
+        <dt><kbd>Enter</kbd></dt><dd data-i18n="keys.open">{% include t.html k="keys.open" %}</dd>
+        <dt><kbd>?</kbd></dt><dd data-i18n="keys.help">{% include t.html k="keys.help" %}</dd>
+      </dl>
+    </div>
+  </div>
 </div>
-<p class="empty" id="shelf-empty" hidden>沒有符合的文章。少選一個 tag,或把篩選文字改短試試。</p>
-<p class="keys" id="shelf-keys" hidden><kbd>/</kbd> 篩選 <kbd>j</kbd> <kbd>k</kbd> 下一則、上一則 <kbd>Enter</kbd> 開原文</p>
+<p class="empty" id="shelf-empty" data-i18n="filter.empty" hidden>{% include t.html k="filter.empty" %}</p>

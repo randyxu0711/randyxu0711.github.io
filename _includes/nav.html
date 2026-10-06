@@ -1,7 +1,7 @@
 <header class="nav">
   <div class="nav-inner">
     <a class="nav-name" href="{{ '/' | relative_url }}">{{ site.title }}</a>
-    <nav aria-label="主要">
+    <nav aria-label="主要" data-i18n-attr="aria-label:nav.main">
       <ul class="nav-links">
         {%- for item in site.nav -%}
           {%- if item.module -%}
@@ -11,16 +11,20 @@
           {%- endif -%}
           {%- assign here = false -%}
           {%- if page.url == item.url -%}{%- assign here = true -%}{%- endif -%}
-          <li><a href="{{ item.url | relative_url }}"{% if here %} aria-current="page"{% endif %}>{{ item.title }}</a></li>
+          <li><a href="{{ item.url | relative_url }}"{% if here %} aria-current="page"{% endif %}{% if item.key %} data-i18n="{{ item.key }}"{% endif %}>{{ item.title }}</a></li>
         {%- endfor -%}
       </ul>
     </nav>
     <div class="nav-tools">
       {% include slot.html name="header-tools" %}
-      <div class="seg" role="group" aria-label="主題" data-theme-switch hidden>
-        <button type="button" data-theme-set="system" aria-pressed="true">跟系統</button>
-        <button type="button" data-theme-set="light" aria-pressed="false">晝</button>
-        <button type="button" data-theme-set="dark" aria-pressed="false">夜</button>
+      <div class="seg" role="group" aria-label="語言" data-i18n-attr="aria-label:lang.group" data-lang-switch hidden>
+        <button type="button" data-lang-set="zh" lang="zh-Hant" aria-pressed="false">中</button>
+        <button type="button" data-lang-set="en" lang="en" aria-pressed="false">EN</button>
+      </div>
+      <div class="seg" role="group" aria-label="主題" data-i18n-attr="aria-label:theme.group" data-theme-switch hidden>
+        <button type="button" data-theme-set="system" aria-pressed="true" data-i18n="theme.system">跟系統</button>
+        <button type="button" data-theme-set="light" aria-pressed="false" data-i18n="theme.light">晝</button>
+        <button type="button" data-theme-set="dark" aria-pressed="false" data-i18n="theme.dark">夜</button>
       </div>
     </div>
   </div>

@@ -14,6 +14,14 @@
     if (t !== 'light' && t !== 'dark' && t !== 'system') t = '{{ site.appearance.mode | default: "system" }}';
     if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
   })();
+  // 繪製前決定語言:存過的選擇 > 舊版 About 的選擇 > 瀏覽器語言
+  (function () {
+    var l = null;
+    try { l = localStorage.getItem('lang') || localStorage.getItem('about-lang'); } catch (e) {}
+    if (l !== 'zh' && l !== 'en') l = /^zh/i.test(navigator.language || '') ? 'zh' : 'en';
+    document.documentElement.setAttribute('data-lang', l);
+    document.documentElement.lang = l === 'en' ? 'en' : 'zh-Hant';
+  })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

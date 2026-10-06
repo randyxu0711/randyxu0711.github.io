@@ -1,0 +1,10 @@
+{%- comment -%}
+  介面文字的預設(中文)版本,給沒有 JS 的情況與首次繪製用;切換由 assets/js/i18n.js 負責。
+  用法:<span data-i18n="nav.about">{% include t.html k="nav.about" %}</span>
+        有數字時加 n=…,元素也要加 data-i18n-n。
+{%- endcomment -%}
+{%- assign t_entry = site.data.i18n[include.k] -%}
+{%- capture t_n -%}{{ include.n }}{%- endcapture -%}
+{%- comment -%} {{ }} 裡出現單一個右大括號會被當成結尾,佔位符要在 tag 裡先 assign {%- endcomment -%}
+{%- assign t_ph = "{n}" -%}
+{{- t_entry.zh | default: include.k | replace: t_ph, t_n -}}

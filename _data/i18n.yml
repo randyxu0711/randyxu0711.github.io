@@ -1,0 +1,48 @@
+# 介面文字的中英對照。版面用 data-i18n="鍵" 標記,assets/js/i18n.js 依語言切換。
+# {n} 是數字,由 data-i18n-n 帶入;英文單數用 en_one(數字是 1 時)。share 的標題與心得不翻譯,寫什麼語言就顯示什麼。
+
+nav.main:        { zh: "主要", en: "Main" }
+nav.shares:      { zh: "分享", en: "Shares" }
+nav.books:       { zh: "書架", en: "Books" }
+nav.about:       { zh: "關於", en: "About" }
+
+theme.group:     { zh: "主題", en: "Theme" }
+theme.system:    { zh: "跟系統", en: "Auto" }
+theme.light:     { zh: "晝", en: "Light" }
+theme.dark:      { zh: "夜", en: "Dark" }
+lang.group:      { zh: "語言", en: "Language" }
+
+shelf.label:     { zh: "分享的文章", en: "Shared articles" }
+shelf.none:      { zh: "還沒有分享的文章。", en: "No shared articles yet." }
+
+filter.label:    { zh: "篩選文章", en: "Filter articles" }
+filter.placeholder: { zh: "篩選標題、來源、心得", en: "Filter by title, source, or note" }
+filter.tags:     { zh: "依 tag 篩選", en: "Filter by tag" }
+filter.count:    { zh: "{n} 則", en: "{n} articles", en_one: "{n} article" }
+filter.empty:    { zh: "沒有符合的文章。少選一個 tag,或把篩選文字改短試試。", en: "No matching articles. Try fewer tags or a shorter filter." }
+
+keys.button:     { zh: "鍵盤快捷鍵", en: "Keyboard shortcuts" }
+keys.filter:     { zh: "篩選", en: "Filter" }
+keys.move:       { zh: "下一則、上一則", en: "Next, previous" }
+keys.open:       { zh: "開原文", en: "Open article" }
+keys.help:       { zh: "顯示或關閉這個說明", en: "Show or hide this help" }
+
+seen.mark:       { zh: ",已開過", en: ", opened" }
+seen.clear:      { zh: "清除已開過的紀錄", en: "Clear opened history" }
+archive.mark:    { zh: ",原文已下架,這是封存版", en: ", original removed; opens the archived copy" }
+
+books.view:      { zh: "排法", en: "View" }
+books.spines:    { zh: "書脊", en: "Spines" }
+books.covers:    { zh: "封面", en: "Covers" }
+books.unrated:   { zh: "未評分", en: "Unrated" }
+books.count:     { zh: "{n} 本", en: "{n} books", en_one: "{n} book" }
+books.stars:     { zh: "{n} 顆星", en: "{n} stars", en_one: "{n} star" }
+books.stars_of:  { zh: "5 顆星中的 {n} 顆", en: "{n} out of 5 stars", en_one: "{n} out of 5 stars" }
+books.pages:     { zh: "{n} 頁", en: "{n} pages", en_one: "{n} page" }
+books.goodreads: { zh: "在 Goodreads 查看", en: "View on Goodreads" }
+books.dialog:    { zh: "書", en: "Book" }
+books.close:     { zh: "闔上", en: "Close" }
+books.prev:      { zh: "上一本", en: "Previous book" }
+books.next:      { zh: "下一本", en: "Next book" }
+
+page.404:        { zh: "找不到這一頁", en: "Page not found" }

@@ -4,10 +4,10 @@ layout: default
 {%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
 <section class="books" id="books" data-view="{{ site.books.default_view | default: 'spines' }}">
   <header class="books-head">
-    <h1 class="page-title">{{ page.title }}</h1>
-    <div class="seg" role="group" aria-label="排法" data-view-switch hidden>
-      <button type="button" data-view-set="spines" aria-pressed="false">書脊</button>
-      <button type="button" data-view-set="covers" aria-pressed="false">封面</button>
+    <h1 class="page-title" data-i18n="nav.books">{{ page.title }}</h1>
+    <div class="seg" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view" data-view-switch hidden>
+      <button type="button" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">書脊</button>
+      <button type="button" data-view-set="covers" aria-pressed="false" data-i18n="books.covers">封面</button>
     </div>
   </header>
   {%- for r in ratings -%}
@@ -16,9 +16,9 @@ layout: default
     {%- if list.size == 0 -%}{%- continue -%}{%- endif -%}
   <section class="book-row" data-row="{{ r }}">
     <h2 class="row-head">
-      {%- if rn == 0 -%}<span class="stars-label">未評分</span>
-      {%- else -%}<span class="stars" aria-label="{{ rn }} 顆星">{% for i in (1..rn) %}★{% endfor %}</span>{%- endif -%}
-      <span class="n">{{ list.size }} 本</span>
+      {%- if rn == 0 -%}<span class="stars-label" data-i18n="books.unrated">未評分</span>
+      {%- else -%}<span class="stars" role="img" aria-label="{{ rn }} 顆星" data-i18n-attr="aria-label:books.stars" data-i18n-n="{{ rn }}">{% for i in (1..rn) %}★{% endfor %}</span>{%- endif -%}
+      <span class="n" data-i18n="books.count" data-i18n-n="{{ list.size }}">{% include t.html k="books.count" n=list.size %}</span>
     </h2>
     <div class="gel case view-spines"><div class="well">
       {%- for b in list -%}{% include book-spine.html book=b row=r index=forloop.index0 %}{%- endfor -%}
