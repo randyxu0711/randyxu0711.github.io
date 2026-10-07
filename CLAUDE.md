@@ -55,6 +55,8 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - 只輸出 read 書架、不在 `books.hide_shelf` 的書;輸出永遠不含 Private Notes 與 My Review。
 - 不抓 Goodreads 的 RSS(`robots.txt` 禁止 `/review/list_rss`);封面從書頁 `/book/show/<id>` 的 og:image 取得。
 - 書單是空的或 books 模組關掉時,`_plugins/books-page.rb` 不產生 `/books/`,導覽列也不顯示。
+- **中文書名**在 `_data/books_zh.yml`(Goodreads ID → 台灣譯本書名 / 作者譯名,附查證來源),CSV 重新匯入不會動它。
+  網站切到中文時顯示譯名,沒列在裡面的書顯示原文。
 
 ## 測試
 `uvx --with pillow pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。

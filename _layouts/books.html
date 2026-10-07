@@ -5,7 +5,6 @@ layout: default
 <section class="books" id="books" data-view="{{ site.books.default_view | default: 'spines' }}">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
   <header class="page-head">
-    <p data-i18n="books.note">{% include t.html k="books.note" %}</p>
     <div class="chips" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view" data-view-switch hidden>
       <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">書脊</button>
       <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books.covers">封面</button>
@@ -35,3 +34,4 @@ layout: default
 </section>
 {% include book-dialog.html %}
 <script type="application/json" id="books-data">{{ site.data.books | jsonify | replace: "</", "<\/" }}</script>
+<script type="application/json" id="books-zh">{{ site.data.books_zh | jsonify | replace: "</", "<\/" }}</script>

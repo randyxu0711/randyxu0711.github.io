@@ -1,0 +1,272 @@
+# Goodreads ID → 台灣譯本的書名與作者譯名。網站切到中文時顯示這裡的名字,沒列在這裡的書顯示原文。
+# CSV 重新匯入不會動這個檔案;用 issue 加書時填的中文書名也寫進這裡。
+# 2026-10-07 依博客來 / 讀冊 / 誠品 / 出版社資料查證,source 是查證網址。
+
+"6282753":  # The Museum of Innocence
+  title: "純真博物館"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.taaze.tw/products/11100592270.html"
+"11337":  # The Bluest Eye
+  title: "最藍的眼睛"
+  author: "童妮．摩里森"
+  publisher: "臺灣商務"
+  source: "https://www.taaze.tw/products/11100126502.html"
+"59219933":  # O Caçador de Elefantes Invisíveis
+  title: "隱形大象的狩獵人"
+  author: "米亞．科托"
+  publisher: "南方家園"
+  source: "https://readmoo.com/book/210314500000101"
+"4009":  # Nine Stories
+  title: "九個故事"
+  author: "沙林傑"
+  publisher: "桂冠"
+  source: "https://www.books.com.tw/products/0010253708"
+"9809":  # Invisible Cities
+  title: "看不見的城市"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010976336"
+"485894":  # The Metamorphosis
+  title: "變形記"
+  author: "法蘭茲．卡夫卡"
+  publisher: "野人"
+  source: "https://www.books.com.tw/products/0010837794"
+"4671":  # The Great Gatsby
+  title: "大亨小傳"
+  author: "史考特．費茲傑羅"
+  publisher: "漫遊者文化"
+  source: "https://www.books.com.tw/products/0011005159"
+"217006044":  # Theft
+  title: "竊"
+  author: "阿卜杜勒拉扎克．古納"
+  publisher: "潮浪文化"
+  source: "https://www.cna.com.tw/proj_goodbook/literature/4434"
+"49741":  # Miguel Street (Vintage International)
+  title: "米格爾大街"
+  author: "奈波爾"
+  publisher: "遠流"
+  source: "https://www.books.com.tw/products/0010359909"
+"166387082":  # How to Travel with a Salmon & Other Essays[HT TRAVEL W/A SAL
+  title: "帶著鮭魚去旅行"
+  author: "安伯托．艾可"
+  publisher: "皇冠"
+  source: "https://www.books.com.tw/products/0010002945"
+"58696861":  # Beautiful World, Where Are You: Chapter Sampler
+  title: "美麗的世界，你在哪裡"
+  author: "莎莉．魯尼"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010933253"
+"43383439":  # Trilogía
+  title: "三部曲"
+  author: "庸．佛瑟"
+  publisher: "麥田"
+  source: "https://www.cite.com.tw/book?id=106309"
+"11438":  # What We Talk About When We Talk About Love
+  title: "當我們討論愛情"
+  author: "瑞蒙．卡佛"
+  publisher: "時報文化"
+  source: "https://www.taaze.tw/products/11100210704.html"
+"783505":  # Embers
+  title: "餘燼"
+  author: "桑多．馬芮"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010318580"
+"765618":  # Paradise
+  title: "天堂"
+  author: "阿卜杜勒拉扎克．古納"
+  publisher: "潮浪文化"
+  source: "https://www.books.com.tw/products/0010974102"
+"28746":  # In Persuasion Nation
+  title: "勸誘之邦"
+  author: "喬治．桑德斯"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010940899"
+"52744975":  # Afterlives
+  title: "來世"
+  author: "阿卜杜勒拉扎克．古納"
+  publisher: "潮浪文化"
+  source: "https://readmoo.com/book/210295569000101"
+"186345":  # The Long Valley
+  title: "長谷"
+  author: "約翰．史坦貝克"
+  publisher: "好讀"
+  source: "https://www.books.com.tw/products/0010857539"
+"10975":  # The Sound and the Fury
+  title: "聲音與憤怒"
+  author: "威廉．福克納"
+  publisher: "雙囍出版"
+  source: "https://www.books.com.tw/products/E050158057"
+"9813":  # The Nonexistent Knight & The Cloven Viscount
+  title: "不存在的騎士／分成兩半的子爵"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0011012127"
+"16173237":  # 傷心咖啡店之歌
+  title: "傷心咖啡店之歌"
+  author: "朱少麟"
+  publisher: "九歌"
+  source: "https://www.books.com.tw/products/0010652853"
+"890":  # Of Mice and Men
+  title: "人鼠之間"
+  author: "約翰．史坦貝克"
+  publisher: "如果出版"
+  source: "https://www.books.com.tw/products/0011007257"
+"61439040":  # 1984
+  title: "一九八四"
+  author: "喬治．歐威爾"
+  publisher: "漫遊者文化"
+  source: "https://www.books.com.tw/products/0011013102"
+"2657":  # To Kill a Mockingbird
+  title: "梅岡城故事"
+  author: "哈波．李"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010968376"
+"18050057":  # Bark
+  title: "吠"
+  author: "羅麗．摩爾"
+  publisher: "寶瓶文化"
+  source: "https://www.marieclaire.com.tw/lifestyle/book/22000"
+"1919219":  # Le Message
+  title: "口信"
+  author: "安德烈．佘蒂"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010188122"
+"11441":  # Short Cuts: Selected Stories (Vintage Contemporaries)
+  title: "浮世男女"
+  publisher: "時報文化"
+  source: "https://www.books.com.tw/products/0010096035"
+"11767":  # The Body Artist
+  title: "身體藝術家"
+  author: "唐．德里羅"
+  publisher: "寶瓶文化"
+  source: "https://book.douban.com/subject/25883560/"
+"43633625":  # Sérotonine
+  title: "血清素"
+  author: "米榭．韋勒貝克"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010867605"
+"60471573":  # Liberation Day
+  title: "自由日"
+  author: "喬治．桑德斯"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0011034792"
+"10503":  # The Mysterious Flame of Queen Loana
+  title: "羅安娜女王的神秘火焰"
+  author: "安伯托．艾可"
+  publisher: "皇冠"
+  source: "https://www.books.com.tw/products/0010447536"
+"11691":  # Snow
+  title: "雪"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010392732"
+"509675":  # The Rights of Desire
+  title: "欲望的權利"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010246650"
+"980948":  # Wunschloses Unglück. (Lernmaterialien)
+  title: "夢外之悲"
+  author: "彼得．漢德克"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010868093"
+"31659":  # The Progress of Love
+  title: "愛的進程"
+  author: "艾莉絲．孟若"
+  publisher: "木馬文化"
+  source: "https://www.smcbook.com.tw/smc/index.php?route=product/product&product_id=70995"
+"77818":  # By the Sea
+  title: "海邊"
+  author: "阿卜杜勒拉扎克．古納"
+  publisher: "潮浪文化"
+  source: "https://www.bookrep.com.tw/?md=gwindex&cl=book&at=bookcontent&id=17992"
+"13641208":  # Tenth of December
+  title: "十二月十日"
+  author: "喬治．桑德斯"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010668799"
+"124095":  # Pleasures and Days
+  title: "歡樂時光"
+  author: "馬賽爾．普魯斯特"
+  publisher: "印刻"
+  source: "https://www.books.com.tw/products/0010867207"
+"22749721":  # Last Comes The Raven: The First Complete English Edition of 
+  title: "最後來的是烏鴉"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210314742000101"
+"52854148":  # O Ano da Morte de Ricardo Reis (José Saramago)
+  title: "詩人里卡多逝世那一年"
+  author: "喬賽．薩拉馬戈"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/E050168585"
+"22522805":  # The Buried Giant
+  title: "被埋葬的記憶"
+  author: "石黑一雄"
+  publisher: "商周出版"
+  source: "https://www.books.com.tw/products/0010884073"
+"40495148":  # Blindness
+  title: "盲目"
+  author: "喬賽．薩拉馬戈"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010938670"
+"46165":  # This Side of Paradise
+  title: "塵世樂園"
+  author: "史考特．費茲傑羅"
+  publisher: "南方家園"
+  source: "https://readmoo.com/book/210001146000101"
+"2517":  # My Name Is Red
+  title: "我的名字叫紅"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010697133"
+"799646":  # Mr Stone and the Knights Companion
+  title: "史東先生與他的騎士夥伴"
+  author: "V.S.奈波爾"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010746209"
+"553741":  # The Rich Boy
+  title: "富家子"
+  author: "費茲傑羅"
+  publisher: "一人出版社"
+  source: "https://www.books.com.tw/products/0010616533"
+"2165":  # The Old Man and the Sea
+  title: "老人與海"
+  author: "海明威"
+  publisher: "麥田"
+  source: "https://www.cite.com.tw/book?id=29645"
+"550655":  # La mare au diable
+  title: "魔沼"
+  author: "喬治．桑"
+  publisher: "商周出版"
+  source: "https://readmoo.com/book/210100392000101"
+"28703":  # Cosmopolis
+  title: "大都會"
+  author: "唐．德里羅"
+  publisher: "寶瓶文化"
+  source: "https://www.cite.com.tw/book?id=28362"
+"493323":  # After Rain
+  title: "雨後"
+  author: "威廉．崔佛"
+  publisher: "寶瓶文化"
+  source: "https://www.books.com.tw/products/0010748823"
+"55881796":  # Crossroads
+  title: "十字路"
+  author: "強納森．法蘭岑"
+  publisher: "新經典文化"
+  source: "https://www.books.com.tw/products/0010925789"
+"6839612":  # Beginners
+  title: "新手"
+  author: "瑞蒙．卡佛"
+  publisher: "寶瓶文化"
+  source: "https://www.books.com.tw/products/0010571925"
+"484124":  # The Sound of One Hand Clapping
+  title: "歲月之門"
+  author: "理查．費納根"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010858793"
+"123136728":  # Orbital
+  title: "軌道"
+  author: "薩曼莎．哈維"
+  publisher: "潮浪文化"
+  source: "https://www.books.com.tw/products/0011033044"

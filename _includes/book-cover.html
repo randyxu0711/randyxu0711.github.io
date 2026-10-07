@@ -1,15 +1,15 @@
 {%- comment -%} 封面:一本書就是一片板,厚度依頁數,側面是書口(紙色)。書名作者在板子下方。 {%- endcomment -%}
 {%- assign b = include.book -%}
+{%- assign zh = site.data.books_zh[b.id] -%}
 {%- assign th = 4 -%}
 {%- if b.pages -%}{%- assign th = b.pages | divided_by: 110 | at_least: 3 | at_most: 9 -%}{%- endif -%}
 <div class="cover-item">
   <button type="button" class="slab book" data-tilt="6" data-row="{{ include.row }}" data-index="{{ include.index }}"
-          style="--th: {{ th }}px;{% if b.color %} --col: {{ b.color }}; --bink: {{ b.ink }};{% endif %}"
-          aria-label="{{ b.title | escape }},{{ b.author | escape }}">
+          style="--th: {{ th }}px;{% if b.color %} --col: {{ b.color }}; --bink: {{ b.ink }};{% endif %}">
     <span class="cover">
       {%- if b.cover %}<img src="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">{% endif -%}
-      <span class="cover-fallback"><span class="ti">{{ b.title | escape }}</span><span class="au">{{ b.author | escape }}</span></span>
+      <span class="cover-fallback"><span class="ti">{% include book-name.html zh=zh.title en=b.title %}</span><span class="au">{% include book-name.html zh=zh.author en=b.author %}</span></span>
     </span>
   </button>
-  <div class="cover-cap"><b>{{ b.title | escape }}</b><span>{{ b.author | escape }}</span></div>
+  <div class="cover-cap" aria-hidden="true"><b>{% include book-name.html zh=zh.title en=b.title %}</b><span>{% include book-name.html zh=zh.author en=b.author %}</span></div>
 </div>
