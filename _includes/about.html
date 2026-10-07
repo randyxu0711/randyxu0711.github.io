@@ -1,0 +1,72 @@
+{%- comment -%}
+  關於頁。內容在 _data/profile.yml,這裡只負責版面。參數:lang(zh / en)。
+  技能的 items 可以是一份清單(中英相同),或 { zh: […], en: […] }。
+{%- endcomment -%}
+{%- assign pf = site.data.profile -%}
+{%- assign L = include.lang -%}
+<div class="lang-{{ L }}" lang="{% if L == 'en' %}en{% else %}zh-Hant{% endif %}">
+<header class="profile">
+  <img class="coin" src="{{ pf.avatar | relative_url }}" alt="{{ pf.name }}" width="120" height="120" decoding="async">
+  <div>
+    <h1>{{ pf.name }}</h1>
+    <p class="role">{{ pf.role[L] }}</p>
+    <p class="intro">{{ pf.intro[L] }}</p>
+  </div>
+</header>
+<div class="cv">
+  {%- if pf.exploring.size > 0 %}
+  <section class="cv-row">
+    <h2>{{ pf.headings.exploring[L] }}</h2>
+    <div class="content explore">
+      {%- for x in pf.exploring %}
+      <div><strong>{{ x.title[L] }}</strong><p>{{ x.text[L] }}</p></div>
+      {%- endfor %}
+    </div>
+  </section>
+  {%- endif %}
+  {%- if site.data.projects.size > 0 %}
+  <section class="cv-row">
+    <h2>{{ pf.headings.projects[L] }}</h2>
+    <div class="content"><div class="proj-grid">
+      {%- for pr in site.data.projects %}{% include project-card.html project=pr lang=L %}{% endfor %}
+    </div></div>
+  </section>
+  {%- endif %}
+  {%- if pf.experience.size > 0 %}
+  <section class="cv-row">
+    <h2>{{ pf.headings.experience[L] }}</h2>
+    <div class="content">
+      {%- for job in pf.experience %}
+      <div class="job">
+        <div class="job-head"><strong>{{ job.org[L] }}{% if L == 'en' %}, {% else %},{% endif %}{{ job.title[L] }}</strong><span>{{ job.when[L] }}</span></div>
+        {%- if job.lead %}<p>{{ job.lead[L] }}</p>{% endif %}
+        {%- if job.items %}<ul>{% for it in job.items[L] %}<li>{{ it }}</li>{% endfor %}</ul>{% endif %}
+      </div>
+      {%- endfor %}
+    </div>
+  </section>
+  {%- endif %}
+  {%- if pf.skills.size > 0 %}
+  <section class="cv-row">
+    <h2>{{ pf.headings.skills[L] }}</h2>
+    <div class="content"><dl class="skills">
+      {%- for s in pf.skills %}
+      {%- assign items = s.items -%}
+      {%- if s.items[L] %}{% assign items = s.items[L] %}{% endif %}
+      <dt>{{ s.name[L] }}</dt><dd>{% for it in items %}<span class="tag">{{ it }}</span>{% endfor %}</dd>
+      {%- endfor %}
+    </dl></div>
+  </section>
+  {%- endif %}
+  {%- if pf.education.size > 0 %}
+  <section class="cv-row">
+    <h2>{{ pf.headings.education[L] }}</h2>
+    <div class="content">
+      {%- for ed in pf.education %}
+      <div class="job-head"><strong>{{ ed.school[L] }}</strong><span>{{ ed.when }}</span></div>
+      {%- endfor %}
+    </div>
+  </section>
+  {%- endif %}
+</div>
+</div>

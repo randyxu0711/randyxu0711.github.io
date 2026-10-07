@@ -113,6 +113,9 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .explore { display: grid; gap: 1rem; }
 .explore > div { display: grid; gap: 0.15rem; }
 .explore p { margin: 0; color: var(--ink-2); }
+.job { display: grid; gap: 0.75rem; }
+.job + .job { margin-top: 1.25rem; }
+.job p { margin: 0; color: var(--ink-2); }
 .job-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; }
 .job-head span { color: var(--ink-3); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
 .skills { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem 1rem; align-items: baseline; margin: 0; }
