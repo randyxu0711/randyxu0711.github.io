@@ -29,11 +29,9 @@
   function stars(n) { return n ? '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n) : t('books.unrated'); }
   function fill(dir) {
     var b = cur[idx];
-    var card = stage.querySelector('.book-card');
-    card.style.setProperty('--img', b.cover ? "url('" + b.cover.replace(/'/g, '%27') + "')" : 'none');
     var cover = $('b-cover');
-    if (b.color) { cover.style.setProperty('--col', b.color); cover.style.setProperty('--spine-ink', b.ink); }
-    else { cover.style.removeProperty('--col'); cover.style.removeProperty('--spine-ink'); }
+    if (b.color) { cover.style.setProperty('--col', b.color); cover.style.setProperty('--bink', b.ink); }
+    else { cover.style.removeProperty('--col'); cover.style.removeProperty('--bink'); }
     var img = $('b-img');
     img.hidden = !b.cover;
     img.onerror = function () { img.hidden = true; };

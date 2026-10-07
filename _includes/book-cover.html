@@ -1,11 +1,15 @@
+{%- comment -%} 封面:一本書就是一片板,厚度依頁數,側面是書口(紙色)。書名作者在板子下方。 {%- endcomment -%}
 {%- assign b = include.book -%}
-<button type="button" class="gel cover-card" data-row="{{ include.row }}" data-index="{{ include.index }}"
-        {%- if b.cover %} style="--img: url('{{ b.cover | replace: "'", "%27" | escape }}');{% if b.color %} --col: {{ b.color }}; --spine-ink: {{ b.ink }};{% endif %}"{% endif %}>
-  <span class="well">
+{%- assign th = 4 -%}
+{%- if b.pages -%}{%- assign th = b.pages | divided_by: 110 | at_least: 3 | at_most: 9 -%}{%- endif -%}
+<div class="cover-item">
+  <button type="button" class="slab book" data-tilt="6" data-row="{{ include.row }}" data-index="{{ include.index }}"
+          style="--th: {{ th }}px;{% if b.color %} --col: {{ b.color }}; --bink: {{ b.ink }};{% endif %}"
+          aria-label="{{ b.title | escape }},{{ b.author | escape }}">
     <span class="cover">
       {%- if b.cover %}<img src="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">{% endif -%}
       <span class="cover-fallback"><span class="ti">{{ b.title | escape }}</span><span class="au">{{ b.author | escape }}</span></span>
     </span>
-    <span class="meta"><b>{{ b.title | escape }}</b><span>{{ b.author | escape }}</span></span>
-  </span>
-</button>
+  </button>
+  <div class="cover-cap"><b>{{ b.title | escape }}</b><span>{{ b.author | escape }}</span></div>
+</div>

@@ -1,16 +1,14 @@
-{%- comment -%} project 卡。參數:project、lang(zh / en) {%- endcomment -%}
+{%- comment -%} project 卡(一片型的板)。參數:project、lang(zh / en) {%- endcomment -%}
 {%- assign pr = include.project -%}
 {%- assign thumb = 'https://opengraph.githubassets.com/1/' | append: pr.repo -%}
-<a class="gel project-card" href="https://github.com/{{ pr.repo }}" target="_blank" rel="noopener" style="--img: url('{{ thumb }}')">
-  <div class="well">
-    <img class="thumb" src="{{ thumb }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">
-    <div class="share-body">
-      <h3 class="share-title">{{ pr.name }}</h3>
-      <p class="share-desc project-summary">{{ pr.summary[include.lang] }}</p>
-      <ul class="project-highlights">
-        {%- for h in pr.highlights[include.lang] %}<li>{{ h | escape }}</li>{% endfor %}
-      </ul>
-      <div class="tags">{% for s in pr.stack %}<span class="tag">{{ s | escape }}</span>{% endfor %}</div>
-    </div>
+<a class="slab project-card" href="https://github.com/{{ pr.repo }}" target="_blank" rel="noopener" data-tilt="4">
+  <img class="thumb" src="{{ thumb }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">
+  <div class="share-body">
+    <h3 class="share-title">{{ pr.name }}</h3>
+    <p class="share-desc">{{ pr.summary[include.lang] }}</p>
+    <ul>
+      {%- for h in pr.highlights[include.lang] %}<li>{{ h | escape }}</li>{% endfor %}
+    </ul>
+    <div class="tags">{% for s in pr.stack %}<span class="tag">{{ s | escape }}</span>{% endfor %}</div>
   </div>
 </a>

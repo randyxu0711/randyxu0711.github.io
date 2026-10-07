@@ -2,19 +2,19 @@
 <div class="filters" id="shelf-filters" hidden>
   <label class="filter-q" for="shelf-q">
     <span class="visually-hidden" data-i18n="filter.label">{% include t.html k="filter.label" %}</span>
-    <input id="shelf-q" type="search" placeholder="{% include t.html k="filter.placeholder" %}" data-i18n-attr="placeholder:filter.placeholder" autocomplete="off" enterkeyhint="search">
+    <input id="shelf-q" class="groove" type="search" placeholder="{% include t.html k="filter.placeholder" %}" data-i18n-attr="placeholder:filter.placeholder" autocomplete="off" enterkeyhint="search">
   </label>
   <div class="chips" role="group" aria-label="{% include t.html k="filter.tags" %}" data-i18n-attr="aria-label:filter.tags">
     {%- assign names = "" | split: "" -%}
     {%- for t in site.tags -%}{%- assign names = names | push: t[0] -%}{%- endfor -%}
     {%- assign names = names | sort -%}
     {%- for name in names %}
-    <button type="button" class="chipbtn" data-tag="{{ name | escape }}" aria-pressed="false">{{ name | escape }}<span class="n">{{ site.tags[name].size }}</span></button>
+    <button type="button" class="key chipbtn" data-tag="{{ name | escape }}" aria-pressed="false">{{ name | escape }}<span class="n">{{ site.tags[name].size }}</span></button>
     {%- endfor %}
   </div>
   <span class="count" id="shelf-count" aria-live="polite"></span>
   <div class="keys">
-    <button type="button" class="keys-btn" id="shelf-keys-btn" aria-expanded="false" aria-controls="shelf-keys"
+    <button type="button" class="key round keys-btn" id="shelf-keys-btn" aria-expanded="false" aria-controls="shelf-keys"
             aria-label="{% include t.html k="keys.button" %}" data-i18n-attr="aria-label:keys.button;title:keys.button" title="{% include t.html k="keys.button" %}">?</button>
     <div class="keys-pop" id="shelf-keys" hidden>
       <dl>

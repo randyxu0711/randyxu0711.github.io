@@ -11,6 +11,8 @@ theme.system:    { zh: "跟系統", en: "Auto" }
 theme.light:     { zh: "晝", en: "Light" }
 theme.dark:      { zh: "夜", en: "Dark" }
 lang.group:      { zh: "語言", en: "Language" }
+lang.switch_to:  { zh: "切換成英文", en: "Switch to Chinese" }
+theme.cycle:     { zh: "主題:{n}(點一下切換)", en: "Theme: {n} (click to change)" }
 
 shelf.label:     { zh: "分享的文章", en: "Shared articles" }
 shelf.none:      { zh: "還沒有分享的文章。", en: "No shared articles yet." }
@@ -39,6 +41,7 @@ books.count:     { zh: "{n} 本", en: "{n} books", en_one: "{n} book" }
 books.stars:     { zh: "{n} 顆星", en: "{n} stars", en_one: "{n} star" }
 books.stars_of:  { zh: "5 顆星中的 {n} 顆", en: "{n} out of 5 stars", en_one: "{n} out of 5 stars" }
 books.pages:     { zh: "{n} 頁", en: "{n} pages", en_one: "{n} page" }
+books.note:      { zh: "書的厚度就是頁數。", en: "A book's thickness is its page count." }
 books.goodreads: { zh: "在 Goodreads 查看", en: "View on Goodreads" }
 books.dialog:    { zh: "書", en: "Book" }
 books.close:     { zh: "闔上", en: "Close" }

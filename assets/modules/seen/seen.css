@@ -1,5 +1,6 @@
-/* 已開過 */
+/* 已開過:整片稍微變淡、標題變灰;游標移上去恢復 */
 .seen-mark { display: none; }
 .share.is-seen .seen-mark { display: inline; }
-.share.is-seen .gel { --resin: var(--chip); --glow: transparent; }
+.share.is-seen .slab { opacity: 0.72; }
+.share.is-seen .slab:hover, .share.is-seen .slab:focus-visible { opacity: 1; }
 .share.is-seen .share-title { color: var(--ink-2); }
