@@ -32,9 +32,9 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
   .nav.glass { background: var(--desk); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 .nav-inner { max-width: 68rem; margin: 0 auto; padding: 0.7rem 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.75rem; }
-/* 站名是簽名(只下載用到的字母);字型載不到時退回一般字體 */
-.nav-name { font-family: var(--font-sign), var(--font-ui); font-size: 2.1rem; line-height: 1; padding-top: 0.2rem; color: var(--ink); text-decoration: none; }
-.nav-links { display: flex; gap: 1.25rem; list-style: none; margin: 0; padding: 0; }
+/* 站名是簽名(只下載用到的字母);字型載不到時退回一般字體。又大又重,右邊多留 1rem 才不會跟頁籤擠在一起 */
+.nav-name { font-family: var(--font-sign), var(--font-ui); font-size: 2.1rem; line-height: 1; padding-top: 0.2rem; margin-right: 1rem; color: var(--ink); text-decoration: none; }
+.nav-links { display: flex; gap: 1.6rem; list-style: none; margin: 0; padding: 0; font-size: 1.06rem; }
 .nav-links a { position: relative; color: var(--ink-2); text-decoration: none; padding: 0.2rem 0; }
 .nav-links a:hover { color: var(--ink); }
 .nav-links a[aria-current="page"] { color: var(--ink); font-weight: 500; }
