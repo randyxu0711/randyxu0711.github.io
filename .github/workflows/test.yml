@@ -10,5 +10,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: pip install pytest pillow
+      - run: pip install pytest pillow pyyaml
       - run: python3 -m pytest tools -q

@@ -77,6 +77,20 @@ Projects 列在 About 頁,資料在 `_data/projects.yml`:複製一段,改 `name`
 
 不想公開的書,在 Goodreads 放進 `hide` 書架。封面只抓新加的書,已經抓過的會跳過。
 
+### 加一本書(issue)
+
+平常一本一本加,走 issue,跟分享文章一樣:開 issue 選 **加一本書**,填 Goodreads 書頁網址、評分、中文書名與作者(後三者選填)。
+Action 會從書頁抓書名、作者、頁數與封面,加到書架、部署、留言並關 issue。要改就編輯 issue,要撤下就關成 not planned。
+用 issue 加的書存在 `_data/books_added.json`,之後重新匯入 CSV 也不會消失(同一本以 CSV 為準)。
+
+在 Goodreads 書頁按這個書籤,會開一張填好網址的表單(加書籤的方式同上面的分享書籤):
+
+```
+javascript:(()=>{const u='https://github.com/randyxu0711/randyxu0711.github.io/issues/new?template=book.yml&url='+encodeURIComponent(location.href.split('?')[0]);window.open(u,'_blank')||(location.href=u)})()
+```
+
+中文書名都在 `_data/books_zh.yml`,要改譯名直接改這個檔。
+
 ## 開關功能與外觀
 
 - `_config.yml` 的 `modules:` 一行一個功能(篩選、已開過、封存版、書單),註解掉就關掉。

@@ -1,0 +1,73 @@
+name: Book
+run-name: "book #${{ github.event.issue.number }} ${{ github.event.action }}"
+
+on:
+  issues:
+    types: [opened, edited, closed]
+
+# 跟 share / linkcheck 共用,避免同時 push
+concurrency:
+  group: share
+  cancel-in-progress: false
+
+jobs:
+  book:
+    # 只處理 owner 開的、表單帶 book label 的 issue
+    if: >-
+      github.event.issue.user.login == github.repository_owner &&
+      contains(github.event.issue.labels.*.name, 'book')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+    outputs:
+      status: ${{ steps.run.outputs.status }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # 算封面主色要用 Pillow
+      - run: pip install --quiet pillow
+
+      - id: run
+        run: python3 tools/books/add_book.py _data
+
+      - name: Commit
+        if: steps.run.outputs.status == 'published' || steps.run.outputs.status == 'removed'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _data/books.json _data/books_added.json _data/books_zh.yml
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "book: #${{ github.event.issue.number }} ${{ steps.run.outputs.status }}"
+          git pull --rebase
+          git push
+
+      - name: Reply on issue
+        if: steps.run.outputs.status != 'skip'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          N: ${{ github.event.issue.number }}
+          STATUS: ${{ steps.run.outputs.status }}
+          STATE: ${{ github.event.issue.state }}
+        run: |
+          gh issue comment "$N" --body-file "$RUNNER_TEMP/book-comment.md"
+          case "$STATUS" in
+            published)
+              gh issue edit "$N" --remove-label needs-fix 2>/dev/null || true
+              # 標題換成「書:書名」,issue 列表才分得出來(GITHUB_TOKEN 的編輯不會再觸發這個 workflow)
+              gh issue edit "$N" --title "$(cat "$RUNNER_TEMP/book-title.txt")"
+              if [ "$STATE" = open ]; then gh issue close "$N" --reason completed; fi ;;
+            needs_fix)
+              gh label create needs-fix --color d93f0b --description "分享沒發布,要修" --force
+              gh issue edit "$N" --add-label needs-fix ;;
+          esac
+
+  # GITHUB_TOKEN 的 push 不會觸發 pages-deploy.yml,所以直接呼叫它
+  deploy:
+    needs: book
+    if: needs.book.outputs.status == 'published' || needs.book.outputs.status == 'removed'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/pages-deploy.yml

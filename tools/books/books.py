@@ -5,6 +5,7 @@
 - 永遠不輸出 Private Notes 與 My Review。
 - 封面從 Goodreads 書頁的 og:image 取得,只抓快取裡沒有的;成功的才進快取。
 - 主色用 Pillow 算(只有這裡需要 Pillow)。
+- 用 issue 加的書(_data/books_added.json)會合進來,同一本以 CSV 為準。
 CSV 本身含私人資料,不要 commit(books/ 在 .gitignore)。
 """
 
@@ -144,6 +145,11 @@ def run(csv_path, data_dir, hide_shelf="hide", **fetchers):
     cache_path = data_dir / "book_covers.json"
     cache = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
     fetched = fill_covers(items, cache, **fetchers)
+    # 用 issue 加的書(add_book.py)合進來:同一本以 CSV 為準,CSV 沒有的照樣保留
+    added_path = data_dir / "books_added.json"
+    added = json.loads(added_path.read_text(encoding="utf-8")) if added_path.exists() else []
+    csv_ids = {b["id"] for b in items}
+    items = sort_books(items + [b for b in added if b["id"] not in csv_ids])
     data_dir.mkdir(parents=True, exist_ok=True)
     (data_dir / "books.json").write_text(
         json.dumps(items, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
