@@ -1,0 +1,9 @@
+{%- comment -%}
+  書名或作者:有台灣譯名就中英各一份,CSS 依語言只顯示一份;沒有就只輸出原文。
+  參數:zh(譯名,可空)、en(原文)
+{%- endcomment -%}
+{%- if include.zh and include.zh != include.en -%}
+<span class="lang-zh" lang="zh-Hant">{{ include.zh | escape }}</span><span class="lang-en">{{ include.en | escape }}</span>
+{%- else -%}
+{{ include.en | escape }}
+{%- endif -%}

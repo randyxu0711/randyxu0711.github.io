@@ -3,6 +3,14 @@
   var root = document.getElementById('books');
   if (!root) return;
   var data = JSON.parse(document.getElementById('books-data').textContent);
+  var zhEl = document.getElementById('books-zh');
+  var zh = (zhEl && JSON.parse(zhEl.textContent)) || {};
+  // 中文時用台灣譯名(沒有就用原文)
+  function name(b, field) {
+    var z = zh[b.id];
+    var isZh = !window.siteI18n || window.siteI18n.lang() === 'zh';
+    return isZh && z && z[field] ? z[field] : b[field];
+  }
   var rows = {};
   data.forEach(function (b) { var k = String(b.rating); (rows[k] = rows[k] || []).push(b); });
 
@@ -36,8 +44,8 @@
     img.hidden = !b.cover;
     img.onerror = function () { img.hidden = true; };
     if (b.cover) img.src = b.cover; else img.removeAttribute('src');
-    $('b-cti').textContent = b.title; $('b-cau').textContent = b.author;
-    $('b-title').textContent = b.title; $('b-author').textContent = b.author;
+    $('b-cti').textContent = name(b, 'title'); $('b-cau').textContent = name(b, 'author');
+    $('b-title').textContent = name(b, 'title'); $('b-author').textContent = name(b, 'author');
     var s = $('b-stars'); s.textContent = stars(b.rating);
     s.setAttribute('aria-label', b.rating ? t('books.stars_of', b.rating) : t('books.unrated'));
     $('b-pages').textContent = b.pages ? t('books.pages', b.pages) : '';
