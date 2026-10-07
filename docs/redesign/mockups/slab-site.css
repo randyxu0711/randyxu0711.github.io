@@ -1,0 +1,249 @@
+/* Layout: 網站是一張桌面,所有東西(卡片、書、project、按鈕)都是放在上面的同一種板材。
+   內容欄 68rem,首頁內容優先、About 用履歷式兩欄(小標在左、內容在右)。 */
+
+/* ── 原始值 ── */
+:root {
+  --h: 72;                 /* 琥珀色相 */
+  --desk-h: 250;           /* 桌面偏冷,讓琥珀的側面更明顯 */
+  --font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --t-xs: 0.78rem; --t-sm: 0.875rem; --t-md: 1rem; --t-lg: 1.2rem; --t-xl: 1.5rem; --t-2xl: 2.1rem;
+}
+
+/* ── 語意 token:晝 ── */
+:root {
+  --desk:       oklch(0.925 0.007 var(--desk-h));   /* 桌面 */
+  --desk-2:     oklch(0.89 0.009 var(--desk-h));    /* 桌面上刻出來的凹槽(輸入框、區塊底) */
+  --face:       oklch(0.985 0.004 85);              /* 板材表面 */
+  --face-amber: oklch(0.955 0.045 80);              /* 精選:表面帶琥珀 */
+  --edge:       oklch(0.76 0.13 var(--h));          /* 側面 */
+  --edge-deep:  oklch(0.6 0.12 62);                 /* 側面最下緣 */
+  --edge-n:      oklch(0.83 0.018 75);              /* 平常的側面:暖中性,像厚紙的切面 */
+  --edge-n-deep: oklch(0.71 0.022 70);
+  --paper:       oklch(0.94 0.025 85);              /* 書的書口 */
+  --paper-deep:  oklch(0.82 0.03 80);
+  --ink:        oklch(0.22 0.015 70);
+  --ink-2:      oklch(0.47 0.02 70);
+  --ink-3:      oklch(0.6 0.015 70);
+  --accent:     oklch(0.52 0.12 65);                /* 當成文字用的琥珀 */
+  --line:       oklch(0.45 0.03 70 / 0.14);
+  --spec:       oklch(1 0 0 / 0.95);                /* 上緣反光 */
+  --sheen:      oklch(1 0 0 / 0.55);
+  --drop-near:  oklch(0.25 0.03 var(--desk-h) / 0.24);
+  --drop-far:   oklch(0.25 0.03 var(--desk-h) / 0.22);
+  color-scheme: light;
+}
+/* ── 語意 token:夜 ── */
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --desk: oklch(0.165 0.008 var(--desk-h)); --desk-2: oklch(0.135 0.008 var(--desk-h));
+  --face: oklch(0.235 0.008 75); --face-amber: oklch(0.28 0.04 70);
+  --edge: oklch(0.6 0.13 66); --edge-deep: oklch(0.4 0.09 60); --edge-n: oklch(0.37 0.012 75); --edge-n-deep: oklch(0.28 0.01 70); --paper: oklch(0.8 0.03 85); --paper-deep: oklch(0.62 0.03 80);
+  --ink: oklch(0.93 0.012 80); --ink-2: oklch(0.72 0.015 80); --ink-3: oklch(0.58 0.012 80);
+  --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
+  --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
+  --drop-near: oklch(0 0 0 / 0.55); --drop-far: oklch(0 0 0 / 0.6);
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --desk: oklch(0.165 0.008 var(--desk-h)); --desk-2: oklch(0.135 0.008 var(--desk-h));
+  --face: oklch(0.235 0.008 75); --face-amber: oklch(0.28 0.04 70);
+  --edge: oklch(0.6 0.13 66); --edge-deep: oklch(0.4 0.09 60); --edge-n: oklch(0.37 0.012 75); --edge-n-deep: oklch(0.28 0.01 70); --paper: oklch(0.8 0.03 85); --paper-deep: oklch(0.62 0.03 80);
+  --ink: oklch(0.93 0.012 80); --ink-2: oklch(0.72 0.015 80); --ink-3: oklch(0.58 0.012 80);
+  --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
+  --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
+  --drop-near: oklch(0 0 0 / 0.55); --drop-far: oklch(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+/* ── 基礎 ── */
+body { background: var(--desk); color: var(--ink); font-family: var(--font); font-size: var(--t-md); line-height: 1.75; padding: 0 16px; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { margin: 0; line-height: 1.35; text-wrap: balance; }
+p, ul, dl { margin: 0; }
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+[hidden] { display: none !important; }
+.main { max-width: 68rem; margin: 0 auto; padding-block: 2.25rem 6rem; }
+
+/* ── 材質:板 ──
+   --th 是厚度。側面用偏移的實色陰影畫,傾斜時 --sx 讓側面往反方向露出。 */
+.slab {
+  --th: 4px; --sx: 0px; --rx: 0deg; --ry: 0deg; --lift: 0px; --r: 16px; --face-c: var(--face);
+  --side: var(--edge-n); --side-2: var(--edge-n-deep);
+  position: relative; display: block; color: inherit; text-decoration: none;
+  border-radius: var(--r); overflow: hidden; isolation: isolate;
+  background: var(--face-c);
+  transform: perspective(1000px) translateY(var(--lift)) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 450ms cubic-bezier(.2,.7,.2,1), box-shadow 450ms cubic-bezier(.2,.7,.2,1);
+  box-shadow:
+    var(--sx) var(--th) 0 0 var(--side),
+    var(--sx) calc(var(--th) + 1.5px) 0 0 var(--side-2),
+    0 calc(var(--th) + 8px) 16px -6px var(--drop-near),
+    0 34px 60px -30px var(--drop-far);
+  margin-bottom: var(--th);
+}
+.slab::before { content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 3; pointer-events: none;
+  box-shadow: inset 0 1.5px 0 var(--spec), inset 0 0 0 1px var(--line); }
+.slab::after { content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(26rem circle at var(--mx, 50%) var(--my, 0%), var(--sheen), transparent 50%);
+  mix-blend-mode: soft-light; opacity: 0; transition: opacity 300ms; }
+a.slab:hover, a.slab:focus-visible, button.slab:hover, button.slab:focus-visible { --lift: -4px; --side: var(--edge); --side-2: var(--edge-deep); }
+/* 對照用:舊版,每片的側面都是琥珀 */
+:root[data-amber="all"] .slab { --side: var(--edge); --side-2: var(--edge-deep); }
+a.slab:hover::after, a.slab:focus-visible::after, button.slab:hover::after, button.slab:focus-visible::after { opacity: 1; }
+.slab.tracking { transition: transform 90ms linear, box-shadow 90ms linear; }
+@media (prefers-reduced-motion: reduce) { .slab, .slab.tracking { transition: none; transform: none; } }
+
+/* 按鍵:最薄的板,按下去就沉到桌面 */
+.key {
+  --th: 2px;
+  font: inherit; font-size: var(--t-sm); color: var(--ink); cursor: pointer; border: 0;
+  padding: 0.22rem 0.85rem; border-radius: 999px; background: var(--face);
+  box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 var(--th) 0 0 var(--key-side, var(--edge-n-deep)), 0 calc(var(--th) + 3px) 6px -3px var(--drop-near);
+  transform: translateY(0); transition: transform 120ms, box-shadow 120ms;
+  margin-bottom: 2px;
+}
+.key:hover { transform: translateY(-1px); }
+.key[aria-pressed="true"] { --th: 0px; transform: translateY(2px); background: var(--face-amber); color: var(--ink); box-shadow: inset 0 1px 2px var(--drop-near), inset 0 0 0 1px var(--edge); }
+:root[data-amber="all"] .key { --key-side: var(--edge); }
+.key .n { color: var(--ink-3); margin-left: 0.3rem; font-variant-numeric: tabular-nums; }
+.key.round { width: 2rem; height: 2rem; padding: 0; display: inline-grid; place-items: center; }
+.key.round svg { width: 1rem; height: 1rem; }
+.key.text { font-size: var(--t-xs); font-weight: 700; }
+
+/* 刻進桌面的凹槽(輸入框) */
+.well {
+  font: inherit; font-size: var(--t-sm); color: var(--ink);
+  background: var(--desk-2); border: 0; border-radius: 999px; padding: 0.4rem 1rem;
+  box-shadow: inset 0 2px 4px var(--drop-near), inset 0 0 0 1px var(--line);
+}
+.well::placeholder { color: var(--ink-3); }
+
+/* ── 導覽列:安靜,切換收成兩顆圓鍵 ── */
+/* 平常融入桌面;捲動後卡片從底下滑過,才變成一片霧面玻璃(上緣反光 + 底線 + 透出模糊的內容) */
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; margin: 0 -16px; padding: 0.7rem 16px;
+  background: var(--desk); transition: background-color 250ms, box-shadow 250ms, backdrop-filter 250ms; }
+.nav.glass {
+  background: color-mix(in oklch, var(--desk) 62%, transparent);
+  -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
+  box-shadow: inset 0 1px 0 var(--spec), 0 1px 0 var(--line), 0 10px 24px -18px var(--drop-far);
+}
+@media (prefers-reduced-transparency: reduce) { .nav.glass { background: var(--desk); -webkit-backdrop-filter: none; backdrop-filter: none; } }
+.nav-in { max-width: 68rem; margin: 0 auto; display: flex; align-items: center; gap: 0.5rem 1.75rem; flex-wrap: wrap; }
+.nav-name { font-weight: 700; color: var(--ink); text-decoration: none; letter-spacing: 0.01em; }
+.nav-links { display: flex; gap: 1.25rem; list-style: none; padding: 0; margin: 0; }
+.nav-links button { font: inherit; background: none; border: 0; padding: 0.2rem 0; cursor: pointer; color: var(--ink-2); position: relative; }
+.nav-links button[aria-current="page"] { color: var(--ink); font-weight: 500; }
+/* 目前頁:底下一片很薄的琥珀板 */
+.nav-links button[aria-current="page"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; border-radius: 3px; background: var(--edge); }
+.nav-tools { margin-left: auto; display: flex; gap: 0.5rem; }
+
+/* ── 首頁 ── */
+.filters { display: flex; flex-wrap: wrap; align-items: center; gap: 0.7rem 0.6rem; margin-bottom: 2rem; }
+.filters .well { width: min(17rem, 100%); }
+.filters .chips { display: flex; flex-wrap: wrap; gap: 0.55rem 0.45rem; }
+.filters .count { margin-left: auto; font-size: var(--t-sm); color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+.share .thumb { display: block; width: 100%; aspect-ratio: 1.91 / 1; object-fit: cover; }
+.share .body { display: grid; gap: 0.5rem; padding: 1rem 1.15rem 1.2rem; min-width: 0; }
+.meta { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--t-xs); color: var(--ink-3); }
+.meta span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta time { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ttl { font-size: 1.08rem; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; }
+.desc { font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.note { font-size: var(--t-md); color: var(--ink); line-height: 1.75; }
+.tags { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.tag { font-size: 0.72rem; color: var(--ink-2); padding: 0.02rem 0.55rem; border-radius: 999px; box-shadow: inset 0 0 0 1px var(--line); }
+
+.share.feature { --th: 7px; --r: 20px; --face-c: var(--face-amber); --side: var(--edge); --side-2: var(--edge-deep); display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); margin-bottom: calc(2.25rem + 7px); }
+.share.feature .thumb { aspect-ratio: auto; height: 100%; min-height: 16rem; }
+.share.feature .body { padding: 1.6rem 1.75rem; align-content: center; gap: 0.8rem; }
+.share.feature .ttl { font-size: var(--t-xl); }
+.share.feature .meta { font-size: var(--t-sm); }
+@media (max-width: 720px) {
+  .share.feature { grid-template-columns: 1fr; }
+  .share.feature .thumb { aspect-ratio: 1.91 / 1; height: auto; min-height: 0; }
+  .share.feature .body { padding: 1.1rem 1.2rem 1.3rem; }
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)); gap: 1.9rem 1.5rem; align-items: start; }
+
+/* ── 頁首(書架、About 共用) ── */
+.page-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 2.25rem; }
+.page-head h1 { font-size: var(--t-2xl); letter-spacing: -0.01em; }
+.page-head p { color: var(--ink-2); margin-top: 0.35rem; }
+
+/* ── About:履歷式兩欄 ── */
+.profile { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.75rem; align-items: center; margin-bottom: 3.5rem; max-width: 46rem; }
+/* 頭像是一枚圓形的板 */
+.coin { width: 7.5rem; height: 7.5rem; border-radius: 50%; object-fit: cover; display: block;
+  box-shadow: inset 0 0 0 1px var(--line), 0 4px 0 0 var(--coin-side, var(--edge-n)), 0 5.5px 0 0 var(--coin-side-2, var(--edge-n-deep)), 0 14px 22px -8px var(--drop-near); margin-bottom: 4px; }
+:root[data-amber="all"] .coin { --coin-side: var(--edge); --coin-side-2: var(--edge-deep); }
+.profile h1 { font-size: var(--t-2xl); letter-spacing: -0.01em; }
+.profile .role { color: var(--accent); font-weight: 500; margin: 0.15rem 0 0.7rem; }
+.profile .intro { color: var(--ink-2); }
+.cv { display: grid; gap: 3rem; }
+.cv-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1.5rem; }
+.cv-row > h2 { font-size: var(--t-sm); font-weight: 700; color: var(--ink-3); padding-top: 0.15rem; }
+.cv-row .content { display: grid; gap: 1rem; max-width: 46rem; }
+.cv-row ul { padding-left: 1.1rem; color: var(--ink-2); display: grid; gap: 0.3rem; }
+.cv-row strong { color: var(--ink); font-weight: 500; }
+.explore { display: grid; gap: 1rem; }
+.explore div { display: grid; gap: 0.15rem; }
+.explore b { font-weight: 700; }
+.explore p { color: var(--ink-2); }
+.job-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; }
+.job-head span { color: var(--ink-3); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
+.skills { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem 1rem; align-items: baseline; }
+.skills dt { font-size: var(--t-sm); color: var(--ink-2); white-space: nowrap; }
+.skills dd { margin: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.75rem 1.5rem; }
+.proj .thumb { display: block; width: 100%; aspect-ratio: 2 / 1; object-fit: cover; }
+.proj .body { padding: 1rem 1.15rem 1.2rem; display: grid; gap: 0.55rem; }
+.proj ul { padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); }
+@media (max-width: 760px) {
+  .cv-row { grid-template-columns: 1fr; gap: 0.6rem; }
+  .profile { grid-template-columns: 1fr; gap: 1.1rem; }
+  .coin { width: 6rem; height: 6rem; }
+}
+
+/* ── 書架 ── */
+.shelf-row { display: grid; gap: 1rem; margin-bottom: 3rem; }
+.shelf-row > h2 { display: flex; align-items: baseline; gap: 0.7rem; font-size: var(--t-lg); }
+.shelf-row .stars { color: var(--accent); letter-spacing: 0.08em; }
+.shelf-row .n { color: var(--ink-3); font-size: var(--t-sm); font-weight: 400; }
+/* 封面:一本書就是一片板,厚度 = 頁數 */
+.covers { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 1.6rem 1.2rem; align-items: end; }
+.slab.book, :root[data-amber="all"] .slab.book, .slab.book:hover, .slab.book:focus-visible { --side: var(--paper); --side-2: var(--paper-deep); }
+.book { --r: 6px 10px 10px 6px; font: inherit; text-align: left; padding: 0; border: 0; cursor: pointer; width: 100%; background: var(--col); }
+.book .bface { aspect-ratio: 2 / 3; display: grid; align-content: space-between; padding: 14% 12%; color: var(--bink);
+  background: linear-gradient(90deg, oklch(0 0 0 / 0.18), transparent 7%, oklch(1 0 0 / 0.08) 9%, transparent 14%), linear-gradient(160deg, oklch(1 0 0 / 0.16), transparent 45%), var(--col); }
+.book .bt { font-size: 1rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.book .ba { font-size: 0.72rem; opacity: 0.8; }
+.book-cap { margin-top: 0.55rem; display: grid; gap: 0.05rem; }
+.book-cap b { font-size: var(--t-sm); font-weight: 500; line-height: 1.4; }
+.book-cap span { font-size: var(--t-xs); color: var(--ink-3); }
+/* 書脊:立起來的板,站在一塊長板(層板)上 */
+.spines { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.1rem 4px; padding: 0 0.75rem; position: relative; }
+.board { --th: 6px; --r: 6px; height: 14px; margin-top: -2px; }
+.spine { --r: 3px 3px 2px 2px; --th: 3px; width: var(--w); height: var(--ht); padding: 0.65rem 0 0.55rem; border: 0; cursor: pointer; font: inherit;
+  background: linear-gradient(90deg, oklch(1 0 0 / 0.2), transparent 18%, transparent 78%, oklch(0 0 0 / 0.25)), var(--col); color: var(--bink);
+  writing-mode: vertical-rl; text-orientation: mixed; display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; font-weight: 500; line-height: 1; margin-bottom: 0; }
+.spine .ba { font-size: 0.64rem; opacity: 0.75; font-weight: 400; }
+.spine:hover, .spine:focus-visible { --lift: -10px; }
+.books[data-view="spines"] .covers, .books[data-view="covers"] .spines-wrap { display: none; }
+
+/* 縮圖平時降一點彩度,游標移上去恢復(對照開關) */
+:root[data-desat="on"] .share .thumb, :root[data-desat="on"] .proj .thumb { filter: saturate(0.8); transition: filter 300ms; }
+:root[data-desat="on"] a.slab:hover .thumb, :root[data-desat="on"] a.slab:focus-visible .thumb { filter: none; }
+
+/* 首頁頁首 */
+.page-head.home { margin-bottom: 1.5rem; }
+
+/* 對照面板(只在 mockup 裡) */
+.cmp-panel { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); z-index: 30;
+  background: var(--face); border-radius: 14px; padding: 0.75rem 0.9rem; display: grid; gap: 0.55rem; font-size: var(--t-xs); color: var(--ink-2);
+  box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 12px 30px -10px var(--drop-far); }
+.cmp-panel b { color: var(--ink); font-size: var(--t-sm); }
+.cmp-panel .row { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; }
+.cmp-panel .seg { display: inline-flex; border-radius: 999px; padding: 2px; background: var(--desk-2); gap: 2px; }
+.cmp-panel .seg button { font: inherit; color: var(--ink-2); background: none; border: 0; border-radius: 999px; padding: 0.1rem 0.6rem; cursor: pointer; }
+.cmp-panel .seg button[aria-pressed="true"] { background: var(--face); color: var(--ink); box-shadow: 0 1px 2px var(--drop-near); }
