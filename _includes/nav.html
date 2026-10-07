@@ -1,6 +1,6 @@
 <header class="nav">
   <div class="nav-inner">
-    <a class="nav-name" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <a class="nav-name" href="{{ '/' | relative_url }}" aria-label="{{ site.title }}">{{ site.title }}</a>
     <nav aria-label="主要" data-i18n-attr="aria-label:nav.main">
       <ul class="nav-links">
         {%- for item in site.nav -%}

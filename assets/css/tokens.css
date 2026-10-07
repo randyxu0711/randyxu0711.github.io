@@ -9,6 +9,7 @@
   --desk-h: 250;                                      /* 桌面偏冷,讓琥珀的側面更明顯 */
 
   --font-ui: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --font-sign: "Mrs Saint Delafield";
   --font-code: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
 
   --t-xs: 0.78rem; --t-sm: 0.875rem; --t-md: 1rem; --t-lg: 1.2rem; --t-xl: 1.5rem; --t-2xl: 2.1rem;
