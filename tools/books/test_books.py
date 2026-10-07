@@ -128,3 +128,13 @@ def test_run_writes_both_json_files(tmp_path):
     assert json.loads((tmp_path / "book_covers.json").read_text(encoding="utf-8")) == {}
     for secret in ("SECRET-NOTE", "PRIVATE-B", "讀完很久"):
         assert secret not in (tmp_path / "books.json").read_text(encoding="utf-8")
+
+
+# --- 真實匯出檔的格式 ---------------------------------------------------------
+
+def test_select_accepts_decimal_ratings_and_pages_from_real_export():
+    """2026 年 Goodreads 匯出的評分是 "4.0" 這種格式,不是 "4"。"""
+    row = {"Book Id": "11438", "Title": "T", "Author": "A", "My Rating": "4.0", "Number of Pages": "159.0",
+           "Date Read": "2025/01/01", "Date Added": "2026/10/07", "Bookshelves": "", "Exclusive Shelf": "read"}
+    b = books.select([row], "hide")[0]
+    assert b["rating"] == 4 and b["pages"] == 159

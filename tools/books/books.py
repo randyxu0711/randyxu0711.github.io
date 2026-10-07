@@ -35,8 +35,11 @@ def _date(s):
 
 
 def _int(s):
-    s = (s or "").strip()
-    return int(s) if s.isdigit() else None
+    """"4"、"4.0" 都接受(新版匯出檔的評分是 "4.0");空白或不是數字回 None。"""
+    try:
+        return int(float((s or "").strip()))
+    except ValueError:
+        return None
 
 
 def select(rows, hide_shelf):
