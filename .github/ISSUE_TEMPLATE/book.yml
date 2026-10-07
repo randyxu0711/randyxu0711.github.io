@@ -1,0 +1,36 @@
+name: 加一本書
+description: 把一本讀完的書加到書架
+title: "加書"
+labels: [book]
+body:
+  # label 要跟 tools/books/add_book.py 的 LABELS 一字不差
+  - type: input
+    id: url
+    attributes:
+      label: Goodreads 網址
+      description: 書在 Goodreads 的頁面,像 https://www.goodreads.com/book/show/11438
+      placeholder: https://www.goodreads.com/book/show/
+    validations:
+      required: true
+  - type: dropdown
+    id: rating
+    attributes:
+      label: 評分
+      description: 選填,沒選就是未評分。
+      options:
+        - "5"
+        - "4"
+        - "3"
+        - "2"
+        - "1"
+        - 未評分
+  - type: input
+    id: title_zh
+    attributes:
+      label: 中文書名
+      description: 選填。台灣譯本的書名,網站切到中文時顯示。
+  - type: input
+    id: author_zh
+    attributes:
+      label: 中文作者
+      description: 選填。台灣譯本上的作者譯名。

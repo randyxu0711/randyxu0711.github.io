@@ -55,6 +55,9 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - 只輸出 read 書架、不在 `books.hide_shelf` 的書;輸出永遠不含 Private Notes 與 My Review。
 - 不抓 Goodreads 的 RSS(`robots.txt` 禁止 `/review/list_rss`);封面從書頁 `/book/show/<id>` 的 og:image 取得。
 - 書單是空的或 books 模組關掉時,`_plugins/books-page.rb` 不產生 `/books/`,導覽列也不顯示。
+- **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
+  從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);
+  CSV 匯入時合併,同一本以 CSV 為準。撤下 = 關成 not planned。
 - **中文書名**在 `_data/books_zh.yml`(Goodreads ID → 台灣譯本書名 / 作者譯名,附查證來源),CSV 重新匯入不會動它。
   網站切到中文時顯示譯名,沒列在裡面的書顯示原文。
 
