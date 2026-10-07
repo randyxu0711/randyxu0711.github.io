@@ -1,0 +1,85 @@
+/* 板材:網站是一張桌面,卡片、書、project、按鍵都是放在上面的同一種板。只用語意 token。
+   立體感來自板子本身:上緣反光 + 底下露出的側面(--th 厚度)+ 近遠兩層陰影。
+   琥珀只留給三個時刻:精選(一直)、游標停留 / 鍵盤聚焦、按下的狀態。 */
+
+/* ── 板 ── */
+.slab {
+  --th: var(--th-card); --sx: 0px; --rx: 0deg; --ry: 0deg; --lift: 0px; --r: 16px;
+  --face-c: var(--face); --side: var(--edge-n); --side-2: var(--edge-n-deep);
+  position: relative; display: block; color: inherit; text-decoration: none;
+  border-radius: var(--r); overflow: hidden; isolation: isolate;
+  background: var(--face-c);
+  transform: perspective(1000px) translateY(var(--lift)) rotateX(var(--rx)) rotateY(var(--ry));
+  transition: transform 450ms cubic-bezier(.2,.7,.2,1), box-shadow 450ms cubic-bezier(.2,.7,.2,1), opacity 300ms;
+  box-shadow:
+    var(--sx) var(--th) 0 0 var(--side),
+    var(--sx) calc(var(--th) + 1.5px) 0 0 var(--side-2),
+    0 calc(var(--th) + 8px) 16px -6px var(--drop-near),
+    0 34px 60px -30px var(--drop-far);
+  margin-bottom: calc(var(--th) + 1.5px);
+}
+/* 上緣反光與輪廓:另外畫一層,才能蓋在貼齊頂端的圖片上 */
+.slab::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; z-index: 3; pointer-events: none;
+  box-shadow: inset 0 1.5px 0 var(--spec), inset 0 0 0 1px var(--line);
+}
+/* 跟著游標的光澤 */
+.slab::after {
+  content: ""; position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(26rem circle at var(--mx, 50%) var(--my, 0%), var(--sheen), transparent 50%);
+  mix-blend-mode: soft-light; opacity: 0; transition: opacity 300ms;
+}
+a.slab:hover, a.slab:focus-visible, button.slab:hover, button.slab:focus-visible {
+  --lift: -4px; --side: var(--edge); --side-2: var(--edge-deep);
+}
+a.slab:hover::after, a.slab:focus-visible::after, button.slab:hover::after, button.slab:focus-visible::after { opacity: 1; }
+.slab:focus-visible { outline: 2px solid var(--accent); outline-offset: calc(var(--th) + 4px); }
+/* 傾斜中:跟手要快,離開時才用慢的回彈 */
+.slab.tracking { transition: transform 90ms linear, box-shadow 90ms linear, opacity 300ms; }
+
+/* ── 按鍵:最薄的板,按下去就沉到桌面 ── */
+.key {
+  --th: var(--th-key);
+  font: inherit; font-size: var(--t-sm); color: var(--ink); cursor: pointer; border: 0;
+  padding: 0.22rem 0.85rem; border-radius: 999px; background: var(--face);
+  box-shadow:
+    inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line),
+    0 var(--th) 0 0 var(--edge-n-deep), 0 calc(var(--th) + 3px) 6px -3px var(--drop-near);
+  transform: translateY(0); transition: transform 120ms, box-shadow 120ms, background-color 120ms;
+  margin-bottom: var(--th-key);
+}
+.key:hover { transform: translateY(-1px); }
+.key[aria-pressed="true"] {
+  --th: 0px; transform: translateY(var(--th-key)); background: var(--face-amber);
+  box-shadow: inset 0 1px 2px var(--drop-near), inset 0 0 0 1px var(--edge);
+}
+.key .n { color: var(--ink-3); margin-left: 0.3rem; font-variant-numeric: tabular-nums; }
+.key.round { width: 2rem; height: 2rem; padding: 0; display: inline-grid; place-items: center; font-size: var(--t-xs); font-weight: 700; }
+.key.round svg { width: 1rem; height: 1rem; }
+
+/* ── 凹槽:刻進桌面(輸入框) ── */
+.groove {
+  font: inherit; font-size: var(--t-sm); color: var(--ink);
+  background: var(--desk-2); border: 0; border-radius: 999px; padding: 0.4rem 1rem;
+  box-shadow: inset 0 2px 4px var(--drop-near), inset 0 0 0 1px var(--line);
+}
+.groove::placeholder { color: var(--ink-3); }
+
+/* ── 圓形頭像:一枚圓板 ── */
+.coin {
+  display: block; border-radius: 50%; object-fit: cover;
+  box-shadow: inset 0 0 0 1px var(--line), 0 4px 0 0 var(--edge-n), 0 5.5px 0 0 var(--edge-n-deep),
+    0 14px 22px -8px var(--drop-near);
+  margin-bottom: 5.5px;
+}
+
+/* ── 退路 ── */
+@media (prefers-reduced-motion: reduce) {
+  .slab, .slab.tracking, .key { transition: none; }
+  .slab { transform: none; }
+  a.slab:hover, a.slab:focus-visible, button.slab:hover, button.slab:focus-visible { --lift: 0px; }
+}
+@media (forced-colors: active) {
+  .slab, .key { border: 1px solid CanvasText; }
+  .slab::before, .slab::after { display: none; }
+}

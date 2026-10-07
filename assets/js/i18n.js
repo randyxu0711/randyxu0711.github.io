@@ -1,4 +1,4 @@
-// 中英切換。<html data-lang> 由 head 的行內 script 在繪製前設定;這支換掉 data-i18n 標記的文字。
+// 中英切換(導覽列的語言鍵)。<html data-lang> 由 head 的行內 script 在繪製前設定;這支換掉 data-i18n 標記的文字。
 // 標記方式:
 //   data-i18n="鍵"                 換掉元素的文字
 //   data-i18n-attr="屬性:鍵;屬性:鍵"  換掉屬性(placeholder、aria-label…)
@@ -29,8 +29,13 @@
       });
     });
     root.lang = lang() === 'en' ? 'en' : 'zh-Hant';
-    document.querySelectorAll('[data-lang-set]').forEach(function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute('data-lang-set') === lang()));
+    // 語言鍵顯示「另一個語言」
+    document.querySelectorAll('[data-lang-toggle]').forEach(function (b) {
+      var other = lang() === 'en' ? 'zh' : 'en';
+      b.textContent = other === 'en' ? 'EN' : '中';
+      b.lang = other === 'en' ? 'en' : 'zh-Hant';
+      b.setAttribute('aria-label', t('lang.switch_to'));
+      b.title = t('lang.switch_to');
     });
   }
   function set(l) {
@@ -41,10 +46,9 @@
   }
 
   window.siteI18n = { t: t, lang: lang, apply: apply };
-  document.querySelectorAll('[data-lang-set]').forEach(function (b) {
-    b.addEventListener('click', function () { set(b.getAttribute('data-lang-set')); });
+  document.querySelectorAll('[data-lang-toggle]').forEach(function (b) {
+    b.addEventListener('click', function () { set(lang() === 'en' ? 'zh' : 'en'); });
+    b.hidden = false;
   });
-  var sw = document.querySelector('[data-lang-switch]');
-  if (sw) sw.hidden = false;
   apply();
 })();

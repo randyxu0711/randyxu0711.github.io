@@ -1,6 +1,6 @@
 <header class="nav">
   <div class="nav-inner">
-    <a class="nav-name" href="{{ '/' | relative_url }}">{{ site.title }}</a>
+    <a class="nav-name" href="{{ '/' | relative_url }}" aria-label="{{ site.title }}">{{ site.title }}</a>
     <nav aria-label="主要" data-i18n-attr="aria-label:nav.main">
       <ul class="nav-links">
         {%- for item in site.nav -%}
@@ -17,15 +17,12 @@
     </nav>
     <div class="nav-tools">
       {% include slot.html name="header-tools" %}
-      <div class="seg" role="group" aria-label="語言" data-i18n-attr="aria-label:lang.group" data-lang-switch hidden>
-        <button type="button" data-lang-set="zh" lang="zh-Hant" aria-pressed="false">中</button>
-        <button type="button" data-lang-set="en" lang="en" aria-pressed="false">EN</button>
-      </div>
-      <div class="seg" role="group" aria-label="主題" data-i18n-attr="aria-label:theme.group" data-theme-switch hidden>
-        <button type="button" data-theme-set="system" aria-pressed="true" data-i18n="theme.system">跟系統</button>
-        <button type="button" data-theme-set="light" aria-pressed="false" data-i18n="theme.light">晝</button>
-        <button type="button" data-theme-set="dark" aria-pressed="false" data-i18n="theme.dark">夜</button>
-      </div>
+      <button type="button" class="key round" data-lang-toggle hidden>EN</button>
+      <button type="button" class="key round" data-theme-cycle hidden>
+        <svg data-icon="system" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>
+        <svg data-icon="light" viewBox="0 0 16 16" aria-hidden="true" hidden><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <svg data-icon="dark" viewBox="0 0 16 16" aria-hidden="true" hidden><path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z" fill="currentColor"/></svg>
+      </button>
     </div>
   </div>
 </header>

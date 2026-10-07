@@ -21,10 +21,9 @@ nav:
   - { title: 關於, key: nav.about, url: /about/ }
 
 appearance:
-  hue: 72          # 主色色相
-  chroma: 0.15     # 彩度
+  hue: 72          # 琥珀色相
   mode: system     # system / light / dark,訪客可再切換
-  rim: 9px         # 一般卡片框厚;精選 = rim × 4/3,精簡 = rim × 5/9
+  thickness: 4px   # 一般卡片的厚度(精選 7px、按鍵 2px)
 
 modules:           # 註解掉一行 = 關掉一個功能
   shelf-filter: { slots: [before-shelf] }

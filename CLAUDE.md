@@ -2,14 +2,17 @@
 
 個人首頁 + 技術文章轉發站 + 書單,跑在 GitHub Pages(`https://randyxu0711.github.io`)。
 **不寫文章**;內容是「別人的技術文章(連結+縮圖+選填心得)」,credit 屬於原作者。
-設計與決策的完整紀錄:`docs/redesign/SPEC.md`(規格)、`docs/redesign/PLAN.md`(實作計畫)。
+設計與決策的完整紀錄:`docs/redesign/SPEC.md`(規格)、`docs/redesign/PLAN.md`(實作計畫)、`docs/redesign/SLAB.md`(v2 板材視覺)。
 
 ## 架構
 - **Jekyll 4.4,不用主題**,版面全部自己寫。GitHub Actions 部署(`pages-deploy.yml`)。
   本機無 Ruby,用 Docker 建置(指令見 `docs/redesign/SPEC.md`〈指令〉)。
-- **三層 token**:`_config.yml` 的 `appearance`(色相、彩度、框厚)→ `assets/css/tokens.css`(Liquid 注入,晝夜兩套語意 token)
+- **三層 token**:`_config.yml` 的 `appearance`(色相、模式、厚度)→ `assets/css/tokens.css`(Liquid 注入,晝夜兩套語意 token)
   → 元件。**元件 CSS 只引用語意 token,不寫色碼**(書脊 / 封面的顏色來自資料,例外)。
-- **膠框材質** `.gel` + `.well`(`assets/css/gel.css`):框厚 `--rim` 分精選 / 一般 / 精簡三級,`--img` 讓縮圖透進框。
+- **桌面與板材**(`assets/css/slab.css`):頁面是桌面(`--desk`),卡片、書、project、按鍵都是 `.slab` 板;
+  立體感 = 上緣反光 + 底下側面(`--th` 厚度)+ 兩層陰影。另有 `.key`(按鍵,按下沉進桌面)、`.groove`(輸入框凹槽)、
+  `.coin`(圓形頭像)。**琥珀只用在三個時刻**:精選卡、游標停留 / 鍵盤聚焦(側面亮成琥珀)、按下的狀態;
+  平常的側面是暖中性色,書的側面是紙色。`data-tilt` 的板會朝游標傾斜(`assets/js/slab.js`,也管捲動玻璃導覽列與主題鍵)。
 - **模組與插槽**:`_config.yml` 的 `modules:` 一行一個模組,註解掉就關掉。版面用 `{% include slot.html name="…" %}`
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
   模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入)。

@@ -1,0 +1,68 @@
+# 關於頁的內容。中英文寫在同一個地方,版面(_includes/about.html)只寫一次。
+# Projects 在 _data/projects.yml;頭像是 assets/img/avatar.jpg。
+
+name: Randy Xu
+avatar: /assets/img/avatar.jpg
+
+role:
+  zh: 軟體工程師,正在研究 AI agent
+  en: Software engineer, currently exploring AI agents
+
+intro:
+  zh: 曾在 Openfind 擔任 Software Engineer,現在大部分時間用 Claude Agent SDK 做自己想用的工具。工作之外,喜歡讀世界經典文學。這裡放我的 projects、讀到值得一看的技術文章,還有讀過的書。
+  en: I previously worked as a Software Engineer at Openfind. These days I spend most of my time building tools I actually want to use with the Claude Agent SDK. Outside of code, I read a lot of world classic literature. This site holds my projects, technical articles worth your time, and the books I've read.
+
+# 每一節的小標
+headings:
+  exploring:  { zh: 正在研究, en: Currently exploring }
+  projects:   { zh: Projects, en: Projects }
+  experience: { zh: 經歷, en: Experience }
+  skills:     { zh: 技能, en: Skills }
+  education:  { zh: 學歷, en: Education }
+
+exploring:
+  - title:
+      zh: 怎麼讓 AI agent 可控、可驗證
+      en: Making AI agents controllable and verifiable
+    text:
+      zh: 用 Claude Agent SDK 做多 agent 應用,想的是怎麼讓 AI 的每句話都有出處、權限不越界,以及怎麼把 AI 和可測試的程式邏輯分開。
+      en: Building multi-agent apps with the Claude Agent SDK — every claim the AI makes should have a source, permissions should never overreach, and AI output should stay separate from testable program logic.
+  - title:
+      zh: 讀開源 agent 框架的原始碼
+      en: Reading open-source agent frameworks
+    text:
+      zh: 例如 Hermes Agent 的上下文壓縮、技能系統與自主學習機制,也替它寫了自訂技能。
+      en: E.g. context compression, the skill system and self-learning in Hermes Agent, for which I've also written custom skills.
+
+experience:
+  - org:   { zh: Openfind 網擎資訊, en: Openfind }
+    title: { zh: Software Engineer, en: Software Engineer }
+    when:  { zh: 2021/10 – 2024/4, en: Oct 2021 – Apr 2024 }
+    lead:
+      zh: "參與企業郵件系統 Mail2000 的核心開發:"
+      en: "Worked on the core of Mail2000, an enterprise email system:"
+    items:
+      zh:
+        - 把 C 語言的舊核心拆成可重用的模組,並設計 RESTful API,讓新舊兩套網頁介面共用同一個後端
+        - 用 keepalived 搭配腳本,做到主備機自動切換與資料庫自動復原
+        - 串接雙因素登入
+        - 參與開發 Outlook 同步工具
+      en:
+        - Split the legacy C core into reusable modules and designed RESTful APIs, so the old and new web UIs share one backend
+        - Built automatic failover and database recovery with keepalived and scripts
+        - Integrated two-factor login
+        - Contributed to an Outlook sync tool
+
+skills:
+  - name:  { zh: AI, en: AI }
+    items:
+      zh: [Claude Agent SDK, 多 agent 工作流程, 上下文管理, 輸出驗證]
+      en: [Claude Agent SDK, Multi-agent workflows, Context management, Output verification]
+  - name:  { zh: 後端 / 全端, en: Backend / full-stack }
+    items: [Python, FastAPI, React, TypeScript, C, C#, PostgreSQL]
+  - name:  { zh: 維運, en: Ops }
+    items: [Linux, Docker, Shell, Perl, GitHub Actions]
+
+education:
+  - school: { zh: 國立政治大學 資訊科學系, en: "B.S. in Computer Science, National Chengchi University" }
+    when: 2016 – 2020
