@@ -34,7 +34,13 @@
   var $ = function (id) { return document.getElementById(id); };
   var cur = null, idx = 0, opener = null;
   function t(key, n) { return window.siteI18n ? window.siteI18n.t(key, n) : key; }
-  function stars(n) { return n ? '★★★★★'.slice(0, n) + '☆☆☆☆☆'.slice(0, 5 - n) : t('books.unrated'); }
+  // 跟 _includes/stars.html 同樣的標記(5 顆 SVG,前 n 顆實心)
+  var STAR = '<path d="M10 1.6l2.55 5.4 5.9.72-4.35 4.06 1.12 5.86L10 14.76l-5.22 2.88 1.12-5.86L1.55 7.72l5.9-.72z"/>';
+  function starsHTML(n) {
+    var out = '';
+    for (var i = 1; i <= 5; i++) out += '<svg class="' + (i <= n ? 'on' : 'off') + '" viewBox="0 0 20 20" aria-hidden="true">' + STAR + '</svg>';
+    return out;
+  }
   function fill(dir) {
     var b = cur[idx];
     var cover = $('b-cover');
@@ -46,7 +52,8 @@
     if (b.cover) img.src = b.cover; else img.removeAttribute('src');
     $('b-cti').textContent = name(b, 'title'); $('b-cau').textContent = name(b, 'author');
     $('b-title').textContent = name(b, 'title'); $('b-author').textContent = name(b, 'author');
-    var s = $('b-stars'); s.textContent = stars(b.rating);
+    var s = $('b-stars');
+    if (b.rating) s.innerHTML = starsHTML(b.rating); else s.textContent = t('books.unrated');
     s.setAttribute('aria-label', b.rating ? t('books.stars_of', b.rating) : t('books.unrated'));
     $('b-pages').textContent = b.pages ? t('books.pages', b.pages) : '';
     $('b-gr').href = b.url;
