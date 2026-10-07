@@ -9,15 +9,34 @@
 .books[data-view="spines"] .view-covers,
 .books[data-view="covers"] .view-spines { display: none; }
 
-.book-row { display: grid; gap: 1rem; margin-bottom: 3rem; }
-.row-head { display: flex; align-items: baseline; gap: 0.7rem; margin: 0; font-size: var(--t-lg); }
-.row-head .stars { color: var(--accent); letter-spacing: 0.08em; }
-.row-head .stars-label { font-size: var(--t-md); }
+/* 間距的節奏:標題到書最近(0.75rem)、同一層的書之間中等、兩層之間最遠(4rem) */
+.book-row { display: grid; gap: 0.75rem; }
+.book-row + .book-row { margin-top: 4rem; }
+.row-head { display: flex; align-items: center; gap: 0.75rem; margin: 0; font-size: var(--t-md); font-weight: 500; line-height: 1; }
+.row-head .stars-label { color: var(--ink-2); }
 .row-head .n { color: var(--ink-3); font-size: var(--t-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
 
+/* 評分星星(_includes/stars.html):實心琥珀、空心中性;尺寸跟著字級 */
+.stars { display: inline-flex; gap: 0.12em; vertical-align: middle; }
+.stars svg { width: 1.05em; height: 1.05em; display: block; }
+.stars .on { fill: var(--accent); }
+.stars .off { fill: var(--edge-n); }
+
 /* ── 封面 ── */
-.covers { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 1.6rem 1.2rem; align-items: end; }
-.book { --r: 6px 10px 10px 6px; width: 100%; padding: 0; border: 0; font: inherit; text-align: left; cursor: pointer; }
+/* 每一行封面站在一塊層板上:每本書下面畫一段板,往左右各延伸半個間距,接起來就是一整塊 */
+.covers {
+  --gap-x: 1.2rem; --th-max: 9px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 1.75rem var(--gap-x);
+  padding-inline: calc(var(--gap-x) / 2); overflow-x: clip;
+}
+/* 書的厚度不一樣:薄的書往下沉,讓每本的底(側面最下緣)都落在同一條線上,剛好站在層板上 */
+.book { --r: 6px 10px 10px 6px; width: 100%; padding: 0; border: 0; font: inherit; text-align: left; cursor: pointer;
+  top: calc(var(--th-max) - var(--th)); margin-bottom: calc(var(--th-max) + 1.5px); }
+.shelf-strip {
+  display: block; height: 10px; margin: 0 calc(var(--gap-x) / -2) 0.6rem;
+  background: var(--face);
+  box-shadow: inset 0 1px 0 var(--spec), inset 0 -1px 0 var(--line), 0 5px 0 0 var(--edge-n), 0 6.5px 0 0 var(--edge-n-deep), 0 12px 14px -8px var(--drop-near);
+}
 .cover {
   --col: oklch(0.55 0.09 var(--h)); --bink: #f7f3ea;
   position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
@@ -33,7 +52,7 @@
 }
 .cover .ti { font-size: 1rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
 .cover .au { font-size: 0.72rem; opacity: 0.8; }
-.cover-cap { margin-top: 0.55rem; display: grid; gap: 0.05rem; }
+.cover-cap { display: grid; gap: 0.05rem; }
 .cover-cap b { font-size: var(--t-sm); font-weight: 500; line-height: 1.4; }
 .cover-cap span { font-size: var(--t-xs); color: var(--ink-3); }
 
@@ -62,7 +81,7 @@ dialog.book::backdrop { background: color-mix(in oklch, var(--desk) 70%, transpa
 .book-info { padding: 1.5rem 1.6rem; display: grid; gap: 0.7rem; align-content: start; min-width: 0; }
 .book-info h2 { font-size: var(--t-xl); margin: 0; }
 .book-info .by { color: var(--ink-2); }
-.book-info .stars { color: var(--accent); font-size: var(--t-lg); letter-spacing: 0.08em; }
+.book-info .stars { font-size: var(--t-lg); }
 .book-info .facts { font-size: var(--t-sm); color: var(--ink-2); }
 .book-info .gr { font-size: var(--t-sm); margin-top: 0.4rem; }
 .book-nav { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-top: 1rem; }

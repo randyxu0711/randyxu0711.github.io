@@ -17,7 +17,7 @@ layout: default
   <section class="book-row" data-row="{{ r }}">
     <h2 class="row-head">
       {%- if rn == 0 -%}<span class="stars-label" data-i18n="books.unrated">未評分</span>
-      {%- else -%}<span class="stars" role="img" aria-label="{{ rn }} 顆星" data-i18n-attr="aria-label:books.stars" data-i18n-n="{{ rn }}">{% for i in (1..rn) %}★{% endfor %}</span>{%- endif -%}
+      {%- else -%}{% include stars.html n=rn %}{%- endif -%}
       <span class="n" data-i18n="books.count" data-i18n-n="{{ list.size }}">{% include t.html k="books.count" n=list.size %}</span>
     </h2>
     <div class="view-spines">

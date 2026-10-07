@@ -1,0 +1,10 @@
+{%- comment -%}
+  評分的星星:5 顆 SVG,前 n 顆實心(琥珀)、其餘空心(中性),所以看得出滿分是 5。
+  不用 ★ 字元:Noto Sans TC 沒有這個字,會退回系統字型,大小、粗細、基線都對不齊。
+  參數:n(1–5)。books.js 的 starsHTML() 產生同樣的標記,兩邊要一起改。
+{%- endcomment -%}
+<span class="stars" role="img" aria-label="{% include t.html k="books.stars" n=include.n %}" data-i18n-attr="aria-label:books.stars" data-i18n-n="{{ include.n }}">
+  {%- for i in (1..5) -%}
+  <svg class="{% if i <= include.n %}on{% else %}off{% endif %}" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.6l2.55 5.4 5.9.72-4.35 4.06 1.12 5.86L10 14.76l-5.22 2.88 1.12-5.86L1.55 7.72l5.9-.72z"/></svg>
+  {%- endfor -%}
+</span>
