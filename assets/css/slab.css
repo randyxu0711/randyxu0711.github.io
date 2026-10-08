@@ -53,6 +53,11 @@ a.slab:hover::after, a.slab:focus-visible::after, button.slab:hover::after, butt
   --th: 0px; transform: translateY(var(--th-key)); background: var(--face-amber);
   box-shadow: inset 0 1px 2px var(--drop-near), inset 0 0 0 1px var(--edge);
 }
+/* 觸控:按鍵的可點範圍往外撐開(32px → 44px),外觀不變 */
+@media (pointer: coarse) {
+  .key { position: relative; }
+  .key::after { content: ""; position: absolute; inset: -6px -3px; }
+}
 .key .n { color: var(--ink-3); margin-left: 0.3rem; font-variant-numeric: tabular-nums; }
 .key.round { width: 2rem; height: 2rem; padding: 0; display: inline-grid; place-items: center; font-size: var(--t-xs); font-weight: 700; }
 .key.round svg { width: 1rem; height: 1rem; }
@@ -64,6 +69,8 @@ a.slab:hover::after, a.slab:focus-visible::after, button.slab:hover::after, butt
   box-shadow: inset 0 2px 4px var(--drop-near), inset 0 0 0 1px var(--line);
 }
 .groove::placeholder { color: var(--ink-3); }
+/* iOS Safari 遇到小於 16px 的輸入框,點下去會把整頁放大 */
+@media (pointer: coarse) { .groove { font-size: 1rem; } }
 
 /* ── 圓形頭像:一枚圓板 ── */
 .coin {

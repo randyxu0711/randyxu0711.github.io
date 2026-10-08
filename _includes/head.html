@@ -7,6 +7,8 @@
 <link rel="icon" href="{{ '/assets/img/favicons/favicon.ico' | relative_url }}" sizes="any">
 <link rel="apple-touch-icon" href="{{ '/assets/img/favicons/apple-touch-icon.png' | relative_url }}">
 <script>
+  // 有 JS:等 JS 才顯示的控制項先佔好位置(見 site.css 的 [data-reserve]),啟動時版面不會跳
+  document.documentElement.classList.add('js');
   // 繪製前套用主題,避免閃一下另一個主題
   (function () {
     var t = null;

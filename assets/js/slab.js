@@ -28,12 +28,13 @@
     ['--ry', '--rx', '--sx'].forEach(function (k) { c.style.removeProperty(k); });
   });
 
-  // ── 兩面卡片:觸控裝置沒有 hover,點一下翻面;點背面的連結照常開啟 ──
+  // ── 兩面卡片:觸控裝置沒有 hover,點一下翻面、再點翻回;點別張卡或空白處,翻著的卡翻回來。點背面的連結照常開啟 ──
   document.addEventListener('click', function (e) {
-    var card = e.target.closest && e.target.closest('[data-flip]');
-    if (!card || e.target.closest('a')) return;
     if (window.matchMedia('(hover: hover)').matches) return;
-    card.classList.toggle('flipped');
+    var card = e.target.closest && e.target.closest('[data-flip]');
+    if (card && e.target.closest('a')) return;
+    document.querySelectorAll('[data-flip].flipped').forEach(function (c) { if (c !== card) c.classList.remove('flipped'); });
+    if (card) card.classList.toggle('flipped');
   });
 
   // ── 舊版網站(Chirpy)留下的 service worker:它是 cache-first,會一直給舊頁面。 ──

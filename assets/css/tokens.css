@@ -29,12 +29,13 @@
   --edge-deep:    oklch(0.6 0.12 62);
   --edge-n:       oklch(0.83 0.018 75);               /* 平常的側面:暖中性 */
   --edge-n-deep:  oklch(0.71 0.022 70);
+  --shelf:        oklch(0.86 0.012 75);               /* 書架層板:比板材暗,白色太亮 */
   --paper:        oklch(0.94 0.025 85);               /* 書口 */
   --paper-deep:   oklch(0.82 0.03 80);
-  --ink:          oklch(0.22 0.015 70);
-  --ink-2:        oklch(0.47 0.02 70);
-  --ink-3:        oklch(0.6 0.015 70);
-  --accent:       oklch(0.52 0.12 65);                /* 當成文字用的琥珀 */
+  --ink:          oklch(0.15 0.01 70);
+  --ink-2:        oklch(0.27 0.012 70);
+  --ink-3:        oklch(0.38 0.012 70);               /* 文字一律接近黑色,層次靠字級與粗細 */
+  --accent:       oklch(0.47 0.12 65);                /* 當成文字用的琥珀 */
   --line:         oklch(0.45 0.03 70 / 0.14);
   --spec:         oklch(1 0 0 / 0.95);                /* 上緣反光 */
   --sheen:        oklch(1 0 0 / 0.55);                /* 跟著游標的光澤 */
@@ -51,6 +52,7 @@
     --edge: oklch(0.6 0.13 66); --edge-deep: oklch(0.4 0.09 60);
     --edge-n: oklch(0.37 0.012 75); --edge-n-deep: oklch(0.28 0.01 70);
     --paper: oklch(0.8 0.03 85); --paper-deep: oklch(0.62 0.03 80);
+    --shelf: var(--face);
     --ink: oklch(0.93 0.012 80); --ink-2: oklch(0.72 0.015 80); --ink-3: oklch(0.58 0.012 80);
     --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
     --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
@@ -64,6 +66,7 @@
   --edge: oklch(0.6 0.13 66); --edge-deep: oklch(0.4 0.09 60);
   --edge-n: oklch(0.37 0.012 75); --edge-n-deep: oklch(0.28 0.01 70);
   --paper: oklch(0.8 0.03 85); --paper-deep: oklch(0.62 0.03 80);
+  --shelf: var(--face);
   --ink: oklch(0.93 0.012 80); --ink-2: oklch(0.72 0.015 80); --ink-3: oklch(0.58 0.012 80);
   --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
   --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
@@ -73,6 +76,6 @@
 
 @supports not (color: oklch(0.5 0.1 70)) {
   :root { --desk: #e6e9ee; --face: #fbfaf8; --face-amber: #f6ead2; --edge: #d9a24a; --edge-deep: #a8742c;
-    --edge-n: #d8d2c8; --edge-n-deep: #b8afa2; --paper: #f2ebdc; --paper-deep: #d6ccb8;
-    --ink: #221e19; --ink-2: #6a6157; --ink-3: #8c8378; --accent: #8a5a0b; }
+    --edge-n: #d8d2c8; --edge-n-deep: #b8afa2; --shelf: #d6d0c9; --paper: #f2ebdc; --paper-deep: #d6ccb8;
+    --ink: #0e0a07; --ink-2: #2a2520; --ink-3: #47413c; --accent: #874900; }
 }

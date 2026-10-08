@@ -17,3 +17,14 @@
 .keys-pop dd { margin: 0; }
 .keys kbd { font-family: var(--font-code); padding: 0.05rem 0.4rem; border-radius: 5px; background: var(--desk-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
 @media (hover: none) { .keys { display: none; } }
+
+/* 手機:第一行輸入框(撐滿)+ 則數,第二行 tag 可以左右滑 */
+@media (max-width: 600px) {
+  .filters { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 0.7rem 0.75rem; }
+  .filter-q .groove { width: 100%; box-sizing: border-box; }
+  .filters .count { margin-left: 0; }
+  .filters .chips { order: 1; grid-column: 1 / -1; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+    margin: 0 -16px; padding: 0.4rem 16px 0.5rem; }   /* 滑到畫面邊緣;上下留空間給按鍵的厚度與陰影 */
+  .filters .chips::-webkit-scrollbar { display: none; }
+  .filters .chips .key { flex: none; }
+}
