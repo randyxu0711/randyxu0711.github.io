@@ -63,9 +63,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);
   CSV 匯入時合併,同一本以 CSV 為準。撤下 = 關成 not planned。
 - **中文書名**在 `_data/books_zh.yml`(Goodreads ID → 台灣譯本書名 / 作者譯名,附查證來源),CSV 重新匯入不會動它。
-  網站切到中文時顯示譯名,沒列在裡面的書顯示原文。選填的 `isbn`(台灣版 ISBN-13)讓中文時的封面改用三民網路書店的封面圖
-  (`cdnec.sanmin.com.tw/product_images/<ISBN 第 4–6 碼>/<第 4–12 碼>.jpg`,hotlink 不存 repo),載入失敗退回原文封面;
-  三民沒有封面時回 1KB 的佔位圖(不會觸發 onerror),這種書別填 `isbn`。
+  網站切到中文時顯示譯名,沒列在裡面的書顯示原文。
 
 ## 測試
 `uvx --with pillow pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。

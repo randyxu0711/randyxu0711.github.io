@@ -21,13 +21,7 @@
       <span class="au">{% include book-name.html zh=zh.author en=b.author %}</span>
     </span>
     <span class="f cover">
-      {%- if zh.isbn -%}
-        {%- comment -%} 有台灣版 ISBN:中文時用三民的封面圖(網址 = ISBN 去掉 978 與檢查碼),失敗就換成原文封面 {%- endcomment -%}
-        {%- assign sm = zh.isbn | slice: 3, 9 -%}
-        <img class="lang-zh" src="https://cdnec.sanmin.com.tw/product_images/{{ sm | slice: 0, 3 }}/{{ sm }}.jpg" alt="" loading="lazy" decoding="async"
-             {%- if b.cover %} data-fb="{{ b.cover | escape }}" onerror="if(this.dataset.fb&&this.src!==this.dataset.fb){this.src=this.dataset.fb}else{this.remove()}"{% else %} onerror="this.remove()"{% endif %}>
-      {%- endif -%}
-      {%- if b.cover %}<img{% if zh.isbn %} class="lang-en"{% endif %} src="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">{% endif -%}
+      {%- if b.cover %}<img src="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">{% endif -%}
       <span class="cover-fallback"><span class="ti">{% include book-name.html zh=zh.title en=b.title %}</span><span class="au">{% include book-name.html zh=zh.author en=b.author %}</span></span>
     </span>
     <span class="f back">
