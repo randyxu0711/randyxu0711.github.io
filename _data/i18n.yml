@@ -41,10 +41,8 @@ books.count:     { zh: "{n} 本", en: "{n} books", en_one: "{n} book" }
 books.stars:     { zh: "{n} 顆星", en: "{n} stars", en_one: "{n} star" }
 books.stars_of:  { zh: "5 顆星中的 {n} 顆", en: "{n} out of 5 stars", en_one: "{n} out of 5 stars" }
 books.pages:     { zh: "{n} 頁", en: "{n} pages", en_one: "{n} page" }
-books.goodreads: { zh: "在 Goodreads 查看", en: "View on Goodreads" }
-books.dialog:    { zh: "書", en: "Book" }
-books.close:     { zh: "闔上", en: "Close" }
-books.prev:      { zh: "上一本", en: "Previous book" }
-books.next:      { zh: "下一本", en: "Next book" }
+books.log:       { zh: "閱讀紀錄", en: "Reading log" }
+books.read_in:   { zh: "{n} 讀完", en: "Read in {n}" }
+books.read_times: { zh: "讀過 {n} 次", en: "Read {n} times" }
 
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

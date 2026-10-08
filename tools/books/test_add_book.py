@@ -43,7 +43,7 @@ def data_dir(tmp_path, books_json=None, zh_yml=None):
     return d
 
 
-FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=lambda b: "#7a3b1f")
+FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=lambda b: "#7a3b1f", measure=lambda b: 0.66)
 
 
 # --- 表單 -----------------------------------------------------------------------
@@ -123,7 +123,8 @@ def test_opened_adds_book_everywhere(tmp_path):
     assert added == [{"id": "11438", "title": "What We Talk About When We Talk About Love", "author": "Raymond Carver",
                       "rating": 4, "pages": 159, "read": None, "added": "2026-10-07", "shelves": [],
                       "url": "https://www.goodreads.com/book/show/11438",
-                      "cover": added[0]["cover"], "color": "#7a3b1f", "ink": "#f7f3ea", "issue": 21}]
+                      "cover": added[0]["cover"], "color": "#7a3b1f", "ink": "#f7f3ea",
+                      "ratio": 0.66, "read_count": 1, "issue": 21}]
     all_books = json.loads((d / "books.json").read_text(encoding="utf-8"))
     assert [b["id"] for b in all_books] == ["1", "11438"]          # 5★ 在前、4★ 在後
     zh = (d / "books_zh.yml").read_text(encoding="utf-8")

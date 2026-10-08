@@ -1,8 +1,12 @@
 ---
 layout: default
 ---
+{%- comment -%}
+  3D 書架:依評分分層,每層是一個書櫃隔間(層板、背板、側板),書站在裡面。
+  兩種排法是同一批書轉向:書脊朝外 / 封面朝外。books.js 會依螢幕寬度把書分到多個隔間(一行一格)。
+{%- endcomment -%}
 {%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
-<section class="books" id="books" data-view="{{ site.books.default_view | default: 'spines' }}">
+<section class="books" id="books" data-view="{{ site.books.default_view | default: 'covers' }}">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
   <header class="page-head">
     <div class="chips" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view" data-view-switch hidden>
@@ -14,24 +18,19 @@ layout: default
     {%- assign rn = r | plus: 0 -%}
     {%- assign list = site.data.books | where: "rating", r -%}
     {%- if list.size == 0 -%}{%- continue -%}{%- endif -%}
-  <section class="book-row" data-row="{{ r }}">
+  <section class="tier" data-row="{{ r }}">
     <h2 class="row-head">
       {%- if rn == 0 -%}<span class="stars-label" data-i18n="books.unrated">未評分</span>
       {%- else -%}{% include stars.html n=rn %}{%- endif -%}
       <span class="n" data-i18n="books.count" data-i18n-n="{{ list.size }}">{% include t.html k="books.count" n=list.size %}</span>
     </h2>
-    <div class="view-spines">
-      <div class="spines">
-        {%- for b in list -%}{% include book-spine.html book=b row=r index=forloop.index0 %}{%- endfor -%}
+    <div class="bay" data-bay>
+      {%- comment -%} 沒有 JS 時就是一個會換行的隔間;有 JS 時 books.js 依寬度拆成多格 {%- endcomment -%}
+      <div class="row">
+        {% include book-cab.html %}
+        {%- for b in list -%}{% include book-3d.html book=b index=forloop.index0 %}{%- endfor -%}
       </div>
-      <div class="slab board" aria-hidden="true"></div>
-    </div>
-    <div class="covers view-covers">
-      {%- for b in list -%}{% include book-cover.html book=b row=r index=forloop.index0 %}{%- endfor -%}
     </div>
   </section>
   {%- endfor -%}
 </section>
-{% include book-dialog.html %}
-<script type="application/json" id="books-data">{{ site.data.books | jsonify | replace: "</", "<\/" }}</script>
-<script type="application/json" id="books-zh">{{ site.data.books_zh | jsonify | replace: "</", "<\/" }}</script>

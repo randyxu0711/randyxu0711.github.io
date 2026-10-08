@@ -60,7 +60,9 @@ def select(rows, hide_shelf):
             "added": _date(r.get("Date Added") or ""),
             "shelves": shelves,
             "url": BOOK_URL.format(bid),
-            "cover": None, "color": None, "ink": None,
+            "cover": None, "color": None, "ink": None, "ratio": None,
+            # 匯出檔只有「最近一次」的讀完日期加上次數;在 read 書架上至少讀過一次
+            "read_count": _int(r.get("Read Count")) or 1,
         })
     return out
 
@@ -97,6 +99,13 @@ def dominant_color(data: bytes):
     return f"#{r:02x}{g:02x}{b:02x}"
 
 
+def cover_ratio(data: bytes):
+    """封面的寬 / 高,3D 書架用來決定書的高度。"""
+    from PIL import Image  # 只有這裡需要 Pillow
+    w, h = Image.open(io.BytesIO(data)).size
+    return round(w / h, 3)
+
+
 def ink_for(hex_color):
     n = int(hex_color[1:], 16)
     r, g, b = n >> 16 & 255, n >> 8 & 255, n & 255
@@ -118,7 +127,8 @@ def fetch_image(url):
 
 
 def fill_covers(items, cache, fetch_page=fetch_page, fetch_image=fetch_image,
-                sleep=time.sleep, color=dominant_color):
+                sleep=time.sleep, color=dominant_color, measure=cover_ratio):
+    """回傳實際連網的次數。快取裡沒有的書抓書頁 + 圖片;舊快取缺比例的只重抓圖片。"""
     fetched = 0
     for b in items:
         hit = cache.get(b["id"])
@@ -126,15 +136,22 @@ def fill_covers(items, cache, fetch_page=fetch_page, fetch_image=fetch_image,
             fetched += 1
             try:
                 cover = extract_cover(fetch_page(b["id"]))
-                hit = {"cover": cover, "color": color(fetch_image(cover)) if cover else None}
+                data = fetch_image(cover) if cover else None
+                hit = {"cover": cover, "color": color(data) if data else None, "ratio": measure(data) if data else None}
                 if cover:
                     cache[b["id"]] = hit
             except Exception as e:  # 抓不到就先不放封面,下次再試
                 print(f"{b['id']} {b['title']}:抓不到封面({e})")
                 hit = None
             sleep(1)   # 對 Goodreads 客氣一點
+        elif hit.get("cover") and "ratio" not in hit:
+            fetched += 1
+            try:
+                hit["ratio"] = measure(fetch_image(hit["cover"]))
+            except Exception as e:
+                print(f"{b['id']} {b['title']}:量不到封面比例({e})")
         if hit:
-            b["cover"], b["color"] = hit["cover"], hit["color"]
+            b["cover"], b["color"], b["ratio"] = hit["cover"], hit["color"], hit.get("ratio")
             b["ink"] = ink_for(hit["color"]) if hit["color"] else None
     return fetched
 
