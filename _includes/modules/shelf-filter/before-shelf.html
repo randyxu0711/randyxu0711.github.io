@@ -1,5 +1,5 @@
 {%- comment -%} 書架篩選:tag 複選(AND)+ 文字篩選。JS 啟動前保持 hidden。快捷鍵說明收在最右邊的 ? 按鈕裡。 {%- endcomment -%}
-<div class="filters" id="shelf-filters" hidden>
+<div class="filters" id="shelf-filters" hidden data-reserve>
   <label class="filter-q" for="shelf-q">
     <span class="visually-hidden" data-i18n="filter.label">{% include t.html k="filter.label" %}</span>
     <input id="shelf-q" class="groove" type="search" placeholder="{% include t.html k="filter.placeholder" %}" data-i18n-attr="placeholder:filter.placeholder" autocomplete="off" enterkeyhint="search">

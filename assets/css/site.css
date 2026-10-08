@@ -10,12 +10,16 @@ a { color: var(--accent); }
 h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
 img { max-width: 100%; }
 /* 元件常設 display: flex / inline-flex,會蓋掉 hidden 屬性 */
-[hidden] { display: none !important; }
+[hidden]:not([data-reserve]) { display: none !important; }
+/* 等 JS 才顯示的控制項(data-reserve):有 JS 時先看不見但佔好位置,JS 拿掉 hidden 時版面不動;沒有 JS 時照樣整個隱藏 */
+html:not(.js) [data-reserve][hidden] { display: none !important; }
+html.js [data-reserve][hidden] { visibility: hidden; }
 /* 整段內容的中英兩份:依 <html data-lang> 只顯示一份(沒有 JS 時預設中文) */
 html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: none !important; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 .main { max-width: 68rem; margin: 0 auto; padding: 2.25rem 16px 6rem; }
+@media (max-width: 600px) { .main { padding-top: 1.25rem; } }
 
 /* ── 導覽列:頁面在頂端時融入桌面;捲動後卡片從底下滑過,才變成一片霧面玻璃 ── */
 .nav {
@@ -24,7 +28,7 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
   transition: background-color 250ms, box-shadow 250ms;
 }
 .nav.glass {
-  background: color-mix(in oklch, var(--desk) 62%, transparent);
+  background: color-mix(in oklch, var(--desk) 85%, transparent);   /* 太透明的話,底下的深色縮圖會讓連結看不清楚 */
   -webkit-backdrop-filter: blur(18px) saturate(1.5); backdrop-filter: blur(18px) saturate(1.5);
   box-shadow: inset 0 1px 0 var(--spec), 0 1px 0 var(--line), 0 10px 24px -18px var(--drop-far);
 }
@@ -41,6 +45,16 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 /* 目前頁:底下一片很薄的琥珀板 */
 .nav-links a[aria-current="page"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; border-radius: 3px; background: var(--edge); }
 .nav-tools { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+/* 手機:固定兩行,不靠自動換行(否則每頁的換行位置不同)。
+   第一行名字 + 按鍵,第二行三個連結平均分配;連結的可點範圍往上下撐開到 44px,版面高度不變 */
+@media (max-width: 600px) {
+  .nav-inner { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.35rem 1rem; padding: 0.55rem 16px 0.3rem; }
+  .nav-name { font-size: 1.75rem; margin-right: 0; justify-self: start; }
+  .nav-inner > nav { grid-column: 1 / -1; grid-row: 2; }
+  .nav-links { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; text-align: center; }
+  .nav-links a { display: inline-block; padding: 0.6rem 0.5rem; margin: -0.6rem 0; }
+  .nav-links a[aria-current="page"]::after { left: 0.5rem; right: 0.5rem; bottom: calc(0.6rem - 0.2rem - 3px); }
+}
 
 /* ── 共用小元件 ── */
 .linkbtn { font: inherit; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 0; text-decoration: underline; text-underline-offset: 3px; }
@@ -58,7 +72,7 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 
 /* ── footer ── */
 .footer-inner { max-width: 68rem; margin: 0 auto; padding: 1.5rem 16px 2.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.5rem; font-size: var(--t-sm); color: var(--ink-3); }
-.footer-inner a { color: var(--ink-3); }
+.footer-inner a { color: var(--ink-3); padding: 0.6rem 0; margin: -0.6rem 0; }
 
 /* ── share 卡 ── */
 .shelf { display: grid; gap: 1.9rem; }
@@ -89,6 +103,12 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
   .share-card.feature { grid-template-columns: 1fr; }
   .share-card.feature .thumb { aspect-ratio: 1.91 / 1; height: auto; min-height: 0; }
   .share-card.feature .share-body { padding: 1.1rem 1.2rem 1.3rem; }
+}
+
+/* 手機:卡片上的小字放大一點(tag 12px、來源與日期 13px) */
+@media (max-width: 600px) {
+  .tag { font-size: 0.75rem; }
+  .share-meta { font-size: 0.8125rem; }
 }
 
 /* 格狀 */
@@ -143,22 +163,26 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .flip-inner { display: grid; height: 100%; transform-style: preserve-3d; transition: transform 650ms cubic-bezier(.2,.7,.2,1); }
 .flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; margin-bottom: 0; }
 .flip-back { transform: rotateY(180deg); }
-.flip:hover .flip-inner, .flip:focus-within .flip-inner, .flip.flipped .flip-inner { transform: rotateY(180deg); }
+/* 翻面:滑鼠停留(只在有滑鼠的裝置)、鍵盤聚焦(:focus-visible,點擊不算)、觸控點一下(.flipped,slab.js)。
+   不用 :focus-within:手機點一下卡片就會取得焦點,再點也翻不回來 */
+@media (hover: hover) { .flip:hover .flip-inner { transform: rotateY(180deg); } }
+.flip:focus-visible .flip-inner, .flip:has(:focus-visible) .flip-inner, .flip.flipped .flip-inner { transform: rotateY(180deg); }
 /* 翻著的時候側面亮成琥珀(游標停留的時刻) */
-.flip:hover .flip-face, .flip:focus-within .flip-face, .flip.flipped .flip-face { --side: var(--edge); --side-2: var(--edge-deep); }
-.flip-front { display: grid; min-height: 15rem; background: var(--desk-2); }   /* 兩面疊在同一格,高度取較高的那面,所以正反面一樣大 */
-.flip-img { grid-area: 1 / 1; width: 100%; height: 100%; object-fit: cover; display: block; }
-/* 名稱壓在圖片底部的漸層上;圖片顏色不定,所以文字與漸層固定用深底淺字 */
-.flip-name { grid-area: 1 / 1; align-self: end; padding: 2.5rem 1.15rem 0.95rem; font-weight: 700; font-size: var(--t-lg); color: oklch(0.97 0.01 85);
-  background: linear-gradient(to top, oklch(0.12 0.01 70 / 0.78), transparent); }
+@media (hover: hover) { .flip:hover .flip-face { --side: var(--edge); --side-2: var(--edge-deep); } }
+.flip:focus-visible .flip-face, .flip:has(:focus-visible) .flip-face, .flip.flipped .flip-face { --side: var(--edge); --side-2: var(--edge-deep); }
+/* 正面:完整的圖(固定 16:10,不裁切)+ 名稱。兩面疊在同一格、高度取較高的那面(通常是背面的介紹),多出來的高度留白 */
+.flip-front { display: flex; flex-direction: column; }
+.flip-img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; background: var(--desk-2); }
+.flip-name { padding: 0.9rem 1.15rem 1rem; font-weight: 700; font-size: var(--t-lg); color: var(--ink); }
 .flip-back-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
-.flip-link { font-size: var(--t-sm); white-space: nowrap; }
+.flip-link { font-size: var(--t-sm); white-space: nowrap; padding: 0.6rem 0 0.6rem 0.6rem; margin: -0.6rem 0 -0.6rem -0.6rem; }
 .flip-back .share-desc { -webkit-line-clamp: unset; }
 .flip-back ul { margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; display: block; }
 @media (prefers-reduced-motion: reduce) {
-  .flip-inner, .flip:hover .flip-inner, .flip:focus-within .flip-inner, .flip.flipped .flip-inner { transform: none; transition: none; }
+  .flip-inner, .flip:hover .flip-inner, .flip:focus-visible .flip-inner, .flip:has(:focus-visible) .flip-inner, .flip.flipped .flip-inner { transform: none; transition: none; }
   .flip-back { transform: none; opacity: 0; transition: opacity 200ms; }
-  .flip:hover .flip-back, .flip:focus-within .flip-back, .flip.flipped .flip-back { opacity: 1; }
+  .flip:focus-visible .flip-back, .flip:has(:focus-visible) .flip-back, .flip.flipped .flip-back { opacity: 1; }
+  @media (hover: hover) { .flip:hover .flip-back { opacity: 1; } }
 }
 @media (max-width: 760px) {
   .cv-row { grid-template-columns: 1fr; gap: 0.6rem; }

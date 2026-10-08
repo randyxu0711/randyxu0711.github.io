@@ -19,6 +19,8 @@
   目前的模組:`shelf-filter`(原地篩選)、`seen`(已開過)、`archive`(失效改連封存版)、`books`(書單頁)。
 - **版面不寫個人資料**:名字、自介、導覽在 `_config.yml`,projects 在 `_data/projects.yml`,自介全文在 `_tabs/about.md`。
 - 沒有 JS 時卡片與連結照樣能用;模組的控制項先 `hidden`,JS 啟動後才顯示(全站有 `[hidden] { display: none !important }`)。
+  控制項加 `data-reserve` 的話,有 JS 時(head 給 `<html>` 加 `.js`)先看不見但佔好位置,啟動時版面不會跳。
+  **首次繪製就要正確**:會影響版面的狀態(主題、語言、書架排法)在繪製前由行內 script 決定,不要等 defer 的 JS 再改。
 - 只用 tags,不用 categories。
 - **中英切換**(全站):介面文字只寫在 `_data/i18n.yml`(`zh` / `en`,英文單數用 `en_one`)。版面標 `data-i18n="鍵"`
   (屬性用 `data-i18n-attr="屬性:鍵"`,數字用 `data-i18n-n`),預設中文由 `{% include t.html k="鍵" %}` 輸出;
@@ -57,7 +59,8 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - 書單是空的或 books 模組關掉時,`_plugins/books-page.rb` 不產生 `/books/`,導覽列也不顯示。
 - **3D 書架**(`_layouts/books.html`、`_includes/book-3d.html`、`assets/modules/books/`):每層是書櫃隔間(`_includes/book-cab.html`),
   書是 5 面的 3D 盒子,厚度 = 頁數、高度 = 封面比例(`ratio`,`books.py` 下載封面時量)。書脊 / 封面兩種排法是同一批書轉向,
-  `books.js` 依寬度把書分到多個隔間;點一本書 = 複製一本飛到畫面中間放大(架上原位空著),再點翻封底,
+  每一層讀完就由行內 script(`_includes/books-pack.html`)依寬度把書分到多個隔間,`books.js` 換排法 / 轉向時呼叫同一個函式;
+  手機沒選過排法時預設書脊(排法在 `books.html` 開頭的行內 script 決定);點一本書 = 複製一本飛到畫面中間放大(架上原位空著),再點翻封底,
   點背景 / Esc / 焦點離開就飛回。書架只有層板(上面 + 前緣),不做背板與側板。3D 書盒參考 mawise/bookshelf(MIT)。
 - **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
   從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);

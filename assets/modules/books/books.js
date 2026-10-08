@@ -3,67 +3,51 @@
 (function () {
   var root = document.getElementById('books');
   if (!root) return;
-  var KEY = 'books-view';
-  var GAP = 3;          // .row 的 gap(px)
-  var PAD = 2 * 17.6;   // .row 左右 padding 1.1rem
+  var KEY = 'books-view';  // _layouts/books.html 的行內 script 也讀這個 key
 
   function view() { return root.getAttribute('data-view') === 'spines' ? 'spines' : 'covers'; }
   function remPx(v) { v = (v || '').trim(); return v.indexOf('rem') > -1 ? parseFloat(v) * parseFloat(getComputedStyle(document.documentElement).fontSize) : parseFloat(v); }
   function coverWidth() { return remPx(getComputedStyle(root).getPropertyValue('--w')); }
 
-  // ── 依寬度分格:一行書一個隔間 ──
-  var firstRow = root.querySelector('.row');
-  var cabHTML = firstRow ? Array.prototype.map.call(firstRow.querySelectorAll('.cab'), function (c) { return c.outerHTML; }).join('') : '';
-  function pack(forView) {
-    var w = coverWidth();
-    root.querySelectorAll('[data-bay]').forEach(function (bay) {
-      var books = Array.prototype.slice.call(bay.querySelectorAll('.b3'));
-      var avail = bay.clientWidth - PAD;
-      var lines = [], line = [], used = 0;
-      books.forEach(function (b) {
-        var slot = forView === 'covers' ? w : parseFloat(b.style.getPropertyValue('--t'));
-        if (line.length && used + slot > avail) { lines.push(line); line = []; used = 0; }
-        line.push(b); used += slot + GAP;
-      });
-      if (line.length) lines.push(line);
-      // 行數沒變就不動 DOM,避免打斷進行中的動畫
-      var rows = bay.querySelectorAll('.row');
-      var same = rows.length === lines.length && lines.every(function (l, i) { return rows[i].querySelectorAll('.b3').length === l.length && rows[i].contains(l[0]); });
-      if (same) return;
-      bay.textContent = '';
-      lines.forEach(function (l) {
-        var row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = cabHTML;
-        l.forEach(function (b, i) { b.style.setProperty('--i', i); row.appendChild(b); });
-        bay.appendChild(row);
-      });
-    });
-  }
+  // ── 依寬度分格:由 _includes/books-pack.html(書架後面的行內 script)提供,首次繪製前就分好 ──
+  function pack(forView) { if (window.booksPack) window.booksPack(forView); }
 
   // ── 拿起一本書:從書架飛到畫面中間放大;再點翻封底;點背景 / Esc / 焦點離開就飛回原位 ──
   // 原本那本留在架上但隱藏(位置空著),畫面上飛的是複製出來的那本,所以書架的排版完全不受影響。
   var stage = null;
+  // 書在架上的位置(r)相對畫面中間的位移:起點與飛回去的終點
+  function home(clone, r) {
+    clone.style.setProperty('--dx', (r.left + r.width / 2 - window.innerWidth / 2) + 'px');
+    clone.style.setProperty('--dy', (r.top + r.height / 2 - window.innerHeight / 2) + 'px');
+  }
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   function lift(el) {
     if (stage) return;
     var r = el.getBoundingClientRect();
     var w = coverWidth();
-    var target = Math.min(18 * 16, window.innerWidth * 0.62);
+    var ratio = parseFloat(el.style.getPropertyValue('--ratio')) || 0.66;
+    // 中間那本的封面寬:手機上幾乎滿版,也不能高過畫面
+    var target = Math.min(18 * 16, window.innerWidth * 0.72, window.innerHeight * 0.8 * ratio);
+    var s = target / w;
     var overlay = document.createElement('div');
     overlay.className = 'book-stage';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', el.getAttribute('aria-label'));
-    overlay.style.setProperty('--w', w + 'px');
+    // FLIP:複製的書直接用中間的大小排版(封底才有足夠的空間、字也清楚),
+    // 起點用 transform 縮回架上的位置與大小,再飛到中間、變回原尺寸
+    overlay.style.setProperty('--w', target + 'px');
+    overlay.style.setProperty('--k', s.toFixed(3));
     var clone = el.cloneNode(true);
     clone.classList.add('lifted', view() === 'covers' ? 'from-cover' : 'from-spine');
     clone.style.setProperty('--i', 0);
-    clone.style.left = r.left + 'px'; clone.style.top = r.top + 'px';
-    clone.style.width = r.width + 'px'; clone.style.height = r.height + 'px';
-    clone.style.setProperty('--dx', (window.innerWidth / 2 - (r.left + r.width / 2)) + 'px');
-    clone.style.setProperty('--dy', (window.innerHeight / 2 - (r.top + r.height / 2)) + 'px');
-    clone.style.setProperty('--s', (target / w).toFixed(3));
+    clone.style.setProperty('--t', (parseFloat(el.style.getPropertyValue('--t')) * s) + 'px');
+    // 外框寬 = 放大後的封面寬(書脊朝外的書在架上很窄,外框沿用的話只有中間一條點得到);書盒在外框裡置中,動畫不受影響
+    clone.style.width = target + 'px'; clone.style.height = (r.height * s) + 'px';
+    clone.style.left = (window.innerWidth - target) / 2 + 'px';
+    clone.style.top = (window.innerHeight - r.height * s) / 2 + 'px';
+    home(clone, r);
+    clone.style.setProperty('--s', (1 / s).toFixed(4));
     overlay.appendChild(clone);
     document.body.appendChild(overlay);
     el.classList.add('taken');
@@ -76,7 +60,7 @@
     if (!stage) return;
     var s = stage; stage = null;
     var r = s.el.getBoundingClientRect();           // 捲動過的話,飛回現在的位置
-    s.clone.style.left = r.left + 'px'; s.clone.style.top = r.top + 'px';
+    home(s.clone, r);
     s.clone.classList.remove('rear');
     s.overlay.classList.remove('open');
     var done = function () {
@@ -110,6 +94,29 @@
     if (stage && !stage.overlay.contains(e.target)) drop();
   });
 
+  // ── 書脊上的書名:放不下時先拿掉作者,再縮小字(最小 10px),還是放不下才用 … 截斷 ──
+  // 先全部寫、再全部讀,整頁只重新排版兩次(邊寫邊讀的話,122 本會排版幾百次,手機上卡 0.3 秒)。
+  // 字寬跟字級成正比,所以縮小的倍數一次算出來,不用一步一步試。
+  var MIN_FONT = 10;
+  function fitSpines() {
+    var spines = Array.prototype.slice.call(root.querySelectorAll('.b3 > .box > .spine')).map(function (sp) {
+      var ti = sp.querySelector('.ti');
+      sp.classList.remove('no-au'); ti.style.removeProperty('font-size');
+      return { sp: sp, ti: ti };
+    });
+    var over = spines.filter(function (o) { return o.ti.scrollHeight > o.ti.clientHeight; });
+    over.forEach(function (o) { o.sp.classList.add('no-au'); });
+    over.forEach(function (o) {
+      o.k = o.ti.clientHeight / o.ti.scrollHeight;
+      o.base = parseFloat(getComputedStyle(o.sp).fontSize);
+    });
+    over.forEach(function (o) {
+      if (o.k >= 1) return;
+      var k = Math.max(o.k, MIN_FONT / o.base);
+      o.ti.style.fontSize = k.toFixed(3) + 'em';   // em:拿起來放大時跟著書脊的字一起放大
+    });
+  }
+
   // ── 排法切換 ──
   var sw = root.querySelector('[data-view-switch]');
   var btns = sw.querySelectorAll('[data-view-set]');
@@ -120,22 +127,32 @@
     btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view-set') === v)); });
     if (remember) { try { localStorage.setItem(KEY, v); } catch (e) {} }
   }
-  var saved = null;
-  try { saved = localStorage.getItem(KEY); } catch (e) {}
   root.classList.add('no-anim');               // 第一次載入不播放轉身
-  setView(saved === 'spines' || saved === 'covers' ? saved : view(), false);
+  // 初始排法由 _layouts/books.html 的行內 script 在繪製前決定(選過的 > 手機用書脊 > 設定)
+  setView(view(), false);
+  fitSpines();
+  if (document.fonts) document.fonts.ready.then(fitSpines);   // 字型載入後寬度會變
   requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.remove('no-anim'); }); });
   btns.forEach(function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view-set'), true); }); });
   sw.hidden = false;
 
   var resizeTimer = null;
-  window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(function () { pack(view()); }, 150); });
+  // 手機捲動時網址列收合也會觸發 resize(只有高度變),寬度沒變就不用重排
+  var lastWidth = window.innerWidth;
+  window.addEventListener('resize', function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
+      pack(view()); fitSpines();
+    }, 150);
+  });
 
   // ── 換語言時,書的名稱(螢幕閱讀器讀的)跟著換 ──
   function labels() {
     var en = window.siteI18n && window.siteI18n.lang() === 'en';
     root.querySelectorAll('.b3').forEach(function (b) { b.setAttribute('aria-label', b.getAttribute(en ? 'data-label-en' : 'data-label-zh')); });
   }
-  document.addEventListener('langchange', labels);
+  document.addEventListener('langchange', function () { labels(); fitSpines(); });
   labels();
 })();

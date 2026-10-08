@@ -11,14 +11,16 @@
           {%- endif -%}
           {%- assign here = false -%}
           {%- if page.url == item.url -%}{%- assign here = true -%}{%- endif -%}
-          <li><a href="{{ item.url | relative_url }}"{% if here %} aria-current="page"{% endif %}{% if item.key %} data-i18n="{{ item.key }}"{% endif %}>{{ item.title }}</a></li>
+          {%- comment -%} 中英兩份都寫進 HTML,由 head 在繪製前設好的 data-lang 決定顯示哪份(等 i18n.js 換字的話,連結寬度會跳一下) {%- endcomment -%}
+          {%- assign label = site.data.i18n[item.key] -%}
+          <li><a href="{{ item.url | relative_url }}"{% if here %} aria-current="page"{% endif %}>{% if label %}<span class="lang-zh">{{ label.zh }}</span><span class="lang-en" lang="en">{{ label.en }}</span>{% else %}{{ item.title }}{% endif %}</a></li>
         {%- endfor -%}
       </ul>
     </nav>
     <div class="nav-tools">
       {% include slot.html name="header-tools" %}
-      <button type="button" class="key round" data-lang-toggle hidden>EN</button>
-      <button type="button" class="key round" data-theme-cycle hidden>
+      <button type="button" class="key round" data-lang-toggle hidden data-reserve>EN</button>
+      <button type="button" class="key round" data-theme-cycle hidden data-reserve>
         <svg data-icon="system" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>
         <svg data-icon="light" viewBox="0 0 16 16" aria-hidden="true" hidden><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         <svg data-icon="dark" viewBox="0 0 16 16" aria-hidden="true" hidden><path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z" fill="currentColor"/></svg>

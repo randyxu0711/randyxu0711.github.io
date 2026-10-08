@@ -1,0 +1,68 @@
+{%- comment -%}
+  依寬度把每層的書分到多個隔間(一行書一個隔間),並把封面寬度微調成剛好排滿一行。
+  放在書架開頭定義 window.booksPack;每一層讀完就由該層後面的行內 script 分好並顯示(.tier.packed),
+  不用等整頁(書單 HTML 很大,手機上解析完要好幾秒)或 books.js(defer)載入。
+  books.js 換排法、寬度改變時呼叫同一個函式。
+{%- endcomment -%}
+<script>
+  (function () {
+    var root = document.getElementById('books');
+    if (!root) return;
+    var GAP = 3;          // .row 的 gap(px)
+    var PAD = 2 * 17.6;   // .row 左右 padding 1.1rem
+    var cabHTML = null;   // 層板的標記:第一次分格時從還沒拆開的那一格複製(這段 script 跑的時候書架還沒讀到)
+
+    function coverWidth() {
+      var v = getComputedStyle(root).getPropertyValue('--w').trim();
+      return v.indexOf('rem') > -1 ? parseFloat(v) * parseFloat(getComputedStyle(document.documentElement).fontSize) : parseFloat(v);
+    }
+    // 封面寬度:CSS 的 --w 是基準,依隔間寬度微調成剛好排滿一行(手機上 2 本多一點 → 3 本)
+    function fitWidth() {
+      root.style.removeProperty('--w');
+      var base = coverWidth();
+      var bay = root.querySelector('[data-bay]');
+      if (!bay) return base;
+      var avail = bay.clientWidth - PAD;
+      if (avail <= base) return base;            // 隔間還沒有寬度(或窄到放不下一本)就用基準
+      var n = Math.max(1, Math.round((avail + GAP) / (base + GAP)));
+      var w = Math.floor((avail - (n - 1) * GAP) / n);
+      root.style.setProperty('--w', w + 'px');
+      return w;
+    }
+    // forView:spines / covers(省略 = 目前的排法);bays:只分這些隔間(省略 = 全部)
+    window.booksPack = function (forView, bays) {
+      forView = forView || (root.getAttribute('data-view') === 'spines' ? 'spines' : 'covers');
+      if (cabHTML === null) {
+        var firstRow = root.querySelector('.row');
+        cabHTML = firstRow ? Array.prototype.map.call(firstRow.querySelectorAll('.cab'), function (c) { return c.outerHTML; }).join('') : '';
+      }
+      var w = fitWidth();
+      Array.prototype.forEach.call(bays || root.querySelectorAll('[data-bay]'), function (bay) {
+        var books = Array.prototype.slice.call(bay.querySelectorAll('.b3'));
+        var avail = bay.clientWidth - PAD;
+        var lines = [], line = [], used = 0;
+        books.forEach(function (b) {
+          var slot = forView === 'covers' ? w : parseFloat(b.style.getPropertyValue('--t'));
+          if (line.length && used + slot > avail) { lines.push(line); line = []; used = 0; }
+          line.push(b); used += slot + GAP;
+        });
+        if (line.length) lines.push(line);
+        // 行數沒變就不動 DOM,避免打斷進行中的動畫
+        var rows = bay.querySelectorAll('.row');
+        var same = rows.length === lines.length && lines.every(function (l, i) { return rows[i].querySelectorAll('.b3').length === l.length && rows[i].contains(l[0]); });
+        if (same) return;
+        bay.textContent = '';
+        lines.forEach(function (l) {
+          var row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = cabHTML;
+          l.forEach(function (b, i) { b.style.setProperty('--i', i); row.appendChild(b); });
+          bay.appendChild(row);
+        });
+      });
+    };
+
+    // 第一次分格時不播放寬度的過場;books.js 初始化完成後拿掉
+    root.classList.add('no-anim');
+  })();
+</script>
