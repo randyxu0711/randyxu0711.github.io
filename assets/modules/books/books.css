@@ -2,8 +2,8 @@
    書盒的座標:書脊在正面(寬 = 厚度 --t),封面接在右邊、封底接在左邊往深處延伸(寬 = --w),書口在最深處。
    書脊朝外時看到書脊;封面朝外時整本轉 -90 度。抽出 / 翻面的動畫照 mawise/bookshelf 的順序:先往前抽、再轉身。 */
 
-.books { --w: 9rem; --persp: 900px; --origin-y: -25%; --pull: 160px; --speed: 1; }
-@media (max-width: 600px) { .books { --w: 7rem; --pull: 110px; } }
+.books { --w: 9rem; --persp: 900px; --origin-y: -25%; --speed: 1; }
+@media (max-width: 600px) { .books { --w: 7rem; } }
 
 .page-head { margin-bottom: 1.5rem; }
 
@@ -93,30 +93,37 @@
 
 /* ── 書脊朝外 ── */
 /* 游標停留:往外滑出一點,書脊底部亮琥珀 */
-.b3:hover .box, .b3:focus-visible .box { transform: translateZ(14px); transition-delay: 0s; }
-.b3:hover .spine, .b3:focus-visible .spine { box-shadow: inset 0 -3px 0 var(--edge); }
-.b3.out { z-index: 10; }
-.b3.front .box { animation: book-pull calc(0.9s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
-.b3.rear .box { animation: book-flip calc(0.5s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
-.b3.away-front .box { animation: book-away-front calc(0.5s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
-.b3.away-rear .box { animation: book-away-rear calc(0.5s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
-/* 先往前抽出、再轉身:同時做的話書會穿過旁邊的書 */
-@keyframes book-pull { 0% { transform: none; } 45% { transform: translateZ(var(--pull)); } 100% { transform: translateZ(var(--pull)) rotateY(-90deg); } }
-@keyframes book-flip { 0% { transform: translateZ(var(--pull)) rotateY(-90deg); } 100% { transform: translateZ(var(--pull)) rotateY(-270deg); } }
-@keyframes book-away-front { 0% { transform: translateZ(var(--pull)) rotateY(-90deg); } 55% { transform: translateZ(var(--pull)) rotateY(0deg); } 100% { transform: none; } }
-@keyframes book-away-rear { 0% { transform: translateZ(var(--pull)) rotateY(-270deg); } 55% { transform: translateZ(var(--pull)) rotateY(-360deg); } 100% { transform: rotateY(-360deg); } }
+.books .b3:hover .box, .books .b3:focus-visible .box { transform: translateZ(14px); transition-delay: 0s; }
+.books .b3:hover .spine, .books .b3:focus-visible .spine { box-shadow: inset 0 -3px 0 var(--edge); }
+/* 被拿起來的書:架上的位置空著 */
+.books .b3.taken { visibility: hidden; }
 
 /* ── 封面朝外(陳列) ── */
 .books[data-view="covers"] .b3 { width: var(--w); }
 .books[data-view="covers"] .b3 .box { transform: rotateY(-90deg); }
 /* 游標停留:往前一點、上緣朝你傾,像從陳列架上拿起來 */
 .books[data-view="covers"] .b3:hover .box, .books[data-view="covers"] .b3:focus-visible .box { transform: translateZ(12px) rotateX(6deg) rotateY(-90deg); transition-delay: 0s; }
-.books[data-view="covers"] .b3.rear .box { animation: none; transform: translateZ(calc(var(--pull) * 0.6)) rotateY(-270deg); transition-delay: 0s; }
+
+/* ── 拿起來的書:飛到畫面中間放大 ── */
+.book-stage { position: fixed; inset: 0; z-index: 60; perspective: 1400px; background: transparent;
+  transition: background-color 400ms, backdrop-filter 400ms; }
+.book-stage.open { background: color-mix(in oklch, var(--desk) 72%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.book-stage .b3 { position: absolute; margin: 0; transform-origin: 50% 50%; transform: translate3d(0, 0, 0) scale(1);
+  transition: transform 620ms cubic-bezier(.3,.7,.2,1); }
+.book-stage.open .b3 { transform: translate3d(var(--dx), var(--dy), 0) scale(var(--s)); }
+.book-stage .b3::after { display: none; }
+.book-stage .box { left: calc(50% - var(--t) / 2); transition: transform 520ms cubic-bezier(.3,.7,.2,1); }
+.book-stage .from-spine .box { transform: none; }
+.book-stage .from-cover .box { transform: rotateY(-90deg); }
+/* 到中間時轉成封面朝前;書脊朝外的書晚一點才轉,先離開書架再轉身 */
+.book-stage.open .b3 .box { transform: rotateY(-90deg); }
+.book-stage.open .from-spine .box { transition-delay: 180ms; }
+.book-stage.open .b3.rear .box { transform: rotateY(-270deg); transition-delay: 0s; }
+.book-stage .b3:focus-visible .cover, .book-stage .b3:focus-visible .back { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* 首次載入不播放轉身的波浪(books.js 載入後才拿掉) */
 .books.no-anim .b3, .books.no-anim .box { transition: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
-  .b3, .box { transition: none !important; }
-  .b3 .box { animation-duration: 1ms !important; }
+  .b3, .box, .book-stage { transition: none !important; }
 }

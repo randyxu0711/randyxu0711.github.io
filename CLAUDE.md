@@ -57,7 +57,8 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - 書單是空的或 books 模組關掉時,`_plugins/books-page.rb` 不產生 `/books/`,導覽列也不顯示。
 - **3D 書架**(`_layouts/books.html`、`_includes/book-3d.html`、`assets/modules/books/`):每層是書櫃隔間(`_includes/book-cab.html`),
   書是 5 面的 3D 盒子,厚度 = 頁數、高度 = 封面比例(`ratio`,`books.py` 下載封面時量)。書脊 / 封面兩種排法是同一批書轉向,
-  `books.js` 依寬度把書分到多個隔間;書脊朝外點擊 = 抽出看封面 → 封底 → 放回,封面朝外點擊 = 翻封底。動畫參考 mawise/bookshelf(MIT)。
+  `books.js` 依寬度把書分到多個隔間;點一本書 = 複製一本飛到畫面中間放大(架上原位空著),再點翻封底,
+  點背景 / Esc / 焦點離開就飛回。書架只有層板(上面 + 前緣),不做背板與側板。3D 書盒參考 mawise/bookshelf(MIT)。
 - **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
   從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);
   CSV 匯入時合併,同一本以 CSV 為準。撤下 = 關成 not planned。
