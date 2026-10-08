@@ -1,0 +1,54 @@
+{%- comment -%}
+  一本 3D 書:5 面的盒子(書脊、封面、封底、書口、書頂),樣式在 assets/modules/books/books.css。
+  厚度 = 頁數、高度 = 封面比例;書名中英各一份(.lang-zh / .lang-en),依語言顯示。
+  參數:book、index(在這一層的順序,轉身時一本接一本)。
+{%- endcomment -%}
+{%- assign b = include.book -%}
+{%- assign zh = site.data.books_zh[b.id] -%}
+{%- assign t = 24 -%}
+{%- if b.pages -%}{%- assign t = b.pages | divided_by: 11 | at_least: 18 | at_most: 50 -%}{%- endif -%}
+{%- assign ratio = b.ratio | default: 0.66 | at_least: 0.55 | at_most: 0.78 -%}
+{%- assign t_zh = zh.title | default: b.title -%}
+{%- assign a_zh = zh.author | default: b.author -%}
+{%- assign read_year = b.read | slice: 0, 4 -%}
+<div class="b3" role="button" tabindex="0" data-id="{{ b.id }}"
+     data-label-zh="{{ t_zh | escape }},{{ a_zh | escape }}" data-label-en="{{ b.title | escape }}, {{ b.author | escape }}"
+     aria-label="{{ t_zh | escape }},{{ a_zh | escape }}"
+     style="--i: {{ include.index }}; --t: {{ t }}px; --ratio: {{ ratio }};{% if b.color %} --col: {{ b.color }}; --bink: {{ b.ink }};{% endif %}">
+  <span class="box">
+    <span class="f spine">
+      <span class="ti">{% include book-name.html zh=zh.title en=b.title %}</span>
+      <span class="au">{% include book-name.html zh=zh.author en=b.author %}</span>
+    </span>
+    <span class="f cover">
+      {%- if b.cover %}<img src="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">{% endif -%}
+      <span class="cover-fallback"><span class="ti">{% include book-name.html zh=zh.title en=b.title %}</span><span class="au">{% include book-name.html zh=zh.author en=b.author %}</span></span>
+    </span>
+    <span class="f back">
+      <span class="bk-head">
+        {%- comment -%} 封底:現在語言的書名在上、另一種語言的書名在下 {%- endcomment -%}
+        <span class="bk-title">{% include book-name.html zh=zh.title en=b.title %}</span>
+        {%- if zh.title and zh.title != b.title %}
+        <span class="bk-alt"><span class="lang-zh">{{ b.title | escape }}</span><span class="lang-en" lang="zh-Hant">{{ zh.title | escape }}</span></span>
+        {%- endif %}
+        <span class="bk-au">{% include book-name.html zh=zh.author en=b.author %}</span>
+      </span>
+      <span class="bk-rule"></span>
+      {%- if b.read %}
+      <span class="bk-log">
+        <span class="bk-log-head" data-i18n="books.log">{% include t.html k="books.log" %}</span>
+        <span class="bk-log-row" data-i18n="books.read_in" data-i18n-n="{{ read_year }}">{% include t.html k="books.read_in" n=read_year %}</span>
+        {%- if b.read_count > 1 %}
+        <span class="bk-log-row bk-times" data-i18n="books.read_times" data-i18n-n="{{ b.read_count }}">{% include t.html k="books.read_times" n=b.read_count %}</span>
+        {%- endif %}
+      </span>
+      {%- endif %}
+      <span class="bk-foot">
+        {%- if b.pages %}<span data-i18n="books.pages" data-i18n-n="{{ b.pages }}">{% include t.html k="books.pages" n=b.pages %}</span>{% else %}<span></span>{% endif %}
+        <a href="{{ b.url | escape }}" target="_blank" rel="noopener">Goodreads</a>
+      </span>
+    </span>
+    <span class="f pages"></span>
+    <span class="f top"></span>
+  </span>
+</div>

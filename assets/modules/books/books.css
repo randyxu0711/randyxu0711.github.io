@@ -1,104 +1,124 @@
-/* 書單:封面與書脊都是板(slab.css),書的側面是書口(紙色)。書的顏色來自資料(行內 --col / --bink)。 */
+/* 3D 書架:每一層是一個書櫃隔間,書是 5 面的 3D 盒子。只用語意 token,書的顏色來自資料(行內 --col / --bink)。
+   書盒的座標:書脊在正面(寬 = 厚度 --t),封面接在右邊、封底接在左邊往深處延伸(寬 = --w),書口在最深處。
+   書脊朝外時看到書脊;封面朝外時整本轉 -90 度。抽出 / 翻面的動畫照 mawise/bookshelf 的順序:先往前抽、再轉身。 */
 
-/* 書不論停留與否,側面都是紙 */
-.slab.book, .slab.spine, .slab.book:hover, .slab.book:focus-visible, .slab.spine:hover, .slab.spine:focus-visible {
-  --side: var(--paper); --side-2: var(--paper-deep);
-}
+.books { --w: 9rem; --persp: 900px; --origin-y: -25%; --pull: 160px; --speed: 1; }
+@media (max-width: 600px) { .books { --w: 7rem; --pull: 110px; } }
 
-/* 排法切換 */
-.books[data-view="spines"] .view-covers,
-.books[data-view="covers"] .view-spines { display: none; }
+.page-head { margin-bottom: 1.5rem; }
 
-/* 間距的節奏:標題到書最近(0.75rem)、同一層的書之間中等、兩層之間最遠(4rem) */
-.book-row { display: grid; gap: 0.75rem; }
-.book-row + .book-row { margin-top: 4rem; }
-.row-head { display: flex; align-items: center; gap: 0.75rem; margin: 0; font-size: var(--t-md); font-weight: 500; line-height: 1; }
+/* ── 一層 ── */
+.tier + .tier { margin-top: 4.5rem; }
+.row-head { display: flex; align-items: center; gap: 0.75rem; margin: 0 0 0.75rem; font-size: var(--t-md); font-weight: 500; line-height: 1; }
 .row-head .stars-label { color: var(--ink-2); }
 .row-head .n { color: var(--ink-3); font-size: var(--t-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
-
-/* 評分星星(_includes/stars.html):實心琥珀、空心中性;尺寸跟著字級 */
 .stars { display: inline-flex; gap: 0.12em; vertical-align: middle; }
 .stars svg { width: 1.05em; height: 1.05em; display: block; }
 .stars .on { fill: var(--accent); }
 .stars .off { fill: var(--edge-n); }
 
-/* ── 封面 ── */
-/* 每一行封面站在一塊層板上:每本書下面畫一段板,往左右各延伸半個間距,接起來就是一整塊 */
-.covers {
-  --gap-x: 1.2rem; --th-max: 9px;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr)); gap: 1.75rem var(--gap-x);
-  padding-inline: calc(var(--gap-x) / 2); overflow-x: clip;
+/* ── 書櫃隔間 ── */
+/* 透視放在整層:近大遠小、從上往下看得到層板與書頂 */
+.bay { perspective: var(--persp); perspective-origin: 50% var(--origin-y); display: grid; gap: 2.4rem; }
+.row { position: relative; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 3px; row-gap: 2.4rem;
+  padding: 2rem 1.1rem 0; min-height: calc(var(--w) / 0.62 + 2rem); transform-style: preserve-3d; margin-bottom: 14px; }
+.cab { position: absolute; display: block; pointer-events: none; }
+/* 層板上面:水平往深處延伸 */
+.cab.floor { left: 0; right: 0; bottom: 0; height: var(--w); transform-origin: 50% 100%; transform: rotateX(90deg);
+  background: linear-gradient(to top, var(--face), color-mix(in oklch, var(--face) 70%, var(--edge-n))); }
+/* 層板前緣:看得到板子的厚度 */
+.cab.lip { left: 0; right: 0; bottom: -14px; height: 14px; background: var(--face);
+  box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 5px 0 0 var(--edge-n), 0 6.5px 0 0 var(--edge-n-deep), 0 18px 20px -10px var(--drop-near); }
+/* 背板:最深處,四角暗一點 */
+.cab.back { inset: 0; transform: translateZ(calc(var(--w) * -1 - 2px));
+  background: radial-gradient(120% 90% at 50% 40%, var(--desk-2), color-mix(in oklch, var(--desk-2) 72%, black)); }
+/* 兩側的牆 */
+.cab.side { top: 0; bottom: 0; width: var(--w); background: linear-gradient(to right, color-mix(in oklch, var(--face) 80%, var(--edge-n)), var(--edge-n)); }
+.cab.side.l { left: 0; transform-origin: 0 50%; transform: rotateY(90deg); }
+.cab.side.r { right: 0; transform-origin: 100% 50%; transform: rotateY(-90deg); }
+/* 頂板前緣 */
+.cab.cap { left: 0; right: 0; top: -10px; height: 10px; background: var(--face); box-shadow: inset 0 0 0 1px var(--line), 0 3px 0 0 var(--edge-n); }
+
+/* ── 3D 書 ── */
+.b3 {
+  --col: oklch(0.55 0.09 var(--h)); --bink: #f7f3ea; --bh: calc(var(--w) / var(--ratio));
+  position: relative; flex: none; width: var(--t); height: var(--bh); cursor: pointer; transform-style: preserve-3d; outline: none;
+  transition: width calc(0.6s * var(--speed)) cubic-bezier(.3,.7,.2,1); transition-delay: calc(var(--i) * 40ms * var(--speed));
 }
-/* 書的厚度不一樣:薄的書往下沉,讓每本的底(側面最下緣)都落在同一條線上,剛好站在層板上 */
-.book { --r: 6px 10px 10px 6px; width: 100%; padding: 0; border: 0; font: inherit; text-align: left; cursor: pointer;
-  top: calc(var(--th-max) - var(--th)); margin-bottom: calc(var(--th-max) + 1.5px); }
-.shelf-strip {
-  display: block; height: 10px; margin: 0 calc(var(--gap-x) / -2) 0.6rem;
-  background: var(--face);
-  box-shadow: inset 0 1px 0 var(--spec), inset 0 -1px 0 var(--line), 0 5px 0 0 var(--edge-n), 0 6.5px 0 0 var(--edge-n-deep), 0 12px 14px -8px var(--drop-near);
-}
-.cover {
-  --col: oklch(0.55 0.09 var(--h)); --bink: #f7f3ea;
-  position: relative; display: block; aspect-ratio: 2 / 3; overflow: hidden;
-}
+.b3:focus-visible .spine, .b3:focus-visible .cover { outline: 2px solid var(--accent); outline-offset: 2px; }
+.box { position: absolute; top: 0; bottom: 0; left: calc(50% - var(--t) / 2); width: var(--t);
+  transform-style: preserve-3d; transform-origin: 50% 50% calc(var(--w) / -2);
+  transition: transform calc(0.6s * var(--speed)) cubic-bezier(.3,.7,.2,1); transition-delay: calc(var(--i) * 40ms * var(--speed)); }
+.f { position: absolute; display: block; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+
+/* 書脊:兩側略暗中間略亮,像圓弧書背 */
+.spine { inset: 0; border-radius: 2px 2px 1px 1px; overflow: hidden; color: var(--bink);
+  background: linear-gradient(90deg, oklch(0 0 0 / 0.28), oklch(1 0 0 / 0.14) 22%, oklch(1 0 0 / 0.06) 50%, oklch(1 0 0 / 0.14) 78%, oklch(0 0 0 / 0.3)), var(--col);
+  writing-mode: vertical-rl; text-orientation: mixed; display: flex; justify-content: space-between; align-items: center;
+  padding: 0.7rem 0 0.6rem; font-size: 0.78rem; font-weight: 500; line-height: 1; transition: box-shadow 200ms; }
+.spine .ti { overflow: hidden; white-space: nowrap; max-height: 72%; }
+.spine .au { font-size: 0.62rem; opacity: 0.75; font-weight: 400; overflow: hidden; white-space: nowrap; max-height: 24%; }
+
+/* 封面 */
+.cover { left: 100%; top: 0; width: var(--w); height: var(--bh); transform-origin: 0 50%; transform: rotateY(90deg);
+  border-radius: 0 4px 4px 0; overflow: hidden; background: var(--col); }
 .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-/* 封面圖載入失敗時露出的備用封面:書名排在書的顏色上,左側一道書背的折痕 */
-.cover-fallback {
-  position: absolute; inset: 0; display: grid; align-content: space-between; padding: 14% 12%; color: var(--bink);
-  background:
-    linear-gradient(90deg, oklch(0 0 0 / 0.18), transparent 7%, oklch(1 0 0 / 0.08) 9%, transparent 14%),
-    linear-gradient(160deg, oklch(1 0 0 / 0.16), transparent 45%),
-    var(--col);
-}
-.cover .ti { font-size: 1rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
-.cover .au { font-size: 0.72rem; opacity: 0.8; }
-.cover-cap { display: grid; gap: 0.05rem; }
-.cover-cap b { font-size: var(--t-sm); font-weight: 500; line-height: 1.4; }
-.cover-cap span { font-size: var(--t-xs); color: var(--ink-3); }
+.cover::after { content: ""; position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(90deg, oklch(0 0 0 / 0.22), transparent 6%, oklch(1 0 0 / 0.08) 8%, transparent 13%); }
+/* 封面圖載入失敗時:書名排在書的顏色上 */
+.cover-fallback { position: absolute; inset: 0; display: grid; align-content: space-between; padding: 14% 12%; color: var(--bink);
+  background: linear-gradient(160deg, oklch(1 0 0 / 0.16), transparent 45%), var(--col); }
+.cover-fallback .ti { font-size: 0.95rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.cover-fallback .au { font-size: 0.7rem; opacity: 0.8; }
 
-/* ── 書脊:立著的板,站在一塊長板(層板)上 ── */
-.spines { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 1.1rem 4px; padding: 0 0.75rem; }
-.spine {
-  --col: oklch(0.55 0.09 var(--h)); --bink: #f7f3ea; --th: 3px; --r: 3px 3px 2px 2px;
-  width: var(--w); height: calc(12rem * var(--ht) / 100); padding: 0.65rem 0 0.55rem; margin-bottom: 0;
-  border: 0; font: inherit; font-size: 0.8rem; font-weight: 500; line-height: 1; cursor: pointer; color: var(--bink);
-  background: linear-gradient(90deg, oklch(1 0 0 / 0.2), transparent 18%, transparent 78%, oklch(0 0 0 / 0.25)), var(--col);
-  writing-mode: vertical-rl; text-orientation: mixed;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.spine .ti { overflow: hidden; white-space: nowrap; max-height: 70%; }
-.spine .au { font-size: 0.64rem; font-weight: 400; opacity: 0.75; overflow: hidden; white-space: nowrap; max-height: 28%; }
-.spine:hover, .spine:focus-visible { --lift: -10px; }
-.board { --th: 6px; --r: 6px; height: 14px; margin-top: -2px; }
-@media (max-width: 600px) { .spine { height: calc(10rem * var(--ht) / 100); } }
+/* 封底:上(書名、另一種語言的書名、作者)/ 中(閱讀紀錄)/ 下(頁數與 Goodreads,貼底)。星等在每層的標題,不重複 */
+.back { right: 100%; top: 0; width: var(--w); height: var(--bh); transform-origin: 100% 50%; transform: rotateY(-90deg); border-radius: 4px 0 0 4px;
+  background: linear-gradient(160deg, oklch(1 0 0 / 0.12), transparent 50%), var(--col); color: var(--bink);
+  padding: 0.85rem 0.8rem 0.75rem; box-sizing: border-box; display: flex; flex-direction: column; gap: 0.55rem;
+  font-size: 0.72rem; line-height: 1.45; overflow: hidden; }
+.bk-head { display: grid; gap: 0.15rem; }
+.bk-title { font-size: 0.86rem; font-weight: 700; line-height: 1.3; }
+.bk-alt, .bk-au { opacity: 0.8; }
+.bk-rule { display: block; height: 1px; background: currentColor; opacity: 0.22; flex: none; }
+.bk-log { display: grid; gap: 0.12rem; }
+.bk-log-head { font-size: 0.64rem; opacity: 0.7; margin-bottom: 0.1rem; }
+.bk-log-row { font-variant-numeric: tabular-nums; }
+.bk-foot { margin-top: auto; display: flex; justify-content: space-between; align-items: baseline; gap: 0.5rem; font-size: 0.66rem; }
+.bk-foot span { opacity: 0.8; font-variant-numeric: tabular-nums; }
+.back a { color: inherit; text-underline-offset: 2px; white-space: nowrap; }
 
-/* ── 翻開的書 ── */
-dialog.book { border: 0; padding: 16px; background: transparent; color: var(--ink); max-width: min(46rem, 100vw); width: 100%; overflow: visible; }
-dialog.book::backdrop { background: color-mix(in oklch, var(--desk) 70%, transparent); backdrop-filter: blur(6px); }
-.book-card { --th: var(--th-feature); --r: 18px; display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr); }
-.book-card .cover-fallback { padding: 14% 12%; }
-.book-card .cover .ti { font-size: 1.5rem; }
-.book-info { padding: 1.5rem 1.6rem; display: grid; gap: 0.7rem; align-content: start; min-width: 0; }
-.book-info h2 { font-size: var(--t-xl); margin: 0; }
-.book-info .by { color: var(--ink-2); }
-.book-info .stars { font-size: var(--t-lg); }
-.book-info .facts { font-size: var(--t-sm); color: var(--ink-2); }
-.book-info .gr { font-size: var(--t-sm); margin-top: 0.4rem; }
-.book-nav { display: flex; align-items: center; justify-content: center; gap: 1.25rem; margin-top: 1rem; }
-.book-nav .key:disabled { opacity: 0.35; cursor: default; transform: none; }
-.book-nav .pos { font-size: var(--t-sm); color: var(--ink-2); font-variant-numeric: tabular-nums; min-width: 4em; text-align: center; }
-.closebtn { position: absolute; top: 8px; right: 8px; z-index: 4; }
-.book-stage { position: relative; touch-action: pan-y; }
-.book-stage.in-l .book-card { animation: inL 260ms cubic-bezier(.2,.7,.2,1); }
-.book-stage.in-r .book-card { animation: inR 260ms cubic-bezier(.2,.7,.2,1); }
-.book-stage.open .book-card { animation: rise 280ms cubic-bezier(.2,.7,.2,1); }
-@keyframes inL { from { transform: translateX(-40px); opacity: 0; } }
-@keyframes inR { from { transform: translateX(40px); opacity: 0; } }
-@keyframes rise { from { transform: translateY(24px) scale(0.96); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .book-stage .book-card { animation: none !important; } }
-@media (max-width: 600px) {
-  .book-card { grid-template-columns: 1fr; }
-  .book-card .cover { aspect-ratio: 3 / 2; }
-  .book-card .cover-fallback { align-content: end; gap: 0.5rem; }
-  .book-info { padding: 1.1rem 1.2rem 1.3rem; }
+/* 書口與書頂:紙色 */
+.pages { inset: 0; transform: translateZ(calc(var(--w) * -1)) rotateY(180deg);
+  background: repeating-linear-gradient(90deg, var(--paper) 0 2px, var(--paper-deep) 2px 3px); }
+.top { left: 0; top: 0; width: 100%; height: var(--w); transform-origin: 50% 0; transform: rotateX(-90deg); backface-visibility: visible;
+  background: repeating-linear-gradient(90deg, var(--paper) 0 2px, var(--paper-deep) 2px 3px); }
+
+/* ── 書脊朝外 ── */
+/* 游標停留:往外滑出一點,書脊底部亮琥珀 */
+.b3:hover .box, .b3:focus-visible .box { transform: translateZ(14px); transition-delay: 0s; }
+.b3:hover .spine, .b3:focus-visible .spine { box-shadow: inset 0 -3px 0 var(--edge); }
+.b3.out { z-index: 10; }
+.b3.front .box { animation: book-pull calc(0.9s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
+.b3.rear .box { animation: book-flip calc(0.5s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
+.b3.away-front .box { animation: book-away-front calc(0.5s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
+.b3.away-rear .box { animation: book-away-rear calc(0.5s * var(--speed)) cubic-bezier(.3,.7,.2,1) both; }
+/* 先往前抽出、再轉身:同時做的話書會穿過旁邊的書 */
+@keyframes book-pull { 0% { transform: none; } 45% { transform: translateZ(var(--pull)); } 100% { transform: translateZ(var(--pull)) rotateY(-90deg); } }
+@keyframes book-flip { 0% { transform: translateZ(var(--pull)) rotateY(-90deg); } 100% { transform: translateZ(var(--pull)) rotateY(-270deg); } }
+@keyframes book-away-front { 0% { transform: translateZ(var(--pull)) rotateY(-90deg); } 55% { transform: translateZ(var(--pull)) rotateY(0deg); } 100% { transform: none; } }
+@keyframes book-away-rear { 0% { transform: translateZ(var(--pull)) rotateY(-270deg); } 55% { transform: translateZ(var(--pull)) rotateY(-360deg); } 100% { transform: rotateY(-360deg); } }
+
+/* ── 封面朝外(陳列) ── */
+.books[data-view="covers"] .b3 { width: var(--w); }
+.books[data-view="covers"] .b3 .box { transform: rotateY(-90deg); }
+/* 游標停留:往前一點、上緣朝你傾,像從陳列架上拿起來 */
+.books[data-view="covers"] .b3:hover .box, .books[data-view="covers"] .b3:focus-visible .box { transform: translateZ(12px) rotateX(6deg) rotateY(-90deg); transition-delay: 0s; }
+.books[data-view="covers"] .b3.rear .box { animation: none; transform: translateZ(calc(var(--pull) * 0.6)) rotateY(-270deg); transition-delay: 0s; }
+
+/* 首次載入不播放轉身的波浪(books.js 載入後才拿掉) */
+.books.no-anim .b3, .books.no-anim .box { transition: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .b3, .box { transition: none !important; }
+  .b3 .box { animation-duration: 1ms !important; }
 }
