@@ -36,6 +36,16 @@
     card.classList.toggle('flipped');
   });
 
+  // ── 舊版網站(Chirpy)留下的 service worker:它是 cache-first,會一直給舊頁面。 ──
+  // 跑到這裡代表這一頁是新網站給的;如果瀏覽器裡還註冊著,直接註銷並清掉快取。
+  // 被它攔住、拿到舊頁面的訪客,則靠根目錄的 /sw.min.js(自毀版)修好。
+  if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations) {
+    navigator.serviceWorker.getRegistrations().then(function (regs) {
+      regs.forEach(function (r) { r.unregister(); });
+      if (regs.length && window.caches) caches.keys().then(function (ks) { ks.forEach(function (k) { caches.delete(k); }); });
+    }).catch(function () {});
+  }
+
   // ── 導覽列:頁面在頂端時融入桌面,捲動後變成霧面玻璃 ──
   var nav = document.querySelector('.nav');
   if (nav) {
