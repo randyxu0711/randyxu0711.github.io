@@ -76,3 +76,5 @@ GitHub API 與網路本身不測。前端沒有測試框架,靠建置 + htmlproo
 
 ## 注意
 - `randyxu0711/randyxu0711` repo 是 GitHub 個人檔案 README,與本站無關,別動。
+- **根目錄的 `sw.min.js` 不要刪。** 舊版(Chirpy)在訪客瀏覽器註冊過同名的 cache-first service worker,
+  這個自毀版讓瀏覽器更新時清掉快取並註銷自己;刪掉的話還沒回訪的舊訪客會一直看到快取的舊網站。新網站本身不用 service worker。
