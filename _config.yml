@@ -32,7 +32,7 @@ modules:           # 註解掉一行 = 關掉一個功能
   books:        { slots: [] }
 
 books:
-  default_view: spines   # spines / covers
+  default_view: covers   # spines / covers
   hide_shelf: hide
 
 plugins:

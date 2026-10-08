@@ -1,5 +1,6 @@
 - name: hyenovel
   repo: randyxu0711/hyenovel
+  image: /assets/img/projects/hyenovel.webp   # 卡片正面;沒有就用 GitHub 自動產生的預覽圖
   summary:
     zh: 文學小說與創作,對很多人來說不容易找到人分享或對談。於是我做了 hyenovel,讓 AI 對文字給出回饋,為創作者提供另一個角度,留一點反思其他可能性的空間。
     en: Literary fiction and creative writing aren't easy to share or talk through with others. hyenovel lets an AI respond to your text, giving writers another angle and some room to reconsider other possibilities.
@@ -16,6 +17,7 @@
 
 - name: wpSBOOT
   repo: randyxu0711/wpSBOOT
+  image: /assets/img/projects/wpSBOOT.webp
   summary:
     zh: 政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法,我負責開發它的網頁伺服器:上傳序列,以四種比對工具產生 Super-MSA。
     en: "A phylogenetic method from Prof. Jia-Ming Chang's lab at NCCU, published in <i>Bioinformatics</i>. I build its web server: upload sequences, get a Super-MSA built from four aligners."

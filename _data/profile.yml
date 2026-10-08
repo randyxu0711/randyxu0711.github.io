@@ -8,9 +8,15 @@ role:
   zh: 軟體工程師,正在研究 AI agent
   en: Software engineer, currently exploring AI agents
 
-intro:
-  zh: 曾在 Openfind 擔任 Software Engineer,現在大部分時間用 Claude Agent SDK 做自己想用的工具。工作之外,喜歡讀世界經典文學。這裡放我的 projects、讀到值得一看的技術文章,還有讀過的書。
-  en: I previously worked as a Software Engineer at Openfind. These days I spend most of my time building tools I actually want to use with the Claude Agent SDK. Outside of code, I read a lot of world classic literature. This site holds my projects, technical articles worth your time, and the books I've read.
+intro:   # 一段一個重點:你是誰、現在在做什麼、工作之外
+  zh:
+    - 我是 Randy,軟體工程師。曾在 Openfind 負責企業郵件系統 Mail2000 的核心開發。
+    - 現在專注於 AI agent 相關項目,嘗試做一些有趣的 AI 應用。
+    - 工作之外,我讀世界經典文學。這裡收錄我的 projects、值得一讀的技術文章,以及讀過的書。
+  en:
+    - I'm Randy, a software engineer. At Openfind I worked on the core of Mail2000, an enterprise email system.
+    - These days I focus on AI agent projects, experimenting with interesting AI applications.
+    - Outside of work, I read world classic literature. This site collects my projects, technical articles worth reading, and the books I've read.
 
 # 每一節的小標
 headings:
@@ -39,19 +45,20 @@ experience:
     title: { zh: Software Engineer, en: Software Engineer }
     when:  { zh: 2021/10 – 2024/4, en: Oct 2021 – Apr 2024 }
     lead:
-      zh: "參與企業郵件系統 Mail2000 的核心開發:"
-      en: "Worked on the core of Mail2000, an enterprise email system:"
+      zh: 企業郵件系統 Mail2000 核心開發。
+      en: Core developer on Mail2000, an enterprise email system.
+    # 每一點:效益當標題,後面說明誰得到什麼;不寫技術細節(**粗體** 會轉成標題)
     items:
       zh:
-        - 把 C 語言的舊核心拆成可重用的模組,並設計 RESTful API,讓新舊兩套網頁介面共用同一個後端
-        - 用 keepalived 搭配腳本,做到主備機自動切換與資料庫自動復原
-        - 串接雙因素登入
-        - 參與開發 Outlook 同步工具
+        - "**新舊介面共用同一套後端**:負責新功能開發與既有功能的架構轉換。新版介面上線時不必重寫功能,團隊只需維護一份邏輯;客戶的開發團隊也能直接串接,把郵件功能整合進自家系統。"
+        - "**單台故障不影響服務**:建立自動容錯切換,伺服器出問題時由備援機接手。客戶少了停機,維運人員也不必手動介入。"
+        - "**安全又順手的登入**:雙因素驗證可以用手機確認或生物辨識完成,強化帳號安全,登入卻不變麻煩。"
+        - "**換系統不換習慣**:開發 Outlook 同步工具。企業轉換到 Mail2000 之後,員工照樣用熟悉的 Outlook 收信、排行程、找聯絡人,轉換過程無痛。"
       en:
-        - Split the legacy C core into reusable modules and designed RESTful APIs, so the old and new web UIs share one backend
-        - Built automatic failover and database recovery with keepalived and scripts
-        - Integrated two-factor login
-        - Contributed to an Outlook sync tool
+        - "**One backend for old and new interfaces**: built new features and migrated existing ones to a shared backend. The new interface launched without rewriting features, the team maintains one codebase, and customers' developers can integrate mail into their own systems."
+        - "**No outage from a single server failure**: set up automatic failover so a standby takes over when a server fails. Customers avoid downtime, and operators don't have to step in."
+        - "**Sign-in that is secure and still easy**: two-factor sign-in can be confirmed on a phone or with biometrics, strengthening account security without making sign-in a chore."
+        - "**Switch systems, keep habits**: built the Outlook sync tool. After a company moves to Mail2000, employees keep using Outlook for mail, calendars and contacts, so the switch is painless."
 
 skills:
   - name:  { zh: AI, en: AI }
