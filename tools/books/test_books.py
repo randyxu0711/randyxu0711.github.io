@@ -174,3 +174,10 @@ def test_fill_covers_backfills_ratio_without_refetching_page():
                           sleep=lambda s: None, measure=lambda d: 0.7)
     assert n == 1 and cache["23361794"]["ratio"] == 0.7 and bs[0]["ratio"] == 0.7
     assert books.fill_covers(bs, cache, fetch_page=pytest.fail, fetch_image=pytest.fail, sleep=lambda s: None) == 0
+
+
+def test_fetch_page_raises_on_empty_response(monkeypatch):
+    """Goodreads 擋太多請求時回 202 + 空白;要當成錯誤印出來,不能默默當成沒有封面。"""
+    monkeypatch.setattr(books, "_get", lambda url: b"")
+    with pytest.raises(RuntimeError, match="空白"):
+        books.fetch_page("1")

@@ -119,7 +119,11 @@ def _get(url):
 
 
 def fetch_page(book_id):
-    return _get(BOOK_URL.format(book_id)).decode("utf-8", errors="replace")
+    html = _get(BOOK_URL.format(book_id)).decode("utf-8", errors="replace")
+    if not html.strip():
+        # Goodreads(AWS WAF)短時間請求太多時回 202 + 空白頁;當成錯誤,下次執行會重試
+        raise RuntimeError("Goodreads 回了空白頁,可能是短時間請求太多被暫時擋下,過一陣子再跑一次")
+    return html
 
 
 def fetch_image(url):
@@ -143,7 +147,7 @@ def fill_covers(items, cache, fetch_page=fetch_page, fetch_image=fetch_image,
             except Exception as e:  # 抓不到就先不放封面,下次再試
                 print(f"{b['id']} {b['title']}:抓不到封面({e})")
                 hit = None
-            sleep(1)   # 對 Goodreads 客氣一點
+            sleep(3)   # 對 Goodreads 客氣一點:1 秒一頁連抓幾十頁會被 AWS WAF 暫時擋下(回 202 空白頁)
         elif hit.get("cover") and "ratio" not in hit:
             fetched += 1
             try:
