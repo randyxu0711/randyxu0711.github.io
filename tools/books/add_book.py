@@ -132,7 +132,8 @@ def _dump(path, items):
     path.write_text(json.dumps(items, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
 
 
-def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch_image, color=books.dominant_color):
+def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch_image, color=books.dominant_color,
+           measure=books.cover_ratio):
     action, issue = event["action"], event["issue"]
     n = issue["number"]
     d = Path(data_dir)
@@ -170,18 +171,19 @@ def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch
         return Result("needs_fix", "沒有加入。Goodreads 書頁上讀不到書目資料,可能是頁面格式改了。"
                                    "確認網址是書頁後,編輯 issue 重跑。")
 
-    hue = None
+    hue = ratio = None
     if info["cover"]:
         try:
-            hue = color(fetch_image(info["cover"]))
+            data = fetch_image(info["cover"])
+            hue, ratio = color(data), measure(data)
         except Exception:  # 封面抓不到不擋,書架會用書名排的備用封面
-            hue = None
+            hue = ratio = None
     when = datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00")).astimezone(TZ)
     entry = {
         "id": bid, "title": info["title"], "author": info["author"], "rating": rating(f["rating"]),
         "pages": info["pages"], "read": None, "added": when.date().isoformat(), "shelves": [],
         "url": books.BOOK_URL.format(bid), "cover": info["cover"], "color": hue,
-        "ink": books.ink_for(hue) if hue else None, "issue": n,
+        "ink": books.ink_for(hue) if hue else None, "ratio": ratio, "read_count": 1, "issue": n,
     }
     _dump(added_p, [b for b in _load(added_p, []) if b.get("issue") != n and b["id"] != bid] + [entry])
     _dump(books_p, books.sort_books([b for b in _load(books_p, []) if b["id"] != bid and b.get("issue") != n] + [entry]))

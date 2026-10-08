@@ -43,7 +43,7 @@ def test_select_shapes_fields():
         "id": "23361794", "title": "百年孤寂", "author": "加布列.賈西亞.馬奎斯",
         "rating": 5, "pages": 416, "read": "2024-03-02", "added": "2024-03-05",
         "shelves": ["latin-american"], "url": "https://www.goodreads.com/book/show/23361794",
-        "cover": None, "color": None, "ink": None,
+        "cover": None, "color": None, "ink": None, "ratio": None, "read_count": 1,
     }
 
 
@@ -91,7 +91,7 @@ def test_dominant_color_of_solid_image():
 
 def test_fill_covers_uses_cache_and_skips_fetching():
     bs = books.select(rows(), "hide")
-    cache = {b["id"]: {"cover": "https://c/" + b["id"], "color": "#7a3b1f"} for b in bs}
+    cache = {b["id"]: {"cover": "https://c/" + b["id"], "color": "#7a3b1f", "ratio": 0.66} for b in bs}
     n = books.fill_covers(bs, cache, fetch_page=pytest.fail, fetch_image=pytest.fail, sleep=lambda s: None)
     assert n == 0
     assert bs[0]["cover"] == "https://c/23361794" and bs[0]["ink"] == "#f7f3ea"
@@ -103,9 +103,9 @@ def test_fill_covers_fetches_missing_and_caches_success():
     html = (FIX / "book_page.html").read_text(encoding="utf-8")
     n = books.fill_covers(bs, cache, fetch_page=lambda i: html,
                           fetch_image=lambda u: b"img", sleep=lambda s: None,
-                          color=lambda data: "#123456")
+                          color=lambda data: "#123456", measure=lambda data: 0.66)
     assert n == 1
-    assert cache["23361794"] == {"cover": bs[0]["cover"], "color": "#123456"}
+    assert cache["23361794"] == {"cover": bs[0]["cover"], "color": "#123456", "ratio": 0.66}
 
 
 def test_fill_covers_does_not_cache_failures():
@@ -138,3 +138,39 @@ def test_select_accepts_decimal_ratings_and_pages_from_real_export():
            "Date Read": "2025/01/01", "Date Added": "2026/10/07", "Bookshelves": "", "Exclusive Shelf": "read"}
     b = books.select([row], "hide")[0]
     assert b["rating"] == 4 and b["pages"] == 159
+
+
+# --- 3D 書架要的資料:封面比例、讀過幾次 -------------------------------------------
+
+def test_select_read_count_defaults_to_one_for_read_books():
+    row = {"Book Id": "1", "Title": "T", "Author": "A", "My Rating": "4", "Exclusive Shelf": "read", "Read Count": "3"}
+    assert books.select([row], "hide")[0]["read_count"] == 3
+    row["Read Count"] = ""
+    assert books.select([row], "hide")[0]["read_count"] == 1   # 在 read 書架上至少讀過一次
+
+
+def test_cover_ratio_of_image():
+    PIL = pytest.importorskip("PIL.Image")
+    import io
+    buf = io.BytesIO()
+    PIL.new("RGB", (200, 300), (1, 2, 3)).save(buf, "PNG")
+    assert books.cover_ratio(buf.getvalue()) == 0.667
+
+
+def test_fill_covers_records_ratio():
+    bs = [b for b in books.select(rows(), "hide") if b["id"] == "23361794"]
+    cache = {}
+    html = (FIX / "book_page.html").read_text(encoding="utf-8")
+    books.fill_covers(bs, cache, fetch_page=lambda i: html, fetch_image=lambda u: b"img",
+                      sleep=lambda s: None, color=lambda d: "#123456", measure=lambda d: 0.65)
+    assert cache["23361794"]["ratio"] == 0.65 and bs[0]["ratio"] == 0.65
+
+
+def test_fill_covers_backfills_ratio_without_refetching_page():
+    """舊快取只有封面網址與主色:只重抓圖片量比例,不再碰 Goodreads 書頁。"""
+    bs = [b for b in books.select(rows(), "hide") if b["id"] == "23361794"]
+    cache = {"23361794": {"cover": "https://c/x.jpg", "color": "#7a3b1f"}}
+    n = books.fill_covers(bs, cache, fetch_page=pytest.fail, fetch_image=lambda u: b"img",
+                          sleep=lambda s: None, measure=lambda d: 0.7)
+    assert n == 1 and cache["23361794"]["ratio"] == 0.7 and bs[0]["ratio"] == 0.7
+    assert books.fill_covers(bs, cache, fetch_page=pytest.fail, fetch_image=pytest.fail, sleep=lambda s: None) == 0
