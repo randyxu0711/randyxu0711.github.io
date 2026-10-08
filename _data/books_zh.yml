@@ -270,3 +270,296 @@
   author: "薩曼莎．哈維"
   publisher: "潮浪文化"
   source: "https://www.books.com.tw/products/0011033044"
+
+# 2026-10-08 新增:依三民網路書店 / 金石堂查證;沒有台灣譯本的書用自訂譯名(沒有 source)。
+"54614429":  # Drive Your Plow Over the Bones of the Dead
+  title: "犁過亡者的骨骸"
+  author: "奧爾嘉．朵卡萩"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/011470385"
+"53223710":  # Heaven
+  title: "天堂"
+  author: "川上未映子"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/012652287"
+"40117":  # The Unconsoled
+  title: "無可撫慰"
+  author: "石黑一雄"
+  publisher: "新雨"
+  source: "https://www.sanmin.com.tw/product/index/006705677"
+"4617643":  # Slavnosti sněženek
+  title: "雪花蓮的慶典"
+  author: "赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/007733572"
+"10799":  # A Farewell to Arms
+  title: "戰地春夢"
+  author: "海明威"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/013539578"
+"4331597":  # Postřižiny
+  title: "剪掉辮子的女人"
+  author: "赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/006212788"
+"86658":  # The Secret Agent
+  title: "密探"
+  author: "約瑟夫．康拉德"
+  publisher: "商周出版"
+  source: "https://www.sanmin.com.tw/product/index/015272889"
+"28921":  # The Remains of the Day
+  title: "長日將盡"
+  author: "石黑一雄"
+  publisher: "商周出版"
+  source: "https://www.sanmin.com.tw/product/index/015612498"
+"17690":  # The Trial
+  title: "審判"
+  author: "法蘭茲．卡夫卡"
+  publisher: "木馬文化"
+  source: "https://www.sanmin.com.tw/product/index/013665020"
+"26936":  # Rock Springs
+  title: "賽狗場的女人"
+"4631":  # A Moveable Feast
+  title: "流動的饗宴"
+  author: "海明威"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/000710441"
+"46170":  # For Whom the Bell Tolls
+  title: "戰地鐘聲"
+  author: "海明威"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/013612541"
+"17689":  # Franz Kafka's The Castle (Dramatization)
+  title: "城堡"
+  author: "卡夫卡"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/013592511"
+"6617921":  # Primeval and Other Times
+  title: "太古和其他的時間"
+  author: "奧爾嘉．朵卡萩"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/000344299"
+"28920":  # A Pale View of Hills
+  title: "群山淡景"
+  author: "石黑一雄"
+  publisher: "商周出版"
+  source: "https://www.sanmin.com.tw/product/index/015539347"
+"87282":  # Closely Watched Trains
+  title: "沒能準時離站的列車"
+  author: "赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/000525593"
+"125432":  # The Night in Lisbon
+  title: "里斯本之夜"
+  author: "埃里希．瑪利亞．雷馬克"
+  publisher: "一起來出版"
+  source: "https://www.sanmin.com.tw/product/index/015080653"
+"6334":  # Never Let Me Go
+  title: "別讓我走"
+  author: "石黑一雄"
+  publisher: "商周出版"
+  source: "https://www.sanmin.com.tw/product/index/008644817"
+"237693055":  # Sisters in Yellow
+  title: "黃房子"
+  author: "川上未映子"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/015158828"
+"57845082":  # The Trouble with Happiness: And Other Stories
+  title: "邪惡的幸福"
+  author: "托芙．迪特萊弗森"
+  publisher: "潮浪文化"
+  source: "https://www.sanmin.com.tw/product/index/011745252"
+"54120408":  # Klara and the Sun
+  title: "克拉拉與太陽"
+  author: "石黑一雄"
+  publisher: "商周出版"
+  source: "https://www.sanmin.com.tw/product/index/015583482"
+"39215270":  # Opowiadania bizarne
+  title: "怪誕故事集"
+  author: "奧爾嘉．朵卡萩"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/010695782"
+"41057294":  # Normal People
+  title: "正常人"
+  author: "莎莉．魯尼"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/007731152"
+"32187419":  # Conversations with Friends
+  title: "聊天紀錄"
+  author: "莎莉．魯尼"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/009104739"
+"36739755":  # Convenience Store Woman
+  title: "便利店人間"
+  author: "村田沙耶香"
+  publisher: "悅知文化"
+  source: "https://www.sanmin.com.tw/product/index/010693863"
+"28787166":  # Las cosas que perdimos en el fuego
+  title: "跳火堆"
+  author: "瑪里亞娜．安立奎茲"
+  publisher: "木馬文化"
+  source: "https://www.sanmin.com.tw/product/index/006211820"
+"23929479":  # Soumission
+  title: "屈服"
+  author: "米榭．韋勒貝克"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/006478729"
+"58276619":  # The Books of Jacob
+  title: "雅各之書"
+  author: "奧爾嘉．朵卡萩"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/014555076"
+"19298985":  # Muerte súbita
+  title: "突然死亡"
+"13121960":  # Los peligros de fumar en la cama
+  title: "臥床抽菸的危險"
+  author: "瑪里亞娜．安立奎茲"
+  publisher: "木馬文化"
+  source: "https://www.sanmin.com.tw/product/index/012026975"
+"11785454":  # Aunt Julia and the Scriptwriter
+  title: "胡莉亞姨媽與作家"
+  author: "馬里奧．巴爾加斯．尤薩"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/002623551"
+"9216051":  # Lolita
+  title: "蘿莉塔"
+  author: "弗拉基米爾．納博科夫"
+  publisher: "三采文化"
+  source: "https://www.sanmin.com.tw/product/index/002617540"
+"9650":  # Burmese Days
+  title: "緬甸歲月"
+  author: "喬治．歐威爾"
+  publisher: "聯經"
+  source: "https://www.sanmin.com.tw/product/index/006494289"
+"540871":  # The Anatomist
+  title: "解剖師與性感帶"
+  author: "安達吉"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/000089709"
+"53969":  # The Feast of the Goat
+  title: "公羊的盛宴"
+  author: "巴爾加斯．尤薩"
+  publisher: "聯經"
+  source: "https://www.sanmin.com.tw/product/index/002570276"
+"22911":  # Amerika
+  title: "失蹤者"
+  author: "法蘭茲．卡夫卡"
+  publisher: "木馬文化"
+  source: "https://www.sanmin.com.tw/product/index/013641798"
+"7603":  # Reading Lolita in Tehran: A Memoir in Books
+  title: "在德黑蘭讀羅莉塔"
+  author: "阿颯兒．納菲西"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/000399515"
+"4645":  # The Snows of Kilimanjaro and Other Stories
+  title: "一個乾淨明亮的地方"
+"3876":  # The Sun Also Rises
+  title: "太陽依舊升起"
+  author: "海明威"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/012923231"
+"249":  # Tropic of Cancer
+  title: "北回歸線"
+  author: "亨利．米勒"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/001540645"
+"397503":  # I Served the King of England
+  title: "我曾侍候過英國國王"
+  author: "博胡米爾．赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/013130436"
+"87280":  # Too Loud a Solitude
+  title: "過於喧囂的孤獨"
+  author: "博胡米爾．赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.sanmin.com.tw/product/index/013130434"
+"141352":  # A Hunger Artist (Short Prose of Franz Kafka)
+  title: "飢餓藝術家"
+"9999":  # The Box Man
+  title: "箱男"
+  author: "安部公房"
+  publisher: "鯨嶼文化"
+  source: "https://www.sanmin.com.tw/product/index/012004648"
+"4652":  # In Our Time
+  title: "我們的時代"
+  author: "海明威"
+  publisher: "逗點文創結社"
+  source: "https://www.sanmin.com.tw/product/index/015287390"
+"324245":  # Ravelstein
+  title: "像他這樣一個知識分子"
+"3272727":  # Miss Lonely Hearts
+  title: "寂寞芳心小姐"
+  author: "納旦尼爾．韋斯特"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/001200883"
+"167766":  # Le Zèbre
+  title: "斑馬的愛情事業"
+"828387":  # A Short History of Tractors in Ukrainian
+  title: "烏克蘭拖曳機簡史"
+"9377073":  # 悪人 下 [Akunin ge]
+  title: "惡人"
+  author: "吉田修一"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/007578719"
+"251741034":  # 愛你一萬年
+  title: "愛你一萬年"
+  author: "吉田修一"
+  publisher: "皇冠"
+  source: "https://www.sanmin.com.tw/product/index/015313160"
+"31945613":  # 寂靜的爆彈
+  title: "寂靜的爆彈"
+  author: "吉田修一"
+  publisher: "青空文化"
+  source: "https://www.sanmin.com.tw/product/index/005954999"
+"22552908":  # 熱帶魚
+  title: "熱帶魚"
+  author: "吉田修一"
+  publisher: "時報文化"
+  source: "https://www.sanmin.com.tw/product/index/004792719"
+"6192":  # Disgrace
+  title: "可恥"
+  author: "柯慈"
+  publisher: "堡壘文化"
+  source: "https://www.sanmin.com.tw/product/index/013911598"
+"320":  # One Hundred Years of Solitude
+  title: "百年孤寂"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.sanmin.com.tw/product/index/006652924"
+"9712":  # Love in the Time of Cholera
+  title: "愛在瘟疫蔓延時"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.sanmin.com.tw/product/index/007301060"
+"23875":  # El coronel no tiene quien le escriba
+  title: "沒有人寫信給上校"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.sanmin.com.tw/product/index/007565002"
+"23876":  # Of Love and Other Demons
+  title: "關於愛與其他的惡魔"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.sanmin.com.tw/product/index/006838903"
+"23878":  # Chronicle of a Death Foretold
+  title: "預知死亡紀事"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.sanmin.com.tw/product/index/007062156"
+"57693577":  # Animal Person
+  title: "愛動物的人"
+"14836":  # Midnight’s Children
+  title: "午夜之子"
+  author: "薩爾曼．魯西迪"
+  publisher: "臺灣商務"
+  source: "https://www.sanmin.com.tw/product/index/000368634"
+"61111246":  # Victory City
+  title: "勝利之城"
+  author: "薩爾曼．魯西迪"
+  publisher: "雙囍出版"
+  source: "https://www.sanmin.com.tw/product/index/013546567"
+"24292310":  # Two Years Eight Months and Twenty-Eight Nights
+  title: "兩年八個月又二十八夜"
+  author: "薩爾曼．魯西迪"
+  publisher: "麥田"
+  source: "https://www.sanmin.com.tw/product/index/006555766"
