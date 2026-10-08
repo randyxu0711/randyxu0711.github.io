@@ -51,13 +51,13 @@ experience:
     items:
       zh:
         - "**系統開發與架構轉型**:負責新功能開發與既有功能的架構轉換。新版介面上線時不必重寫功能,團隊只需維護一份邏輯;客戶的開發團隊也能直接串接,把郵件功能整合進自家系統。"
-        - "**自動容錯切換**:伺服器出問題時由備援機自動接手。客戶少了停機,維運人員也不必手動介入。"
-        - "**雙因素登入**:可以用手機確認或生物辨識完成驗證,強化帳號安全,登入卻不變麻煩。"
+        - "**自動容錯切換**:伺服器出問題時由備援機自動接手。在維運人員接手排查之前,服務不中斷、有保障。"
+        - "**雙因素登入**:讓使用者透過手機 App 完成驗證,安全、方便一把抓。"
         - "**無痛轉移方案**:開發 Outlook 同步工具。企業轉換到 Mail2000 之後,員工照樣用熟悉的 Outlook 收信、排行程、找聯絡人。"
       en:
         - "**Feature development and architecture migration**: Built new features and migrated existing ones to a shared backend. The new interface launched without rewriting features, the team maintains one codebase, and customers' developers can integrate mail into their own systems."
-        - "**Automatic failover**: A standby takes over when a server fails. Customers avoid downtime, and operators don't have to step in."
-        - "**Two-factor sign-in**: Verification can be done with a phone confirmation or biometrics, strengthening account security without making sign-in a chore."
+        - "**Automatic failover**: A standby takes over automatically when a server fails, so service keeps running until operators step in to investigate."
+        - "**Two-factor sign-in**: Users verify through a mobile app, getting security and convenience in one step."
         - "**Seamless migration**: Built the Outlook sync tool. After a company moves to Mail2000, employees keep using Outlook for mail, calendars and contacts."
 
 skills:
