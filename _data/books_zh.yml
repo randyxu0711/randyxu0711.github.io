@@ -1,12 +1,15 @@
 # Goodreads ID → 台灣譯本的書名與作者譯名。網站切到中文時顯示這裡的名字,沒列在這裡的書顯示原文。
 # CSV 重新匯入不會動這個檔案;用 issue 加書時填的中文書名也寫進這裡。
 # 2026-10-07 依博客來 / 讀冊 / 誠品 / 出版社資料查證,source 是查證網址。
+# isbn(選填)是台灣版的 ISBN-13:網站切到中文時,封面改用三民網路書店依 ISBN 排的封面圖(載入失敗就退回原文封面)。
+# 2026-10-08 從三民商品頁取得;有些是同一家出版社的新版(紀念版、新封面),不一定是 source 那一版。
 
 "6282753":  # The Museum of Innocence
   title: "純真博物館"
   author: "奧罕．帕慕克"
   publisher: "麥田"
   source: "https://www.taaze.tw/products/11100592270.html"
+  isbn: "9786267813829"
 "11337":  # The Bluest Eye
   title: "最藍的眼睛"
   author: "童妮．摩里森"
@@ -17,6 +20,7 @@
   author: "米亞．科托"
   publisher: "南方家園"
   source: "https://readmoo.com/book/210314500000101"
+  isbn: "9786269783571"
 "4009":  # Nine Stories
   title: "九個故事"
   author: "沙林傑"
@@ -27,6 +31,7 @@
   author: "伊塔羅．卡爾維諾"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010976336"
+  isbn: "9786263746473"
 "485894":  # The Metamorphosis
   title: "變形記"
   author: "法蘭茲．卡夫卡"
@@ -37,11 +42,13 @@
   author: "史考特．費茲傑羅"
   publisher: "漫遊者文化"
   source: "https://www.books.com.tw/products/0011005159"
+  isbn: "9786264090308"
 "217006044":  # Theft
   title: "竊"
   author: "阿卜杜勒拉扎克．古納"
   publisher: "潮浪文化"
   source: "https://www.cna.com.tw/proj_goodbook/literature/4434"
+  isbn: "9786267746134"
 "49741":  # Miguel Street (Vintage International)
   title: "米格爾大街"
   author: "奈波爾"
@@ -57,6 +64,7 @@
   author: "莎莉．魯尼"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010933253"
+  isbn: "9786263358003"
 "43383439":  # Trilogía
   title: "三部曲"
   author: "庸．佛瑟"
@@ -72,6 +80,7 @@
   author: "桑多．馬芮"
   publisher: "大塊文化"
   source: "https://www.books.com.tw/products/0010318580"
+  isbn: "9789867291882"
 "765618":  # Paradise
   title: "天堂"
   author: "阿卜杜勒拉扎克．古納"
@@ -82,6 +91,7 @@
   author: "喬治．桑德斯"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010940899"
+  isbn: "9786263359987"
 "52744975":  # Afterlives
   title: "來世"
   author: "阿卜杜勒拉扎克．古納"
@@ -97,6 +107,7 @@
   author: "威廉．福克納"
   publisher: "雙囍出版"
   source: "https://www.books.com.tw/products/E050158057"
+  isbn: "9786269722105"
 "9813":  # The Nonexistent Knight & The Cloven Viscount
   title: "不存在的騎士／分成兩半的子爵"
   author: "伊塔羅．卡爾維諾"
@@ -107,21 +118,25 @@
   author: "朱少麟"
   publisher: "九歌"
   source: "https://www.books.com.tw/products/0010652853"
+  isbn: "9789574449644"
 "890":  # Of Mice and Men
   title: "人鼠之間"
   author: "約翰．史坦貝克"
   publisher: "如果出版"
   source: "https://www.books.com.tw/products/0011007257"
+  isbn: "9786267498576"
 "61439040":  # 1984
   title: "一九八四"
   author: "喬治．歐威爾"
   publisher: "漫遊者文化"
   source: "https://www.books.com.tw/products/0011013102"
+  isbn: "9786264090629"
 "2657":  # To Kill a Mockingbird
   title: "梅岡城故事"
   author: "哈波．李"
   publisher: "麥田"
   source: "https://www.books.com.tw/products/0010968376"
+  isbn: "9786263105249"
 "18050057":  # Bark
   title: "吠"
   author: "羅麗．摩爾"
@@ -132,6 +147,7 @@
   author: "安德烈．佘蒂"
   publisher: "大塊文化"
   source: "https://www.books.com.tw/products/0010188122"
+  isbn: "9789867975140"
 "11441":  # Short Cuts: Selected Stories (Vintage Contemporaries)
   title: "浮世男女"
   publisher: "時報文化"
@@ -146,11 +162,13 @@
   author: "米榭．韋勒貝克"
   publisher: "麥田"
   source: "https://www.books.com.tw/products/0010867605"
+  isbn: "9789863448037"
 "60471573":  # Liberation Day
   title: "自由日"
   author: "喬治．桑德斯"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0011034792"
+  isbn: "9786264198998"
 "10503":  # The Mysterious Flame of Queen Loana
   title: "羅安娜女王的神秘火焰"
   author: "安伯托．艾可"
@@ -185,6 +203,7 @@
   author: "喬治．桑德斯"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010668799"
+  isbn: "9789571362045"
 "124095":  # Pleasures and Days
   title: "歡樂時光"
   author: "馬賽爾．普魯斯特"
@@ -195,11 +214,13 @@
   author: "伊塔羅．卡爾維諾"
   publisher: "時報出版"
   source: "https://readmoo.com/book/210314742000101"
+  isbn: "9789571378039"
 "52854148":  # O Ano da Morte de Ricardo Reis (José Saramago)
   title: "詩人里卡多逝世那一年"
   author: "喬賽．薩拉馬戈"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/E050168585"
+  isbn: "9786263538702"
 "22522805":  # The Buried Giant
   title: "被埋葬的記憶"
   author: "石黑一雄"
@@ -210,21 +231,25 @@
   author: "喬賽．薩拉馬戈"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010938670"
+  isbn: "9786263530720"
 "46165":  # This Side of Paradise
   title: "塵世樂園"
   author: "史考特．費茲傑羅"
   publisher: "南方家園"
   source: "https://readmoo.com/book/210001146000101"
+  isbn: "9789868612204"
 "2517":  # My Name Is Red
   title: "我的名字叫紅"
   author: "奧罕．帕慕克"
   publisher: "麥田"
   source: "https://www.books.com.tw/products/0010697133"
+  isbn: "9789863442868"
 "799646":  # Mr Stone and the Knights Companion
   title: "史東先生與他的騎士夥伴"
   author: "V.S.奈波爾"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010746209"
+  isbn: "9789571369327"
 "553741":  # The Rich Boy
   title: "富家子"
   author: "費茲傑羅"
@@ -240,6 +265,7 @@
   author: "喬治．桑"
   publisher: "商周出版"
   source: "https://readmoo.com/book/210100392000101"
+  isbn: "9789864775750"
 "28703":  # Cosmopolis
   title: "大都會"
   author: "唐．德里羅"
@@ -255,16 +281,19 @@
   author: "強納森．法蘭岑"
   publisher: "新經典文化"
   source: "https://www.books.com.tw/products/0010925789"
+  isbn: "9786267061237"
 "6839612":  # Beginners
   title: "新手"
   author: "瑞蒙．卡佛"
   publisher: "寶瓶文化"
   source: "https://www.books.com.tw/products/0010571925"
+  isbn: "9789865896133"
 "484124":  # The Sound of One Hand Clapping
   title: "歲月之門"
   author: "理查．費納根"
   publisher: "時報出版"
   source: "https://www.books.com.tw/products/0010858793"
+  isbn: "9789571381824"
 "123136728":  # Orbital
   title: "軌道"
   author: "薩曼莎．哈維"
@@ -277,46 +306,55 @@
   author: "奧爾嘉．朵卡萩"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/011470385"
+  isbn: "9786267206591"
 "53223710":  # Heaven
   title: "天堂"
   author: "川上未映子"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/012652287"
+  isbn: "9786263744936"
 "40117":  # The Unconsoled
   title: "無可撫慰"
   author: "石黑一雄"
   publisher: "新雨"
   source: "https://www.sanmin.com.tw/product/index/006705677"
+  isbn: "9789862272411"
 "4617643":  # Slavnosti sněženek
   title: "雪花蓮的慶典"
   author: "赫拉巴爾"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/007733572"
+  isbn: "9789865406851"
 "10799":  # A Farewell to Arms
   title: "戰地春夢"
   author: "海明威"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/013539578"
+  isbn: "9786263107106"
 "4331597":  # Postřižiny
   title: "剪掉辮子的女人"
   author: "赫拉巴爾"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/006212788"
+  isbn: "9789862137802"
 "86658":  # The Secret Agent
   title: "密探"
   author: "約瑟夫．康拉德"
   publisher: "商周出版"
   source: "https://www.sanmin.com.tw/product/index/015272889"
+  isbn: "9786263909533"
 "28921":  # The Remains of the Day
   title: "長日將盡"
   author: "石黑一雄"
   publisher: "商周出版"
   source: "https://www.sanmin.com.tw/product/index/015612498"
+  isbn: "9786263909960"
 "17690":  # The Trial
   title: "審判"
   author: "法蘭茲．卡夫卡"
   publisher: "木馬文化"
   source: "https://www.sanmin.com.tw/product/index/013665020"
+  isbn: "9786263147775"
 "26936":  # Rock Springs
   title: "賽狗場的女人"
 "4631":  # A Moveable Feast
@@ -324,91 +362,109 @@
   author: "海明威"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/000710441"
+  isbn: "9789571349039"
 "46170":  # For Whom the Bell Tolls
   title: "戰地鐘聲"
   author: "海明威"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/013612541"
+  isbn: "9786263107489"
 "17689":  # Franz Kafka's The Castle (Dramatization)
   title: "城堡"
   author: "卡夫卡"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/013592511"
+  isbn: "9786263107328"
 "6617921":  # Primeval and Other Times
   title: "太古和其他的時間"
   author: "奧爾嘉．朵卡萩"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/000344299"
+  isbn: "9789867975997"
 "28920":  # A Pale View of Hills
   title: "群山淡景"
   author: "石黑一雄"
   publisher: "商周出版"
   source: "https://www.sanmin.com.tw/product/index/015539347"
+  isbn: "9786263909946"
 "87282":  # Closely Watched Trains
   title: "沒能準時離站的列車"
   author: "赫拉巴爾"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/000525593"
+  isbn: "9789867059888"
 "125432":  # The Night in Lisbon
   title: "里斯本之夜"
   author: "埃里希．瑪利亞．雷馬克"
   publisher: "一起來出版"
   source: "https://www.sanmin.com.tw/product/index/015080653"
+  isbn: "9786267577844"
 "6334":  # Never Let Me Go
   title: "別讓我走"
   author: "石黑一雄"
   publisher: "商周出版"
   source: "https://www.sanmin.com.tw/product/index/008644817"
+  isbn: "9786264600088"
 "237693055":  # Sisters in Yellow
   title: "黃房子"
   author: "川上未映子"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/015158828"
+  isbn: "9786264441728"
 "57845082":  # The Trouble with Happiness: And Other Stories
   title: "邪惡的幸福"
   author: "托芙．迪特萊弗森"
   publisher: "潮浪文化"
   source: "https://www.sanmin.com.tw/product/index/011745252"
+  isbn: "9786269697342"
 "54120408":  # Klara and the Sun
   title: "克拉拉與太陽"
   author: "石黑一雄"
   publisher: "商周出版"
   source: "https://www.sanmin.com.tw/product/index/015583482"
+  isbn: "9786263909991"
 "39215270":  # Opowiadania bizarne
   title: "怪誕故事集"
   author: "奧爾嘉．朵卡萩"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/010695782"
+  isbn: "9786267118887"
 "41057294":  # Normal People
   title: "正常人"
   author: "莎莉．魯尼"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/007731152"
+  isbn: "9789571382371"
 "32187419":  # Conversations with Friends
   title: "聊天紀錄"
   author: "莎莉．魯尼"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/009104739"
+  isbn: "9789571388885"
 "36739755":  # Convenience Store Woman
   title: "便利店人間"
   author: "村田沙耶香"
   publisher: "悅知文化"
   source: "https://www.sanmin.com.tw/product/index/010693863"
+  isbn: "9789865102289"
 "28787166":  # Las cosas que perdimos en el fuego
   title: "跳火堆"
   author: "瑪里亞娜．安立奎茲"
   publisher: "木馬文化"
   source: "https://www.sanmin.com.tw/product/index/006211820"
+  isbn: "9789863593850"
 "23929479":  # Soumission
   title: "屈服"
   author: "米榭．韋勒貝克"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/006478729"
+  isbn: "9789863444886"
 "58276619":  # The Books of Jacob
   title: "雅各之書"
   author: "奧爾嘉．朵卡萩"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/014555076"
+  isbn: "9786264330244"
 "19298985":  # Muerte súbita
   title: "突然死亡"
 "13121960":  # Los peligros de fumar en la cama
@@ -416,41 +472,49 @@
   author: "瑪里亞娜．安立奎茲"
   publisher: "木馬文化"
   source: "https://www.sanmin.com.tw/product/index/012026975"
+  isbn: "9786263144903"
 "11785454":  # Aunt Julia and the Scriptwriter
   title: "胡莉亞姨媽與作家"
   author: "馬里奧．巴爾加斯．尤薩"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/002623551"
+  isbn: "9789861209968"
 "9216051":  # Lolita
   title: "蘿莉塔"
   author: "弗拉基米爾．納博科夫"
   publisher: "三采文化"
   source: "https://www.sanmin.com.tw/product/index/002617540"
+  isbn: "9789862295489"
 "9650":  # Burmese Days
   title: "緬甸歲月"
   author: "喬治．歐威爾"
   publisher: "聯經"
   source: "https://www.sanmin.com.tw/product/index/006494289"
+  isbn: "9789570849998"
 "540871":  # The Anatomist
   title: "解剖師與性感帶"
   author: "安達吉"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/000089709"
+  isbn: "9789571325620"
 "53969":  # The Feast of the Goat
   title: "公羊的盛宴"
   author: "巴爾加斯．尤薩"
   publisher: "聯經"
   source: "https://www.sanmin.com.tw/product/index/002570276"
+  isbn: "9789570838374"
 "22911":  # Amerika
   title: "失蹤者"
   author: "法蘭茲．卡夫卡"
   publisher: "木馬文化"
   source: "https://www.sanmin.com.tw/product/index/013641798"
+  isbn: "9786263147539"
 "7603":  # Reading Lolita in Tehran: A Memoir in Books
   title: "在德黑蘭讀羅莉塔"
   author: "阿颯兒．納菲西"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/000399515"
+  isbn: "9789571342092"
 "4645":  # The Snows of Kilimanjaro and Other Stories
   title: "一個乾淨明亮的地方"
 "3876":  # The Sun Also Rises
@@ -458,6 +522,7 @@
   author: "海明威"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/012923231"
+  isbn: "9786263106130"
 "249":  # Tropic of Cancer
   title: "北回歸線"
   author: "亨利．米勒"
@@ -468,11 +533,13 @@
   author: "博胡米爾．赫拉巴爾"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/013130436"
+  isbn: "9786267388884"
 "87280":  # Too Loud a Solitude
   title: "過於喧囂的孤獨"
   author: "博胡米爾．赫拉巴爾"
   publisher: "大塊文化"
   source: "https://www.sanmin.com.tw/product/index/013130434"
+  isbn: "9786267388860"
 "141352":  # A Hunger Artist (Short Prose of Franz Kafka)
   title: "飢餓藝術家"
 "9999":  # The Box Man
@@ -480,11 +547,13 @@
   author: "安部公房"
   publisher: "鯨嶼文化"
   source: "https://www.sanmin.com.tw/product/index/012004648"
+  isbn: "9786267243305"
 "4652":  # In Our Time
   title: "我們的時代"
   author: "海明威"
   publisher: "逗點文創結社"
   source: "https://www.sanmin.com.tw/product/index/015287390"
+  isbn: "9786267606292"
 "324245":  # Ravelstein
   title: "像他這樣一個知識分子"
 "3272727":  # Miss Lonely Hearts
@@ -492,6 +561,7 @@
   author: "納旦尼爾．韋斯特"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/001200883"
+  isbn: "9789861736181"
 "167766":  # Le Zèbre
   title: "斑馬的愛情事業"
 "828387":  # A Short History of Tractors in Ukrainian
@@ -501,51 +571,61 @@
   author: "吉田修一"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/007578719"
+  isbn: "9789863447269"
 "251741034":  # 愛你一萬年
   title: "愛你一萬年"
   author: "吉田修一"
   publisher: "皇冠"
   source: "https://www.sanmin.com.tw/product/index/015313160"
+  isbn: "9789573344162"
 "31945613":  # 寂靜的爆彈
   title: "寂靜的爆彈"
   author: "吉田修一"
   publisher: "青空文化"
   source: "https://www.sanmin.com.tw/product/index/005954999"
+  isbn: "9789869330312"
 "22552908":  # 熱帶魚
   title: "熱帶魚"
   author: "吉田修一"
   publisher: "時報文化"
   source: "https://www.sanmin.com.tw/product/index/004792719"
+  isbn: "9789571361178"
 "6192":  # Disgrace
   title: "可恥"
   author: "柯慈"
   publisher: "堡壘文化"
   source: "https://www.sanmin.com.tw/product/index/013911598"
+  isbn: "9786267506493"
 "320":  # One Hundred Years of Solitude
   title: "百年孤寂"
   author: "加布列．賈西亞．馬奎斯"
   publisher: "皇冠"
   source: "https://www.sanmin.com.tw/product/index/006652924"
+  isbn: "9789573333562"
 "9712":  # Love in the Time of Cholera
   title: "愛在瘟疫蔓延時"
   author: "加布列．賈西亞．馬奎斯"
   publisher: "皇冠"
   source: "https://www.sanmin.com.tw/product/index/007301060"
+  isbn: "9789573334613"
 "23875":  # El coronel no tiene quien le escriba
   title: "沒有人寫信給上校"
   author: "加布列．賈西亞．馬奎斯"
   publisher: "皇冠"
   source: "https://www.sanmin.com.tw/product/index/007565002"
+  isbn: "9789573335030"
 "23876":  # Of Love and Other Demons
   title: "關於愛與其他的惡魔"
   author: "加布列．賈西亞．馬奎斯"
   publisher: "皇冠"
   source: "https://www.sanmin.com.tw/product/index/006838903"
+  isbn: "9789573333876"
 "23878":  # Chronicle of a Death Foretold
   title: "預知死亡紀事"
   author: "加布列．賈西亞．馬奎斯"
   publisher: "皇冠"
   source: "https://www.sanmin.com.tw/product/index/007062156"
+  isbn: "9789573334187"
 "57693577":  # Animal Person
   title: "愛動物的人"
 "14836":  # Midnight’s Children
@@ -553,13 +633,16 @@
   author: "薩爾曼．魯西迪"
   publisher: "臺灣商務"
   source: "https://www.sanmin.com.tw/product/index/000368634"
+  isbn: "9789570518368"
 "61111246":  # Victory City
   title: "勝利之城"
   author: "薩爾曼．魯西迪"
   publisher: "雙囍出版"
   source: "https://www.sanmin.com.tw/product/index/013546567"
+  isbn: "9786269857159"
 "24292310":  # Two Years Eight Months and Twenty-Eight Nights
   title: "兩年八個月又二十八夜"
   author: "薩爾曼．魯西迪"
   publisher: "麥田"
   source: "https://www.sanmin.com.tw/product/index/006555766"
+  isbn: "9789863445104"
