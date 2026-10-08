@@ -43,7 +43,19 @@
       <div class="job">
         <div class="job-head"><strong>{{ job.org[L] }}{% if L == 'en' %}, {% else %},{% endif %}{{ job.title[L] }}</strong><span>{{ job.when[L] }}</span></div>
         {%- if job.lead %}<p>{{ job.lead[L] }}</p>{% endif %}
-        {%- if job.items %}<ul class="job-items">{% for it in job.items[L] %}<li>{{ it | markdownify | remove: "<p>" | remove: "</p>" | strip }}</li>{% endfor %}</ul>{% endif %}
+        {%- if job.items %}
+        <ul class="job-items">
+          {%- for it in job.items[L] -%}
+          {%- comment -%} 「**標題**:內容」拆成標題一行、內容一行;沒有標題的條目照原樣顯示 {%- endcomment -%}
+          {%- assign parts = it | split: "**:" -%}
+          {%- if parts.size > 1 %}
+          <li><strong>{{ parts[0] | remove_first: "**" }}</strong>{{ parts[1] | strip }}</li>
+          {%- else %}
+          <li>{{ it }}</li>
+          {%- endif -%}
+          {%- endfor %}
+        </ul>
+        {%- endif %}
       </div>
       {%- endfor %}
     </div>

@@ -47,18 +47,18 @@ experience:
     lead:
       zh: 企業郵件系統 Mail2000 核心開發。
       en: Core developer on Mail2000, an enterprise email system.
-    # 每一點:效益當標題,後面說明誰得到什麼;不寫技術細節(**粗體** 會轉成標題)
+    # 每一點:**標題** 是做了什麼(整體一點),冒號後面寫對使用者與團隊的好處,不寫技術細節
     items:
       zh:
-        - "**新舊介面共用同一套後端**:負責新功能開發與既有功能的架構轉換。新版介面上線時不必重寫功能,團隊只需維護一份邏輯;客戶的開發團隊也能直接串接,把郵件功能整合進自家系統。"
-        - "**單台故障不影響服務**:建立自動容錯切換,伺服器出問題時由備援機接手。客戶少了停機,維運人員也不必手動介入。"
-        - "**安全又順手的登入**:雙因素驗證可以用手機確認或生物辨識完成,強化帳號安全,登入卻不變麻煩。"
-        - "**換系統不換習慣**:開發 Outlook 同步工具。企業轉換到 Mail2000 之後,員工照樣用熟悉的 Outlook 收信、排行程、找聯絡人,轉換過程無痛。"
+        - "**系統開發與架構轉型**:負責新功能開發與既有功能的架構轉換。新版介面上線時不必重寫功能,團隊只需維護一份邏輯;客戶的開發團隊也能直接串接,把郵件功能整合進自家系統。"
+        - "**自動容錯切換**:伺服器出問題時由備援機自動接手。客戶少了停機,維運人員也不必手動介入。"
+        - "**雙因素登入**:可以用手機確認或生物辨識完成驗證,強化帳號安全,登入卻不變麻煩。"
+        - "**無痛轉移方案**:開發 Outlook 同步工具。企業轉換到 Mail2000 之後,員工照樣用熟悉的 Outlook 收信、排行程、找聯絡人。"
       en:
-        - "**One backend for old and new interfaces**: built new features and migrated existing ones to a shared backend. The new interface launched without rewriting features, the team maintains one codebase, and customers' developers can integrate mail into their own systems."
-        - "**No outage from a single server failure**: set up automatic failover so a standby takes over when a server fails. Customers avoid downtime, and operators don't have to step in."
-        - "**Sign-in that is secure and still easy**: two-factor sign-in can be confirmed on a phone or with biometrics, strengthening account security without making sign-in a chore."
-        - "**Switch systems, keep habits**: built the Outlook sync tool. After a company moves to Mail2000, employees keep using Outlook for mail, calendars and contacts, so the switch is painless."
+        - "**Feature development and architecture migration**: Built new features and migrated existing ones to a shared backend. The new interface launched without rewriting features, the team maintains one codebase, and customers' developers can integrate mail into their own systems."
+        - "**Automatic failover**: A standby takes over when a server fails. Customers avoid downtime, and operators don't have to step in."
+        - "**Two-factor sign-in**: Verification can be done with a phone confirmation or biometrics, strengthening account security without making sign-in a chore."
+        - "**Seamless migration**: Built the Outlook sync tool. After a company moves to Mail2000, employees keep using Outlook for mail, calendars and contacts."
 
 skills:
   - name:  { zh: AI, en: AI }
