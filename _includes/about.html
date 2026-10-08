@@ -5,12 +5,15 @@
 {%- assign pf = site.data.profile -%}
 {%- assign L = include.lang -%}
 <div class="lang-{{ L }}" lang="{% if L == 'en' %}en{% else %}zh-Hant{% endif %}">
+{%- comment -%} 頁首跟下面的 .cv-row 用同一組兩欄格線:頭像在左欄、文字在右欄,整頁對齊同一條線 {%- endcomment -%}
 <header class="profile">
   <img class="coin" src="{{ pf.avatar | relative_url }}" alt="{{ pf.name }}" width="120" height="120" decoding="async">
-  <div>
+  <div class="profile-text">
     <h1>{{ pf.name }}</h1>
     <p class="role">{{ pf.role[L] }}</p>
-    <p class="intro">{{ pf.intro[L] }}</p>
+    {%- for para in pf.intro[L] %}
+    <p class="intro">{{ para }}</p>
+    {%- endfor %}
   </div>
 </header>
 <div class="cv">
@@ -40,7 +43,19 @@
       <div class="job">
         <div class="job-head"><strong>{{ job.org[L] }}{% if L == 'en' %}, {% else %},{% endif %}{{ job.title[L] }}</strong><span>{{ job.when[L] }}</span></div>
         {%- if job.lead %}<p>{{ job.lead[L] }}</p>{% endif %}
-        {%- if job.items %}<ul>{% for it in job.items[L] %}<li>{{ it }}</li>{% endfor %}</ul>{% endif %}
+        {%- if job.items %}
+        <ul class="job-items">
+          {%- for it in job.items[L] -%}
+          {%- comment -%} 「**標題**:內容」拆成標題一行、內容一行;沒有標題的條目照原樣顯示 {%- endcomment -%}
+          {%- assign parts = it | split: "**:" -%}
+          {%- if parts.size > 1 %}
+          <li><strong>{{ parts[0] | remove_first: "**" }}</strong>{{ parts[1] | strip }}</li>
+          {%- else %}
+          <li>{{ it }}</li>
+          {%- endif -%}
+          {%- endfor %}
+        </ul>
+        {%- endif %}
       </div>
       {%- endfor %}
     </div>

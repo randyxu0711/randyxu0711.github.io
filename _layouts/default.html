@@ -10,6 +10,6 @@
 </main>
 {% include footer.html %}
 <script type="application/json" id="i18n-data">{{ site.data.i18n | jsonify | replace: "</", "<\/" }}</script>
-<script src="{{ '/assets/js/i18n.js' | relative_url }}"></script>
+<script src="{{ '/assets/js/i18n.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
 </body>
 </html>

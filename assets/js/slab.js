@@ -28,6 +28,14 @@
     ['--ry', '--rx', '--sx'].forEach(function (k) { c.style.removeProperty(k); });
   });
 
+  // ── 兩面卡片:觸控裝置沒有 hover,點一下翻面;點背面的連結照常開啟 ──
+  document.addEventListener('click', function (e) {
+    var card = e.target.closest && e.target.closest('[data-flip]');
+    if (!card || e.target.closest('a')) return;
+    if (window.matchMedia('(hover: hover)').matches) return;
+    card.classList.toggle('flipped');
+  });
+
   // ── 導覽列:頁面在頂端時融入桌面,捲動後變成霧面玻璃 ──
   var nav = document.querySelector('.nav');
   if (nav) {

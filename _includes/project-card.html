@@ -1,14 +1,28 @@
-{%- comment -%} project 卡(一片型的板)。參數:project、lang(zh / en) {%- endcomment -%}
+{%- comment -%}
+  project 卡:兩面。正面是專案圖片 + 名稱,游標移上去 / 鍵盤聚焦 / 觸控點一下翻到背面的文字介紹。
+  參數:project、lang(zh / en)。圖片在 _data/projects.yml 的 image,沒有就用 GitHub 自動產生的預覽圖。
+{%- endcomment -%}
 {%- assign pr = include.project -%}
-{%- assign thumb = 'https://opengraph.githubassets.com/1/' | append: pr.repo -%}
-<a class="slab project-card" href="https://github.com/{{ pr.repo }}" target="_blank" rel="noopener" data-tilt="4">
-  <img class="thumb" src="{{ thumb }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">
-  <div class="share-body">
-    <h3 class="share-title">{{ pr.name }}</h3>
-    <p class="share-desc">{{ pr.summary[include.lang] }}</p>
-    <ul>
-      {%- for h in pr.highlights[include.lang] %}<li>{{ h | escape }}</li>{% endfor %}
-    </ul>
-    <div class="tags">{% for s in pr.stack %}<span class="tag">{{ s | escape }}</span>{% endfor %}</div>
+{%- assign img = pr.image | default: '' -%}
+{%- if img == '' -%}{%- assign img = 'https://opengraph.githubassets.com/1/' | append: pr.repo -%}{%- else -%}{%- assign img = img | relative_url -%}{%- endif -%}
+<div class="flip" data-flip tabindex="0" aria-label="{{ pr.name }}">
+  <div class="flip-inner">
+    <div class="slab flip-face flip-front" aria-hidden="true">
+      <img class="flip-img" src="{{ img }}" alt="" loading="lazy" decoding="async">
+      <span class="flip-name">{{ pr.name }}</span>
+    </div>
+    <div class="slab flip-face flip-back">
+      <div class="share-body">
+        <div class="flip-back-head">
+          <h3 class="share-title">{{ pr.name }}</h3>
+          <a class="flip-link" href="https://github.com/{{ pr.repo }}" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <p class="share-desc">{{ pr.summary[include.lang] }}</p>
+        <ul>
+          {%- for h in pr.highlights[include.lang] %}<li>{{ h | escape }}</li>{% endfor %}
+        </ul>
+        <div class="tags">{% for s in pr.stack %}<span class="tag">{{ s | escape }}</span>{% endfor %}</div>
+      </div>
+    </div>
   </div>
-</a>
+</div>
