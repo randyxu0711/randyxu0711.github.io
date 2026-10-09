@@ -30,6 +30,34 @@
     rowBoxes().forEach(function (r) { io.observe(r); });
   }
 
+  // ── 封底:架上只是一片書的顏色,拿起來時才依 data-* 填文字(book-3d.html)──
+  // 現在語言的書名在上、另一種語言的書名在下;結構與 books.css 的 .bk-* 對應
+  function span(cls, text) { var e = document.createElement('span'); e.className = cls; if (text != null) e.textContent = text; return e; }
+  function fillBack(back) {
+    if (!back) return;
+    var d = back.dataset, i18n = window.siteI18n;
+    var t = function (k, n) { return i18n ? i18n.t(k, n) : String(n); };
+    var en = i18n && i18n.lang() === 'en';
+    back.textContent = '';
+    var head = span('bk-head');
+    head.append(span('bk-title', en ? d.te : (d.tz || d.te)));
+    if (d.tz) { var alt = span('bk-alt', en ? d.tz : d.te); alt.lang = en ? 'zh-Hant' : 'en'; head.append(alt); }
+    head.append(span('bk-au', en ? d.ae : (d.az || d.ae)));
+    back.append(head, span('bk-rule'));
+    if (d.read) {
+      var log = span('bk-log');
+      log.append(span('bk-log-head', t('books.log')), span('bk-log-row', t('books.read_in', d.read)));
+      if (d.times) log.append(span('bk-log-row bk-times', t('books.read_times', d.times)));
+      back.append(log);
+    }
+    var foot = span('bk-foot');
+    foot.append(span('', d.pages ? t('books.pages', d.pages) : ''));
+    var a = document.createElement('a');
+    a.href = d.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Goodreads';
+    foot.append(a);
+    back.append(foot);
+  }
+
   // ── 拿起一本書:從書架飛到畫面中間放大;再點翻封底;點背景 / Esc / 焦點離開就飛回原位 ──
   // 原本那本留在架上但隱藏(位置空著),畫面上飛的是複製出來的那本,所以書架的排版完全不受影響。
   var stage = null;
@@ -67,6 +95,7 @@
     overlay.style.setProperty('--w', target + 'px');
     overlay.style.setProperty('--k', s.toFixed(3));
     var clone = el.cloneNode(true);
+    fillBack(clone.querySelector('.back'));
     clone.classList.add('lifted', view() === 'covers' ? 'from-cover' : 'from-spine');
     clone.style.setProperty('--i', 0);
     clone.style.setProperty('--t', (parseFloat(el.style.getPropertyValue('--t')) * s) + 'px');
@@ -209,6 +238,6 @@
     var en = window.siteI18n && window.siteI18n.lang() === 'en';
     root.querySelectorAll('.b3').forEach(function (b) { b.setAttribute('aria-label', b.getAttribute(en ? 'data-label-en' : 'data-label-zh')); });
   }
-  document.addEventListener('langchange', function () { labels(); fitSpines(); });
+  document.addEventListener('langchange', function () { labels(); fitSpines(); if (stage) fillBack(stage.clone.querySelector('.back')); });
   labels();
 })();
