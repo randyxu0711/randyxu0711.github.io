@@ -39,30 +39,17 @@
       {%- if b.cover %}<img src="{{ cover | escape }}" data-big="{{ cover_big | escape }}" data-orig="{{ b.cover | escape }}" alt="" loading="lazy" decoding="async" onerror="if (this.src !== this.dataset.orig) this.src = this.dataset.orig; else this.remove();">{% endif -%}
       <span class="cover-fallback"><span class="ti">{% include book-name.html zh=zh.title en=b.title %}</span><span class="au">{% include book-name.html zh=zh.author en=b.author %}</span></span>
     </span>
-    <span class="f back">
-      <span class="bk-head">
-        {%- comment -%} 封底:現在語言的書名在上、另一種語言的書名在下 {%- endcomment -%}
-        <span class="bk-title">{% include book-name.html zh=zh.title en=b.title %}</span>
-        {%- if zh.title and zh.title != b.title %}
-        <span class="bk-alt"><span class="lang-zh">{{ b.title | escape }}</span><span class="lang-en" lang="zh-Hant">{{ zh.title | escape }}</span></span>
-        {%- endif %}
-        <span class="bk-au">{% include book-name.html zh=zh.author en=b.author %}</span>
-      </span>
-      <span class="bk-rule"></span>
-      {%- if b.read %}
-      <span class="bk-log">
-        <span class="bk-log-head" data-i18n="books.log">{% include t.html k="books.log" %}</span>
-        <span class="bk-log-row" data-i18n="books.read_in" data-i18n-n="{{ read_year }}">{% include t.html k="books.read_in" n=read_year %}</span>
-        {%- if b.read_count > 1 %}
-        <span class="bk-log-row bk-times" data-i18n="books.read_times" data-i18n-n="{{ b.read_count }}">{% include t.html k="books.read_times" n=b.read_count %}</span>
-        {%- endif %}
-      </span>
-      {%- endif %}
-      <span class="bk-foot">
-        {%- if b.pages %}<span data-i18n="books.pages" data-i18n-n="{{ b.pages }}">{% include t.html k="books.pages" n=b.pages %}</span>{% else %}<span></span>{% endif %}
-        <a href="{{ b.url | escape }}" target="_blank" rel="noopener">Goodreads</a>
-      </span>
-    </span>
+    {%- comment -%}
+      封底:架上只是一片書的顏色,文字在拿起來放大時才由 books.js 依這些資料填進去
+      (122 本都帶完整封底的話,元素與文字多一大截,手機上解析、捲動都慢)。
+      現在語言的書名在上、另一種語言的書名在下;資料:書名 / 作者(中、原文)、讀完年份、次數、頁數、Goodreads。
+    {%- endcomment %}
+    <span class="f back" data-te="{{ b.title | escape }}" data-ae="{{ b.author | escape }}"
+      {%- if zh.title and zh.title != b.title %} data-tz="{{ zh.title | escape }}"{% endif %}
+      {%- if zh.author and zh.author != b.author %} data-az="{{ zh.author | escape }}"{% endif %}
+      {%- if b.read %} data-read="{{ read_year }}"{% endif %}
+      {%- if b.read_count > 1 %} data-times="{{ b.read_count }}"{% endif %}
+      {%- if b.pages %} data-pages="{{ b.pages }}"{% endif %} data-url="{{ b.url | escape }}"></span>
     <span class="f pages"></span>
     <span class="f top"></span>
   </span>
