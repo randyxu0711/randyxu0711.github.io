@@ -30,9 +30,12 @@
      aria-label="{{ t_zh | escape }},{{ a_zh | escape }}"
      style="--i: {{ include.index }}; --t: {{ t }}px; --ratio: {{ ratio }};{% if b.color %} --col: {{ b.color }}; --bink: {{ b.ink }};{% endif %}">
   <span class="box">
+    {%- comment -%}
+      書脊只放書名(作者在封面與封底)。--len-zh / --len-en 是書名的長度(_plugins/spine-length.rb),
+      books.css 用「書脊高度 ÷ 長度」算字級,長書名自動變小,不用 JS 量
+    {%- endcomment %}
     <span class="f spine">
-      <span class="ti">{% include book-name.html zh=zh.title en=b.title %}</span>
-      <span class="au">{% include book-name.html zh=zh.author en=b.author %}</span>
+      <span class="ti" style="--len-zh: {{ t_zh | spine_length }}; --len-en: {{ b.title | spine_length }};">{% include book-name.html zh=zh.title en=b.title %}</span>
     </span>
     <span class="f cover">
       {%- comment -%} 縮小版載不到(例如 CDN 不再支援 ._SX寬_)就改用原圖重試一次;原圖也載不到才拿掉,顯示書名封面 {%- endcomment -%}

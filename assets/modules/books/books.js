@@ -158,29 +158,6 @@
     if (stage && !stage.overlay.contains(e.target)) drop();
   });
 
-  // ── 書脊上的書名:放不下時先拿掉作者,再縮小字(最小 10px),還是放不下才用 … 截斷 ──
-  // 先全部寫、再全部讀,整頁只重新排版兩次(邊寫邊讀的話,122 本會排版幾百次,手機上卡 0.3 秒)。
-  // 字寬跟字級成正比,所以縮小的倍數一次算出來,不用一步一步試。
-  var MIN_FONT = 10;
-  function fitSpines() {
-    var spines = Array.prototype.slice.call(root.querySelectorAll('.b3 > .box > .spine')).map(function (sp) {
-      var ti = sp.querySelector('.ti');
-      sp.classList.remove('no-au'); ti.style.removeProperty('font-size');
-      return { sp: sp, ti: ti };
-    });
-    var over = spines.filter(function (o) { return o.ti.scrollHeight > o.ti.clientHeight; });
-    over.forEach(function (o) { o.sp.classList.add('no-au'); });
-    over.forEach(function (o) {
-      o.k = o.ti.clientHeight / o.ti.scrollHeight;
-      o.base = parseFloat(getComputedStyle(o.sp).fontSize);
-    });
-    over.forEach(function (o) {
-      if (o.k >= 1) return;
-      var k = Math.max(o.k, MIN_FONT / o.base);
-      o.ti.style.fontSize = k.toFixed(3) + 'em';   // em:拿起來放大時跟著書脊的字一起放大
-    });
-  }
-
   // ── 排法切換 ──
   var sw = root.querySelector('[data-view-switch]');
   var btns = sw.querySelectorAll('[data-view-set]');
@@ -215,8 +192,6 @@
   root.classList.add('no-anim');               // 第一次載入不播放轉身
   // 初始排法由 _layouts/books.html 的行內 script 在繪製前決定(選過的 > 手機用書脊 > 設定)
   setView(view(), false);
-  fitSpines();
-  if (document.fonts) document.fonts.ready.then(fitSpines);   // 字型載入後寬度會變
   requestAnimationFrame(function () { requestAnimationFrame(function () { root.classList.remove('no-anim'); }); });
   btns.forEach(function (b) { b.addEventListener('click', function () { setView(b.getAttribute('data-view-set'), true); }); });
   sw.hidden = false;
@@ -229,7 +204,7 @@
     resizeTimer = setTimeout(function () {
       if (window.innerWidth === lastWidth) return;
       lastWidth = window.innerWidth;
-      pack(view()); fitSpines(); watchRows();
+      pack(view()); watchRows();
     }, 150);
   });
 
@@ -238,6 +213,6 @@
     var en = window.siteI18n && window.siteI18n.lang() === 'en';
     root.querySelectorAll('.b3').forEach(function (b) { b.setAttribute('aria-label', b.getAttribute(en ? 'data-label-en' : 'data-label-zh')); });
   }
-  document.addEventListener('langchange', function () { labels(); fitSpines(); if (stage) fillBack(stage.clone.querySelector('.back')); });
+  document.addEventListener('langchange', function () { labels(); if (stage) fillBack(stage.clone.querySelector('.back')); });
   labels();
 })();

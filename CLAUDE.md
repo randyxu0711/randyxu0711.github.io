@@ -12,7 +12,8 @@
 - **桌面與板材**(`assets/css/slab.css`):頁面是桌面(`--desk`),卡片、書、project、按鍵都是 `.slab` 板;
   立體感 = 上緣反光 + 底下側面(`--th` 厚度)+ 兩層陰影。另有 `.key`(按鍵,按下沉進桌面)、`.groove`(輸入框凹槽)、
   `.coin`(圓形頭像)。**琥珀只用在三個時刻**:精選卡、游標停留 / 鍵盤聚焦(側面亮成琥珀)、按下的狀態;
-  平常的側面是暖中性色,書的側面是紙色。`data-tilt` 的板會朝游標傾斜(`assets/js/slab.js`,也管捲動玻璃導覽列與主題鍵)。
+  平常的側面是暖中性色,書的側面是紙色。`data-tilt` 的板會朝游標傾斜(`assets/js/slab.js`,也管導覽列捲動後的陰影與主題鍵)。
+  導覽列底色不透明、不用 `backdrop-filter`(每格都要重算底下的 3D 書架,iPhone 捲動會卡)。
 - **模組與插槽**:`_config.yml` 的 `modules:` 一行一個模組,註解掉就關掉。版面用 `{% include slot.html name="…" %}`
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
   模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入)。
@@ -74,6 +75,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   - JS **先讀、再改**:搬動 DOM 或改 `--w` 之後再讀尺寸或樣式,瀏覽器得先把全部書重算一遍(手機上一次就卡 0.5 秒以上)。
   - 切換排法的過場:書搬到新隔間後先套 `.was-*`(舊排法的樣子)畫一格再拿掉;只有真的在畫面裡的排跑過場,其他排 `.snap` 直接到位。
   - 拿起的書用 FLIP(直接用放大後的尺寸排版,`scale3d` 縮回起點),透視(`perspective` / `-origin`)跟著從那一排過渡到畫面中央。
+  - 書脊只放書名;字級 = 書脊可用高度 ÷ 書名長度(`_plugins/spine-length.rb` 建置時算好 `--len-zh` / `--len-en`),不用 JS 量。
   - 封底在架上只是一片書的顏色,文字在拿起時由 `books.js` 的 `fillBack` 依 `.back` 的 `data-*` 填入(HTML 少 27%、元素少一半)。
   - 封面用 Amazon CDN 縮圖:先載 `._SX150_`,封面排法捲到附近或拿起時換 `._SX400_`(`data-big`);載不到退回原圖(`data-orig`)。
 - **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
