@@ -69,9 +69,9 @@ html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
   writing-mode: vertical-rl; text-orientation: mixed; display: flex; justify-content: center; align-items: center;
   padding: 0.9em 0 0.77em; font-size: 0.78rem; font-weight: 500; line-height: 1; transition: box-shadow 200ms; }
 /* 書名的字級 = 書脊可用高度 ÷ 書名長度(--len,建置時算好,book-3d.html),介於 0.72 倍與原字級之間;
-   還是放不下才用 … 截斷。用 em,拿起來放大時跟著書脊的字一起放大 */
+   長度多算 12%,書名兩端留點空,不要剛好頂到。還是放不下才用 … 截斷。用 em,拿起來放大時跟著書脊的字一起放大 */
 .spine .ti { --len: var(--len-zh, 10); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 100%;
-  font-size: clamp(0.72em, calc((var(--bh) - 1.67em) / var(--len)), 1em); }
+  font-size: clamp(0.72em, calc((var(--bh) - 1.67em) / (var(--len) * 1.12)), 1em); }
 html[data-lang="en"] .spine .ti { --len: var(--len-en, 10); }
 
 /* 封面 */
