@@ -1950,5 +1950,22 @@
   "ink": "#f7f3ea",
   "ratio": 0.64,
   "read_count": 1
+ },
+ {
+  "id": "103273",
+  "title": "Under The Jaguar Sun",
+  "author": "Italo Calvino",
+  "rating": 0,
+  "pages": 96,
+  "read": null,
+  "added": "2026-10-09",
+  "shelves": [],
+  "url": "https://www.goodreads.com/book/show/103273",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1348768474i/103273.jpg",
+  "color": "#cfbeb7",
+  "ink": "#1c1a17",
+  "ratio": 0.667,
+  "read_count": 1,
+  "issue": 27
  }
 ]
