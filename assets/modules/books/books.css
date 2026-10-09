@@ -36,19 +36,16 @@
   box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 5px 0 0 var(--edge-n), 0 6.5px 0 0 var(--edge-n-deep), 0 18px 20px -10px var(--drop-near); }
 
 /* 畫面外的排不排版、不繪製、不建圖層(書架有上千個 3D 面,全部畫會卡;切換排法時也只有畫面上那幾排會跑動畫)。
-   高度由 books-pack.html 算好寫在 contain-intrinsic-size。
-   content-visibility 會把超出盒子的部分切掉:底部多留 --room 包住層板前緣的厚度與陰影,
-   外距、層板位置、透視點都扣回同樣的距離,版面與 3D 角度跟沒加之前一樣
-   (透視點原本在「排高 × --origin-y(-25%)」,排高多了 --room,所以補回 --room × 0.25) */
-html.js .books .tier.packed .row { --room: 2rem;
-  content-visibility: auto; flex-wrap: nowrap;
-  padding-bottom: var(--room); margin-bottom: calc(14px - var(--room));
-  perspective-origin: 50% calc(var(--origin-y) + var(--room) * 0.25); }
+   content-visibility 加在每排外面那一層 .row-wrap,不能加在 .row:它帶 paint containment,
+   規範上會強制 transform-style: flat。.row 是每排的 3D 空間(perspective + preserve-3d),被壓平的話
+   每本書各自成一個 3D 空間,瀏覽器無法依深度排序,iOS 的 WebKit 就照 HTML 順序畫,右半邊書的側面整片蓋到隔壁。
+   高度由 books-pack.html 算好寫在 .row-wrap 的 contain-intrinsic-size。content-visibility 會把超出盒子的部分切掉:
+   底部多留 --room 包住層板前緣的厚度與陰影,負外距扣回,版面不變 */
+html.js .books .tier.packed .row-wrap { --room: 2rem; content-visibility: auto; padding-bottom: var(--room); margin-bottom: calc(-1 * var(--room)); }
 /* 分好隔間後每排剛好一行,不換行:切換排法時放不下的書不會擠到下一行(那樣最後一本收回時整排高度會突然縮一截),
    而是先超出架子右邊、被 content-visibility 裁掉,再一本本滑進來。隔間寬度鎖住,架子不會被撐長 */
+html.js .books .tier.packed .row { flex-wrap: nowrap; }
 html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
-html.js .books .tier.packed .cab.floor { bottom: var(--room); }
-html.js .books .tier.packed .cab.lip { bottom: calc(var(--room) - 14px); }
 
 /* ── 3D 書 ── */
 .b3 {

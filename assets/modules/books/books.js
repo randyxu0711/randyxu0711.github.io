@@ -21,11 +21,13 @@
     if (view() !== 'covers') return;
     entries.forEach(function (e) { if (e.isIntersecting) e.target.querySelectorAll('.cover img').forEach(upgrade); });
   }, { rootMargin: '300px 0px' }) : null;
-  // 分格會換掉 .row,每次分完重新觀察
+  // 分格會換掉每一排,每次分完重新觀察。觀察外層 .row-wrap(content-visibility 在它身上),
+  // 裡面的 .row 在畫面外時沒有排版,讀它的位置會逼瀏覽器把那一排排出來
+  function rowBoxes() { return root.querySelectorAll('.row-wrap, .bay > .row'); }
   function watchRows() {
     if (!io) return;
     io.disconnect();
-    root.querySelectorAll('.row').forEach(function (r) { io.observe(r); });
+    rowBoxes().forEach(function (r) { io.observe(r); });
   }
 
   // ── 拿起一本書:從書架飛到畫面中間放大;再點翻封底;點背景 / Esc / 焦點離開就飛回原位 ──
@@ -168,9 +170,9 @@
         // 只有真的在畫面裡的排跑過場。瀏覽器會預先算好畫面上下各一段的排(content-visibility 的預留範圍),
         // 那些排不在畫面裡,直接跳到新樣子(books.css 的 .snap)。版面剛排好,這裡讀位置不花成本
         var vh = window.innerHeight, snapped = [];
-        root.querySelectorAll('.row').forEach(function (row) {
-          var r = row.getBoundingClientRect();
-          if (r.bottom < 0 || r.top > vh) { row.classList.add('snap'); snapped.push(row); }
+        rowBoxes().forEach(function (box) {
+          var r = box.getBoundingClientRect(), row = box.classList.contains('row') ? box : box.querySelector('.row');
+          if (row && (r.bottom < 0 || r.top > vh)) { row.classList.add('snap'); snapped.push(row); }
         });
         books.forEach(function (b) { b.classList.remove(was); });
         requestAnimationFrame(function () { snapped.forEach(function (row) { row.classList.remove('snap'); }); });

@@ -39,9 +39,9 @@
       // 先讀、再改:寬度、封面基準、每排的留白與間距都在搬動 DOM 之前讀好
       var avail = first.clientWidth - PAD;
       var wBefore = root.style.getPropertyValue('--w');
-      var minH = minHeight(first);
+      var m = rowMetrics(first);
       var w = fitWidth(avail, baseWidth());
-      if (wBefore !== w + 'px') minH = null;   // 封面寬變了(視窗寬度改變):最小高度跟著變,算高度時再重讀
+      if (wBefore !== w + 'px') m = null;   // 封面寬變了(視窗寬度改變):最小高度跟著變,算高度時再重讀
       var list = Array.prototype.slice.call(bays || root.querySelectorAll('[data-bay]'));
       list.forEach(function (bay) {
         var books = Array.prototype.slice.call(bay.querySelectorAll('.b3'));
@@ -58,29 +58,39 @@
         if (same) return;
         bay.textContent = '';
         lines.forEach(function (l) {
+          // 每排外面包一層 .row-wrap,content-visibility 加在那裡(.row 是 3D 空間,不能被壓平,見 books.css)
+          var wrap = document.createElement('div');
+          wrap.className = 'row-wrap';
           var row = document.createElement('div');
           row.className = 'row';
           row.innerHTML = cabHTML;
           l.forEach(function (b, i) { b.style.setProperty('--i', i); row.appendChild(b); });
-          bay.appendChild(row);
+          wrap.appendChild(row);
+          bay.appendChild(wrap);
         });
       });
-      sizeRows(list, w, minH === null ? minHeight(first) : minH);
+      sizeRows(list, w, m || rowMetrics(first));
     };
 
     // 畫面外的排不排版、不繪製(books.css 的 content-visibility: auto),但瀏覽器得知道它多高,捲軸才不會跳。
     // 高度用算的,不實際排版去量:一排的內容高度 = max(最小高度, 最高那本書),書高 = 封面寬 ÷ 封面比例(--ratio)。
     // 最小高度跟著封面寬變,從 CSS 讀(只讀樣式;要在搬動 DOM 之前讀,不然瀏覽器得先把全部書的樣式重算一遍)
-    function minHeight(bay) {
+    // 每排的上方留白、最小高度、下緣(層板前緣的空間):最小高度跟著封面寬變
+    function rowMetrics(bay) {
       var row = bay.querySelector('.row');
-      return row ? parseFloat(getComputedStyle(row).minHeight) || 0 : 0;
+      if (!row) return null;
+      var cs = getComputedStyle(row);
+      return { pad: parseFloat(cs.paddingTop) || 0, minH: parseFloat(cs.minHeight) || 0, below: parseFloat(cs.marginBottom) || 0 };
     }
-    function sizeRows(bays, w, minH) {
+    // 高度寫在每排外面那一層 .row-wrap(content-visibility 加在那裡,見 books.css)。
+    // 外層的內容 = 排的上方留白 + max(最小高度, 最高那本書) + 下緣;.row 是 content-box,min-height 不含 padding
+    function sizeRows(bays, w, m) {
+      if (!m) return;
       bays.forEach(function (bay) {
-        bay.querySelectorAll('.row').forEach(function (row) {
+        bay.querySelectorAll('.row-wrap > .row').forEach(function (row) {
           var tallest = 0;
           row.querySelectorAll('.b3').forEach(function (b) { tallest = Math.max(tallest, w / parseFloat(b.style.getPropertyValue('--ratio'))); });
-          row.style.containIntrinsicSize = 'auto ' + Math.max(minH, tallest) + 'px';   // .row 是 content-box:min-height 與這裡都不含 padding
+          row.parentNode.style.containIntrinsicSize = 'auto ' + (m.pad + Math.max(m.minH, tallest) + m.below) + 'px';
         });
       });
     }
