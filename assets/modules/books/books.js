@@ -12,6 +12,22 @@
   // ── 依寬度分格:由 _includes/books-pack.html(書架後面的行內 script)提供,首次繪製前就分好 ──
   function pack(forView) { if (window.booksPack) window.booksPack(forView); }
 
+  // ── 封面畫質:先載 150px(src),封面排法捲到附近、或拿起來放大時換成 400px(data-big)──
+  // 換 src 時瀏覽器會先留著舊圖,等新圖載好才換上,所以只會變清楚、不會閃白。書脊排法只露出側面,維持 150px
+  function upgrade(img) {
+    if (img && img.dataset.big && img.src !== img.dataset.big && img.src !== img.dataset.orig) img.src = img.dataset.big;
+  }
+  var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
+    if (view() !== 'covers') return;
+    entries.forEach(function (e) { if (e.isIntersecting) e.target.querySelectorAll('.cover img').forEach(upgrade); });
+  }, { rootMargin: '300px 0px' }) : null;
+  // 分格會換掉 .row,每次分完重新觀察
+  function watchRows() {
+    if (!io) return;
+    io.disconnect();
+    root.querySelectorAll('.row').forEach(function (r) { io.observe(r); });
+  }
+
   // ── 拿起一本書:從書架飛到畫面中間放大;再點翻封底;點背景 / Esc / 焦點離開就飛回原位 ──
   // 原本那本留在架上但隱藏(位置空著),畫面上飛的是複製出來的那本,所以書架的排版完全不受影響。
   var stage = null;
@@ -20,6 +36,16 @@
     clone.style.setProperty('--dx', (r.left + r.width / 2 - window.innerWidth / 2) + 'px');
     clone.style.setProperty('--dy', (r.top + r.height / 2 - window.innerHeight / 2) + 'px');
   }
+  // 架上那一排的 3D 視角(透視距離、視點),換成畫面座標。拿起時從這個視角過渡到畫面中央,放回時再過渡回來,
+  // 落地那一刻跟架上的書一模一樣(不然會換成另一套視角,書的角度、書頂露出多少會跳一下)
+  function shelfView(el) {
+    var row = el.closest('.row');
+    if (!row) return { persp: '1400px', origin: '50% 50%' };
+    var rr = row.getBoundingClientRect(), cs = getComputedStyle(row), o = cs.perspectiveOrigin.split(' ');
+    return { persp: cs.perspective, origin: (rr.left + parseFloat(o[0])) + 'px ' + (rr.top + parseFloat(o[1])) + 'px' };
+  }
+  function setView3d(overlay, v) { overlay.style.perspective = v.persp; overlay.style.perspectiveOrigin = v.origin; }
+  var STAGE_VIEW = { persp: '1400px', origin: '50% 50%' };
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   function lift(el) {
     if (stage) return;
@@ -50,10 +76,16 @@
     clone.style.setProperty('--s', (1 / s).toFixed(4));
     overlay.appendChild(clone);
     document.body.appendChild(overlay);
+    // 放大到中間要用大圖。複製出來的圖等小圖顯示了才換,不然大圖載好前會是空白
+    upgrade(el.querySelector('.cover img'));
+    var cimg = clone.querySelector('.cover img');
+    if (cimg) { if (cimg.complete) upgrade(cimg); else cimg.addEventListener('load', function () { upgrade(cimg); }, { once: true }); }
     el.classList.add('taken');
     stage = { el: el, clone: clone, overlay: overlay };
+    setView3d(overlay, shelfView(el));
     void overlay.offsetWidth;                       // 先畫出起點,再開始飛
     overlay.classList.add('open');
+    setView3d(overlay, STAGE_VIEW);
     clone.focus({ preventScroll: true });
   }
   function drop() {
@@ -61,6 +93,7 @@
     var s = stage; stage = null;
     var r = s.el.getBoundingClientRect();           // 捲動過的話,飛回現在的位置
     home(s.clone, r);
+    setView3d(s.overlay, shelfView(s.el));
     s.clone.classList.remove('rear');
     s.overlay.classList.remove('open');
     var done = function () {
@@ -122,8 +155,29 @@
   var btns = sw.querySelectorAll('[data-view-set]');
   function setView(v, remember) {
     drop();
+    var from = view();
     pack(v);                                   // 先照新排法分好格,再轉身
+    // 搬到新隔間的書會失去原本算好的樣式,過場需要一個「起點」:先套舊排法的樣子(books.css 的 .was-*)畫一格,
+    // 下一格再拿掉。瀏覽器只會算畫面上那幾排,畫面外的書直接是新樣子(只動畫看得到的)
+    var books = root.querySelectorAll('.b3');
+    books.forEach(function (b) { b.classList.remove('was-covers', 'was-spines'); });
+    if (from !== v) {
+      var was = 'was-' + from;
+      books.forEach(function (b) { b.classList.add(was); });
+      requestAnimationFrame(function () { requestAnimationFrame(function () {
+        // 只有真的在畫面裡的排跑過場。瀏覽器會預先算好畫面上下各一段的排(content-visibility 的預留範圍),
+        // 那些排不在畫面裡,直接跳到新樣子(books.css 的 .snap)。版面剛排好,這裡讀位置不花成本
+        var vh = window.innerHeight, snapped = [];
+        root.querySelectorAll('.row').forEach(function (row) {
+          var r = row.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > vh) { row.classList.add('snap'); snapped.push(row); }
+        });
+        books.forEach(function (b) { b.classList.remove(was); });
+        requestAnimationFrame(function () { snapped.forEach(function (row) { row.classList.remove('snap'); }); });
+      }); });
+    }
     root.setAttribute('data-view', v);
+    watchRows();
     btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view-set') === v)); });
     if (remember) { try { localStorage.setItem(KEY, v); } catch (e) {} }
   }
@@ -144,7 +198,7 @@
     resizeTimer = setTimeout(function () {
       if (window.innerWidth === lastWidth) return;
       lastWidth = window.innerWidth;
-      pack(view()); fitSpines();
+      pack(view()); fitSpines(); watchRows();
     }, 150);
   });
 

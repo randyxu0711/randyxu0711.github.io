@@ -62,6 +62,13 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   每一層讀完就由行內 script(`_includes/books-pack.html`)依寬度把書分到多個隔間,`books.js` 換排法 / 轉向時呼叫同一個函式;
   手機沒選過排法時預設書脊(排法在 `books.html` 開頭的行內 script 決定);點一本書 = 複製一本飛到畫面中間放大(架上原位空著),再點翻封底,
   點背景 / Esc / 焦點離開就飛回。書架只有層板(上面 + 前緣),不做背板與側板。3D 書盒參考 mawise/bookshelf(MIT)。
+- **書架效能**(上千個 3D 面,改之前先看):
+  - 每一排 `content-visibility: auto`,畫面外的排不排版不繪製;排高用算的(`books-pack.html` 的 `sizeRows`,書高 = 封面寬 ÷ `--ratio`),
+    不實際排版去量。改 `.row` 的 padding / min-height 要確認公式還對。
+  - JS **先讀、再改**:搬動 DOM 或改 `--w` 之後再讀尺寸或樣式,瀏覽器得先把全部書重算一遍(手機上一次就卡 0.5 秒以上)。
+  - 切換排法的過場:書搬到新隔間後先套 `.was-*`(舊排法的樣子)畫一格再拿掉;只有真的在畫面裡的排跑過場,其他排 `.snap` 直接到位。
+  - 拿起的書用 FLIP(直接用放大後的尺寸排版,`scale3d` 縮回起點),透視(`perspective` / `-origin`)跟著從那一排過渡到畫面中央。
+  - 封面用 Amazon CDN 縮圖:先載 `._SX150_`,封面排法捲到附近或拿起時換 `._SX400_`(`data-big`);載不到退回原圖(`data-orig`)。
 - **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
   從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);
   CSV 匯入時合併,同一本以 CSV 為準。撤下 = 關成 not planned。
