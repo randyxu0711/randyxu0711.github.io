@@ -66,14 +66,13 @@ html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
 /* 書脊:兩側略暗中間略亮,像圓弧書背 */
 .spine { inset: 0; border-radius: 2px 2px 1px 1px; overflow: hidden; color: var(--bink);
   background: linear-gradient(90deg, oklch(0 0 0 / 0.28), oklch(1 0 0 / 0.14) 22%, oklch(1 0 0 / 0.06) 50%, oklch(1 0 0 / 0.14) 78%, oklch(0 0 0 / 0.3)), var(--col);
-  writing-mode: vertical-rl; text-orientation: mixed; display: flex; justify-content: space-between; align-items: center;
-  padding: 0.7rem 0 0.6rem; font-size: 0.78rem; font-weight: 500; line-height: 1; transition: box-shadow 200ms; }
-.spine .ti { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 72%; }
-/* books.js:書名放不下時拿掉作者,書名用整個書脊 */
-.spine.no-au { justify-content: center; }
-.spine.no-au .ti { max-height: 100%; }
-.spine.no-au .au { display: none; }
-.spine .au { font-size: 0.62rem; opacity: 0.75; font-weight: 400; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 24%; }
+  writing-mode: vertical-rl; text-orientation: mixed; display: flex; justify-content: center; align-items: center;
+  padding: 0.9em 0 0.77em; font-size: 0.78rem; font-weight: 500; line-height: 1; transition: box-shadow 200ms; }
+/* 書名的字級 = 書脊可用高度 ÷ 書名長度(--len,建置時算好,book-3d.html),介於 0.72 倍與原字級之間;
+   還是放不下才用 … 截斷。用 em,拿起來放大時跟著書脊的字一起放大 */
+.spine .ti { --len: var(--len-zh, 10); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 100%;
+  font-size: clamp(0.72em, calc((var(--bh) - 1.67em) / var(--len)), 1em); }
+html[data-lang="en"] .spine .ti { --len: var(--len-en, 10); }
 
 /* 封面 */
 .cover { left: 100%; top: 0; width: var(--w); height: var(--bh); transform-origin: 0 50%; transform: rotateY(90deg);
@@ -143,8 +142,7 @@ html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
   transition: transform 620ms cubic-bezier(.3,.7,.2,1); }
 .book-stage.open .b3 { transform: none; }
 /* 書脊與沒有封面圖時的字:跟著放大倍數(--k),起飛那一刻看起來跟架上一樣 */
-.book-stage .spine { font-size: calc(0.78rem * var(--k)); padding: calc(0.7rem * var(--k)) 0 calc(0.6rem * var(--k)); }
-.book-stage .spine .au { font-size: calc(0.62rem * var(--k)); }
+.book-stage .spine { font-size: calc(0.78rem * var(--k)); }
 .book-stage .cover-fallback .ti { font-size: calc(0.95rem * var(--k)); }
 .book-stage .cover-fallback .au { font-size: calc(0.7rem * var(--k)); }
 .book-stage .b3::after { display: none; }
