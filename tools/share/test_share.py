@@ -264,3 +264,34 @@ def test_save_to_wayback_requests_save_endpoint():
         return Resp()
     assert share.save_to_wayback("https://a.com/x?y=1", opener=fake) is None
     assert seen["url"] == "https://web.archive.org/save/https://a.com/x?y=1"
+
+
+# --- clean_title ----------------------------------------------------------------
+
+@pytest.mark.parametrize("title, source, expected", [
+    ("Choosing the Right Agentic AI Framework for 2026: A Decision-Tree Approach - MachineLearningMastery.com",
+     "machinelearningmastery.com", "Choosing the Right Agentic AI Framework for 2026: A Decision-Tree Approach"),
+    ("Security briefing: September 2026 | Sysdig", "webflow.sysdig.com", "Security briefing: September 2026"),
+    ("Introducing AG-UI 1.0: a stable spec | Blog | CopilotKit", "copilotkit.ai", "Introducing AG-UI 1.0: a stable spec"),
+])
+def test_clean_title_drops_trailing_site_name(title, source, expected):
+    assert share.clean_title(title, source) == expected
+
+
+@pytest.mark.parametrize("title, source", [
+    ("API Authentication & Authorization: Mechanisms, Trade-offs, and Failure Modes", "freecodecamp.org"),  # 字中的連字號不是分隔
+    ("Rust vs Go - A Practical Comparison", "example.com"),                                             # 結尾不是網站名
+    ("Sysdig", "sysdig.com"),                                                                            # 只剩網站名時保留
+    ("", "example.com"),
+])
+def test_clean_title_keeps_titles_without_site_suffix(title, source):
+    assert share.clean_title(title, source) == title
+
+
+def test_build_post_cleans_fetched_title_but_not_user_override():
+    fields = {"url": "https://webflow.sysdig.com/blog/x", "note": "", "tags": [], "title": ""}
+    meta = {"title": "Security briefing | Sysdig", "description": "", "image": ""}
+    _, content = share.build_post(fields, meta, 4, "2026-10-06T10:00:00Z")
+    assert 'title: "Security briefing"' in content
+    _, content = share.build_post({**fields, "title": "My Title | Sysdig"}, meta, 4, "2026-10-06T10:00:00Z")
+    assert 'title: "My Title | Sysdig"' in content
