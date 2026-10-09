@@ -12,21 +12,17 @@
     var PAD = 2 * 17.6;   // .row 左右 padding 1.1rem
     var cabHTML = null;   // 層板的標記:第一次分格時從還沒拆開的那一格複製(這段 script 跑的時候書架還沒讀到)
 
-    function coverWidth() {
-      var v = getComputedStyle(root).getPropertyValue('--w').trim();
+    // 封面寬的基準(books.css 的 --w-base)。要在改任何東西之前讀:改過再讀,瀏覽器得先把全部書的樣式重算一遍
+    function baseWidth() {
+      var v = getComputedStyle(root).getPropertyValue('--w-base').trim();
       return v.indexOf('rem') > -1 ? parseFloat(v) * parseFloat(getComputedStyle(document.documentElement).fontSize) : parseFloat(v);
     }
-    // 封面寬度:CSS 的 --w 是基準,依隔間寬度微調成剛好排滿一行(手機上 2 本多一點 → 3 本)
-    function fitWidth() {
-      root.style.removeProperty('--w');
-      var base = coverWidth();
-      var bay = root.querySelector('[data-bay]');
-      if (!bay) return base;
-      var avail = bay.clientWidth - PAD;
-      if (avail <= base) return base;            // 隔間還沒有寬度(或窄到放不下一本)就用基準
+    // 封面寬度:依隔間寬度把基準微調成剛好排滿一行(手機上 2 本多一點 → 3 本)
+    function fitWidth(avail, base) {
+      if (avail <= base) { root.style.removeProperty('--w'); return base; }   // 隔間還沒有寬度(或窄到放不下一本)就用基準
       var n = Math.max(1, Math.round((avail + GAP) / (base + GAP)));
       var w = Math.floor((avail - (n - 1) * GAP) / n);
-      root.style.setProperty('--w', w + 'px');
+      if (root.style.getPropertyValue('--w') !== w + 'px') root.style.setProperty('--w', w + 'px');
       return w;
     }
     // forView:spines / covers(省略 = 目前的排法);bays:只分這些隔間(省略 = 全部)
@@ -36,10 +32,19 @@
         var firstRow = root.querySelector('.row');
         cabHTML = firstRow ? Array.prototype.map.call(firstRow.querySelectorAll('.cab'), function (c) { return c.outerHTML; }).join('') : '';
       }
-      var w = fitWidth();
-      Array.prototype.forEach.call(bays || root.querySelectorAll('[data-bay]'), function (bay) {
+      // 每一層的隔間一樣寬:改 DOM 之前量一次就好。
+      // 邊改邊量的話,每量一次瀏覽器就得把整頁的 3D 書重排一次(手機上切換排法因此卡 0.5 秒)
+      var first = root.querySelector('[data-bay]');
+      if (!first) return;
+      // 先讀、再改:寬度、封面基準、每排的留白與間距都在搬動 DOM 之前讀好
+      var avail = first.clientWidth - PAD;
+      var wBefore = root.style.getPropertyValue('--w');
+      var minH = minHeight(first);
+      var w = fitWidth(avail, baseWidth());
+      if (wBefore !== w + 'px') minH = null;   // 封面寬變了(視窗寬度改變):最小高度跟著變,算高度時再重讀
+      var list = Array.prototype.slice.call(bays || root.querySelectorAll('[data-bay]'));
+      list.forEach(function (bay) {
         var books = Array.prototype.slice.call(bay.querySelectorAll('.b3'));
-        var avail = bay.clientWidth - PAD;
         var lines = [], line = [], used = 0;
         books.forEach(function (b) {
           var slot = forView === 'covers' ? w : parseFloat(b.style.getPropertyValue('--t'));
@@ -60,7 +65,25 @@
           bay.appendChild(row);
         });
       });
+      sizeRows(list, w, minH === null ? minHeight(first) : minH);
     };
+
+    // 畫面外的排不排版、不繪製(books.css 的 content-visibility: auto),但瀏覽器得知道它多高,捲軸才不會跳。
+    // 高度用算的,不實際排版去量:一排的內容高度 = max(最小高度, 最高那本書),書高 = 封面寬 ÷ 封面比例(--ratio)。
+    // 最小高度跟著封面寬變,從 CSS 讀(只讀樣式;要在搬動 DOM 之前讀,不然瀏覽器得先把全部書的樣式重算一遍)
+    function minHeight(bay) {
+      var row = bay.querySelector('.row');
+      return row ? parseFloat(getComputedStyle(row).minHeight) || 0 : 0;
+    }
+    function sizeRows(bays, w, minH) {
+      bays.forEach(function (bay) {
+        bay.querySelectorAll('.row').forEach(function (row) {
+          var tallest = 0;
+          row.querySelectorAll('.b3').forEach(function (b) { tallest = Math.max(tallest, w / parseFloat(b.style.getPropertyValue('--ratio'))); });
+          row.style.containIntrinsicSize = 'auto ' + Math.max(minH, tallest) + 'px';   // .row 是 content-box:min-height 與這裡都不含 padding
+        });
+      });
+    }
 
     // 第一次分格時不播放寬度的過場;books.js 初始化完成後拿掉
     root.classList.add('no-anim');
