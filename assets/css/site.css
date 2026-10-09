@@ -75,51 +75,84 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .footer-inner a { color: var(--ink-3); padding: 0.6rem 0; margin: -0.6rem 0; }
 
 /* ── share 卡 ── */
-.shelf { display: grid; gap: 1.9rem; }
+/* 一般卡是固定形狀的磁磚:縮圖 1.91:1 + 兩行標題 + 一行來源,同一排一樣高,任何寬度都不會忽空忽密。
+   心得 / 摘要、日期、tag 在滑鼠停留時從縮圖下緣浮出;精選卡橫放,是唯一直接顯示這些的卡。 */
+.shelf { display: grid; gap: 2.2rem; }
 .share { min-width: 0; }
 /* 精選卡被篩選掉時,不要留下一格空白 */
 .shelf-feature:has(> .share[hidden]) { display: none; }
-.share-card .thumb { display: block; width: 100%; aspect-ratio: 1.91 / 1; object-fit: cover; }
+.share-card { display: grid; grid-template-rows: auto 1fr; height: 100%; }
+
+/* 縮圖是一扇窗:卡片傾斜時,裡面的圖往反方向移一點(--px / --py 由 slab.js 設定) */
+.share-card .shot { position: relative; aspect-ratio: 1.91 / 1; overflow: hidden; background: var(--desk-2); }
+.share-card .thumb { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: cover;
+  transform: scale(1.08) translate(var(--px, 0px), var(--py, 0px)); transition: transform 450ms cubic-bezier(.2,.7,.2,1); }
+.share-card.tracking .thumb { transition: transform 90ms linear; }
+/* 沒有縮圖(或載入失敗)時,窗裡顯示來源網域 */
+.shot-ph { position: absolute; inset: 0; display: grid; place-items: center; padding: 1rem; font-size: var(--t-sm); font-weight: 500;
+  color: var(--ink-3); text-align: center; overflow-wrap: anywhere; }
+
+/* 滑鼠停留:心得 / 摘要從縮圖下緣浮上來。縮圖顏色不定,所以固定深底淺字;觸控裝置沒有停留,不顯示 */
+.reveal { display: none; }
+@media (hover: hover) {
+  .reveal { position: absolute; left: 0; right: 0; bottom: 0; display: grid; gap: 0.35rem; padding: 2.2rem 1rem 0.85rem;
+    background: linear-gradient(to top, oklch(0.14 0.01 70 / 0.88) 55%, transparent); color: oklch(0.97 0.01 85);
+    transform: translateY(101%); transition: transform 320ms cubic-bezier(.2,.7,.2,1); pointer-events: none; }
+  .share-card:hover .reveal, .share-card:focus-visible .reveal { transform: none; }
+}
+.reveal p { margin: 0; font-size: 0.84rem; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.reveal .is-note { padding-left: 0.65rem; box-shadow: inset 2px 0 0 var(--edge); }
+.reveal .rv-meta { font-size: 0.72rem; color: oklch(0.86 0.015 85); -webkit-line-clamp: 1; font-variant-numeric: tabular-nums; }
+
+/* 卡片文字的基本樣式(project 卡背面也用) */
 .share-body { display: grid; gap: 0.5rem; padding: 1rem 1.15rem 1.2rem; min-width: 0; }
-.share-meta { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--t-xs); color: var(--ink-3); }
-.share-meta .src { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.share-meta time { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .share-title { margin: 0; font-size: 1.08rem; font-weight: 700; line-height: 1.45; overflow-wrap: anywhere; color: var(--ink); }
-.share-note { margin: 0; font-size: var(--t-md); line-height: 1.75; color: var(--ink); }
 .share-desc { margin: 0; font-size: var(--t-sm); line-height: 1.7; color: var(--ink-2);
   display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-/* 精選:最厚、表面與側面都是琥珀 */
+/* share 卡的文字:兩行標題(只有一行也佔兩行)+ 一行來源 */
+.share-card .share-body { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 0.55rem; padding: 0.85rem 1.1rem 1rem; }
+.share-card .share-title { font-size: 1.02rem; min-height: calc(1.02rem * 1.45 * 2); text-wrap: pretty;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.share-src { display: flex; align-items: center; gap: 0.45rem; min-width: 0; font-size: var(--t-xs); color: var(--ink-3); }
+.share-src .dom { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-src .ext { flex: none; font-size: 0.85em; }
+.share-src time { margin-left: auto; flex: none; font-variant-numeric: tabular-nums; }
+.share-src .seen-mark, .share-src .archive-mark { flex: none; white-space: nowrap; }
+.mono { flex: none; width: 1.25rem; height: 1.25rem; border-radius: 6px; display: grid; place-items: center; font-size: 0.66rem; font-weight: 700;
+  color: var(--ink-2); background: var(--desk-2); box-shadow: inset 0 0 0 1px var(--line); }
+
+/* 精選:最厚、表面與側面都是琥珀;橫放,直接顯示心得 / 摘要、日期與 tag */
 .share-card.feature {
   --th: var(--th-feature); --r: 20px; --face-c: var(--face-amber); --side: var(--edge); --side-2: var(--edge-deep);
-  display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  grid-template-rows: none; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
 }
-.share-card.feature .thumb { aspect-ratio: auto; height: 100%; min-height: 16rem; }
+.share-card.feature .shot { aspect-ratio: auto; min-height: 17rem; }
 .share-card.feature .share-body { padding: 1.6rem 1.75rem; align-content: center; gap: 0.8rem; }
-.share-card.feature .share-title { font-size: var(--t-xl); }
-.share-card.feature .share-meta { font-size: var(--t-sm); }
-.share-card.feature:not(:has(.thumb)) { grid-template-columns: 1fr; }
+.share-card.feature .share-title { font-size: var(--t-xl); line-height: 1.35; min-height: 0; -webkit-line-clamp: 3; text-wrap: balance; }
+.share-lead { margin: 0; font-size: var(--t-md); line-height: 1.75; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.share-lead.is-note { color: var(--ink); padding-left: 0.8rem; box-shadow: inset 2px 0 0 var(--edge); }
+.share-card.feature .share-src { font-size: var(--t-sm); }
+.share-card .tags { position: relative; z-index: 4; }
+.share-card .tag { cursor: pointer; }
+.share-card .tag:hover, .share-card .tag[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 0 0 1px var(--edge); }
 @media (max-width: 720px) {
-  .share-card.feature { grid-template-columns: 1fr; }
-  .share-card.feature .thumb { aspect-ratio: 1.91 / 1; height: auto; min-height: 0; }
-  .share-card.feature .share-body { padding: 1.1rem 1.2rem 1.3rem; }
+  .share-card.feature { grid-template-columns: 1fr; grid-template-rows: auto auto; }
+  .share-card.feature .shot { aspect-ratio: 1.91 / 1; min-height: 0; }
+  .share-card.feature .share-body { padding: 1rem 1.15rem 1.15rem; gap: 0.6rem; }
+  .share-card.feature .share-title { font-size: var(--t-lg); }
+  .share-lead { font-size: var(--t-sm); -webkit-line-clamp: 2; }
 }
 
-/* 手機:卡片上的小字放大一點(tag 12px、來源與日期 13px) */
+/* 手機:卡片上的小字放大一點(tag 12px、來源 13px) */
 @media (max-width: 600px) {
   .tag { font-size: 0.75rem; }
-  .share-meta { font-size: 0.8125rem; }
+  .share-src { font-size: 0.8125rem; }
 }
 
-/* 格狀 */
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)); gap: 1.9rem 1.5rem; }
-/* 同一排等高、文字量收斂:標題最多 3 行、摘要 2 行,tag 貼在卡片底部 */
-.grid > .share { display: flex; }
-.grid .share-card { flex: 1; display: flex; flex-direction: column; }
-.grid .share-body { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
-.grid .share-title { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-.grid .share-desc, .grid .share-note { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.grid .tags { margin-top: auto; padding-top: 0.25rem; }
+/* 格狀:卡寬至少 320px,放得下幾欄就幾欄(桌面 3、平板 2、手機 1) */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr)); gap: 2.1rem 1.5rem; }
+@media (max-width: 600px) { .grid { gap: 1.6rem; } }
 
 /* ── 頁首(書架):只有排法鍵,靠右 ── */
 .page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.75rem 1rem; margin-bottom: 2rem; }

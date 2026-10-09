@@ -18,6 +18,8 @@
     c.style.setProperty('--ry', ry.toFixed(2) + 'deg');
     c.style.setProperty('--rx', rx.toFixed(2) + 'deg');
     c.style.setProperty('--sx', (-ry * 0.6).toFixed(1) + 'px');   // 往右傾時,左側面露出來
+    c.style.setProperty('--px', (-(x - 0.5) * 10).toFixed(1) + 'px');   // 裡面的縮圖往反方向移(share 卡的 .thumb)
+    c.style.setProperty('--py', (-(y - 0.5) * 6).toFixed(1) + 'px');
     c.style.setProperty('--mx', (x * 100).toFixed(1) + '%');
     c.style.setProperty('--my', (y * 100).toFixed(1) + '%');
   });
@@ -25,7 +27,7 @@
     var c = e.target.closest && e.target.closest('.slab[data-tilt]');
     if (!c || (e.relatedTarget && c.contains(e.relatedTarget))) return;
     c.classList.remove('tracking');
-    ['--ry', '--rx', '--sx'].forEach(function (k) { c.style.removeProperty(k); });
+    ['--ry', '--rx', '--sx', '--px', '--py'].forEach(function (k) { c.style.removeProperty(k); });
   });
 
   // ── 兩面卡片:觸控裝置沒有 hover,點一下翻面、再點翻回;點別張卡或空白處,翻著的卡翻回來。點背面的連結照常開啟 ──

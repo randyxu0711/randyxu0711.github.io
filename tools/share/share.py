@@ -93,6 +93,27 @@ def fetch(url):
         return EMPTY_META, str(e) or type(e).__name__
 
 
+# 標題結尾的「 - 網站名」「 | Blog | 網站名」:分隔符號前後都要有空白(AG-UI、Trade-offs 這種字中的連字號不算)
+_TITLE_SEP = re.compile(r"\s+[|\-–—]\s+")
+_GENERIC_SUFFIX = {"blog", "news", "home"}
+
+
+def clean_title(title, source):
+    """og:title 結尾常帶網站名稱;跟來源網域重複的部分拿掉(卡片另外顯示來源)。整個標題就是網站名時保留。"""
+    parts = (source or "").lower().split(".")
+    key = re.sub(r"[^a-z0-9]", "", parts[-2]) if len(parts) >= 2 else ""
+    while True:
+        seps = list(_TITLE_SEP.finditer(title))
+        if not seps:
+            return title
+        cut = seps[-1]
+        tail = re.sub(r"[^a-z0-9]", "", title[cut.end():].lower())
+        same_site = len(tail) >= 3 and key and (key in tail or tail in key)
+        if not (same_site or tail in _GENERIC_SUFFIX):
+            return title
+        title = title[:cut.start()]
+
+
 def _domain(url):
     host = urlparse(url).hostname or ""
     return host[4:] if host.startswith("www.") else host
@@ -125,7 +146,7 @@ def archive_warning(link, save=save_to_wayback):
 def build_post(fields, meta, issue_number, created_at):
     when = datetime.fromisoformat(created_at.replace("Z", "+00:00")).astimezone(TZ)
     fm = {
-        "title": fields["title"] or meta["title"] or fields["url"],
+        "title": fields["title"] or clean_title(meta["title"], _domain(fields["url"])) or fields["url"],
         "date": when.strftime("%Y-%m-%d %H:%M:%S %z"),
         "link": fields["url"],
         "archive": archive_url(fields["url"]),
@@ -183,7 +204,7 @@ def handle(event, posts_dir, fetch=fetch):
     posts_dir.mkdir(parents=True, exist_ok=True)
     (posts_dir / name).write_text(content, encoding="utf-8")
 
-    title = fields["title"] or meta["title"] or fields["url"]
+    title = fields["title"] or clean_title(meta["title"], _domain(fields["url"])) or fields["url"]
     lines = ["已上線(約一分鐘後可見)", "",
              f"- **標題**:{title}",
              f"- **描述**:{meta['description'] or '(無)'}",

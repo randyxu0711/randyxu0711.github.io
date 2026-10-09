@@ -1,6 +1,8 @@
 {%- comment -%}
   share 卡(一片型的板)。參數:post、variant(feature / card,預設 card)。
   整張卡片直接開原文;linkcheck 判定失效且有 archive 時改連封存版。
+  一般卡是固定形狀的磁磚:縮圖 1.91:1 + 兩行標題 + 一行來源;心得 / 摘要、日期、tag 在滑鼠停留時從縮圖下緣浮出。
+  精選卡橫放,是唯一直接顯示心得 / 摘要、日期與 tag 的卡(tag 點了會篩選,shelf-filter.js)。
 {%- endcomment -%}
 {%- assign p = include.post -%}
 {%- assign variant = include.variant | default: 'card' -%}
@@ -11,29 +13,46 @@
 {%- assign href = p.link -%}
 {%- if dead -%}{%- assign href = p.archive -%}{%- endif -%}
 {%- capture text -%}{{ p.title }} {{ p.source }} {{ p.note }} {{ p.description }}{%- endcapture -%}
+{%- comment -%} 來源前的小圓章:網域的主名稱(blog.bytebytego.com → bytebytego)的第一個字 {%- endcomment -%}
+{%- assign host_parts = p.source | split: '.' -%}
+{%- assign host_i = host_parts.size | minus: 2 | at_least: 0 -%}
+{%- assign initial = host_parts[host_i] | slice: 0 | upcase -%}
+{%- assign day = p.date | date: '%Y-%m-%d' -%}
 <article class="share" data-tags="{{ p.tags | join: '|' | escape }}" data-text="{{ text | strip_newlines | downcase | escape }}" data-link="{{ p.link | escape }}">
-  <a class="slab share-card {{ variant }}{% if dead %} is-dead{% endif %}" href="{{ href | escape }}" target="_blank" rel="noopener" data-tilt="{% if variant == 'feature' %}3{% else %}4{% endif %}">
-    {%- if p.image %}
-    <img class="thumb" src="{{ p.image | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">
-    {%- endif %}
+  <a class="slab share-card {{ variant }}{% if dead %} is-dead{% endif %}" href="{{ href | escape }}" target="_blank" rel="noopener" data-tilt="{% if variant == 'feature' %}2.5{% else %}5{% endif %}">
+    <div class="shot">
+      <span class="shot-ph" aria-hidden="true">{{ p.source }}</span>
+      {%- if p.image %}
+      <img class="thumb" src="{{ p.image | escape }}" alt="" loading="lazy" decoding="async" onerror="this.remove()">
+      {%- endif %}
+      {%- if variant != 'feature' %}
+      <div class="reveal" aria-hidden="true">
+        {%- if p.note %}<p class="rv-text is-note">{{ p.note | escape }}</p>{% elsif p.description %}<p class="rv-text">{{ p.description | escape }}</p>{% endif %}
+        <p class="rv-meta">{{ day }}{% for t in p.tags %} · {{ t | escape }}{% endfor %}</p>
+      </div>
+      {%- endif %}
+    </div>
     <div class="share-body">
-        <div class="share-meta">
-          <span class="src">{{ p.source }}{% include slot.html name="card-meta" post=p %}</span>
-          <time datetime="{{ p.date | date: '%Y-%m-%d' }}">{{ p.date | date: '%Y-%m-%d' }}</time>
-        </div>
-        {%- if variant == 'feature' %}
-        <h2 class="share-title">{{ p.title | escape }}</h2>
-        {%- else %}
-        <h3 class="share-title">{{ p.title | escape }}</h3>
-        {%- endif %}
-        {%- if p.note %}
-        <p class="share-note">{{ p.note | escape | newline_to_br }}</p>
-        {%- elsif p.description %}
-        <p class="share-desc">{{ p.description | escape }}</p>
-        {%- endif %}
-        {%- if p.tags.size > 0 %}
-        <div class="tags">{% for t in p.tags %}<span class="tag">{{ t | escape }}</span>{% endfor %}</div>
-        {%- endif %}
+      {%- if variant == 'feature' %}
+      <h2 class="share-title">{{ p.title | escape }}</h2>
+      {%- if p.note %}
+      <p class="share-lead is-note">{{ p.note | escape | newline_to_br }}</p>
+      {%- elsif p.description %}
+      <p class="share-lead">{{ p.description | escape }}</p>
+      {%- endif %}
+      {%- else %}
+      <h3 class="share-title">{{ p.title | escape }}</h3>
+      {%- endif %}
+      <div class="share-src">
+        <span class="mono" aria-hidden="true">{{ initial }}</span>
+        <span class="dom">{{ p.source }}</span>
+        <span class="ext" aria-hidden="true">↗</span>
+        {%- include slot.html name="card-meta" post=p %}
+        {%- if variant == 'feature' %}<time datetime="{{ day }}">{{ day }}</time>{% endif %}
+      </div>
+      {%- if variant == 'feature' and p.tags.size > 0 %}
+      <div class="tags">{% for t in p.tags %}<span class="tag" data-tag="{{ t | escape }}">{{ t | escape }}</span>{% endfor %}</div>
+      {%- endif %}
     </div>
   </a>
 </article>

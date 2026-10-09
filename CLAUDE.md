@@ -32,6 +32,9 @@
 front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照網址)/ `source`(網域)/
 `description`(og:description)/ `image`(og:image,hotlink 不存 repo)/ `note`(心得,選填)/ `tags` / `issue`。
 - **所有列出 share 的地方都直接開原文、另開分頁**,卡片在 `_includes/share-card.html`。
+  一般卡是固定形狀的磁磚(縮圖 1.91:1 + 固定兩行高的標題 + 一行來源),心得 / 摘要、日期、tag 只在滑鼠停留時從縮圖下緣浮出;
+  精選卡橫放,是唯一直接顯示這些的卡,上面的 tag 點了會篩選。卡片朝游標傾斜、縮圖反向視差(`slab.js` 的 `--px` / `--py`)。
+- og:title 結尾重複的網站名稱(「 - 網站名」「 | Blog | 網站名」)由 `share.py` 的 `clean_title` 拿掉;issue 填的標題覆蓋不動。
 - **share 不產生內部頁**:`_plugins/no-post-output.rb`(`collections.posts.output: false` 在 Jekyll 無效)。
 - 摘要:有 note 顯示 note,否則 description。縮圖載入失敗就移除。
 

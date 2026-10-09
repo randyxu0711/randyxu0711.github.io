@@ -44,6 +44,10 @@
       if (ok) n++;
     });
     shown = n;
+    // 精選卡上的 tag 跟著標示是否選取
+    document.querySelectorAll('#shelf .share-card .tag[data-tag]').forEach(function (t) {
+      t.setAttribute('aria-pressed', String(tags.indexOf(t.getAttribute('data-tag')) !== -1));
+    });
     paintCount();
     empty.hidden = n !== 0;
     writeHash(tags, q.value.trim());
@@ -70,6 +74,25 @@
   });
 
   var init = readHash();
+  // 精選卡上的 tag:點了等於按上面那個 tag 鍵(卡片本身是連結,攔下來不開原文)
+  document.getElementById('shelf').addEventListener('click', function (e) {
+    var t = e.target.closest('.share-card .tag[data-tag]');
+    if (!t) return;
+    e.preventDefault();
+    var chip = chips.filter(function (c) { return c.getAttribute('data-tag') === t.getAttribute('data-tag'); })[0];
+    if (chip) chip.click();
+  });
+
+  // tag 列左右還有東西的那一邊淡出
+  var row = box.querySelector('.chips');
+  function fades() {
+    row.classList.toggle('fade-l', row.scrollLeft > 4);
+    row.classList.toggle('fade-r', row.scrollLeft + row.clientWidth < row.scrollWidth - 4);
+  }
+  row.addEventListener('scroll', fades, { passive: true });
+  window.addEventListener('resize', fades);
+  document.addEventListener('langchange', fades);
+
   chips.forEach(function (c) {
     if (init.tags.indexOf(c.getAttribute('data-tag')) !== -1) c.setAttribute('aria-pressed', 'true');
     c.addEventListener('click', function () {
@@ -101,4 +124,5 @@
 
   box.hidden = false;
   apply();
+  fades();
 })();
