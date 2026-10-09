@@ -66,8 +66,11 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   手機沒選過排法時預設書脊(排法在 `books.html` 開頭的行內 script 決定);點一本書 = 複製一本飛到畫面中間放大(架上原位空著),再點翻封底,
   點背景 / Esc / 焦點離開就飛回。書架只有層板(上面 + 前緣),不做背板與側板。3D 書盒參考 mawise/bookshelf(MIT)。
 - **書架效能**(上千個 3D 面,改之前先看):
-  - 每一排 `content-visibility: auto`,畫面外的排不排版不繪製;排高用算的(`books-pack.html` 的 `sizeRows`,書高 = 封面寬 ÷ `--ratio`),
-    不實際排版去量。改 `.row` 的 padding / min-height 要確認公式還對。
+  - 每一排外面包一層 `.row-wrap`,上面加 `content-visibility: auto`,畫面外的排不排版不繪製;
+    排高用算的(`books-pack.html` 的 `sizeRows`,書高 = 封面寬 ÷ `--ratio`),不實際排版去量。改 `.row` 的 padding / min-height / margin 要確認公式還對。
+  - **不要在 `.row`(或任何 3D 空間裡的元素)加 `content-visibility`、`contain: paint`、`overflow`、`opacity`、`filter`**:
+    這些是 grouping property,規範上強制 `transform-style: flat`。`.row` 被壓平後每本書各自成 3D 空間,
+    iOS WebKit 不依深度排序、照 HTML 順序畫,右半邊書的側面會整片蓋到隔壁(Chrome 還沒實作這條,桌面看不出來)。
   - JS **先讀、再改**:搬動 DOM 或改 `--w` 之後再讀尺寸或樣式,瀏覽器得先把全部書重算一遍(手機上一次就卡 0.5 秒以上)。
   - 切換排法的過場:書搬到新隔間後先套 `.was-*`(舊排法的樣子)畫一格再拿掉;只有真的在畫面裡的排跑過場,其他排 `.snap` 直接到位。
   - 拿起的書用 FLIP(直接用放大後的尺寸排版,`scale3d` 縮回起點),透視(`perspective` / `-origin`)跟著從那一排過渡到畫面中央。
