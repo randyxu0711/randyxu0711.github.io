@@ -164,30 +164,117 @@
   // ── 排法切換 ──
   var sw = root.querySelector('[data-view-switch]');
   var btns = sw.querySelectorAll('[data-view-set]');
+  // 書往旁邊移的時間曲線,與 books.css 的 .box 轉身相同(0.6s、cubic-bezier(.3,.7,.2,1)、每本晚 40ms)
+  var DUR = 600, STAGGER = 40;
+  function ease(x) {
+    var lo = 0, hi = 1, t = x;
+    for (var k = 0; k < 20; k++) {
+      var cx = 0.9 * t * (1 - t) * (1 - t) + 0.6 * t * t * (1 - t) + t * t * t;
+      if (cx < x) lo = t; else hi = t;
+      t = (lo + hi) / 2;
+    }
+    return 2.1 * t * (1 - t) * (1 - t) + 3 * t * t * (1 - t) + t * t * t;
+  }
+  // 換排法的過場全部用 Web Animations 跑在合成層:
+  // - 寬度不做過場(寬度每一格都要重新排版):書直接排成新寬度,再用 transform 從舊位置滑過去。看起來要跟
+  //   「左邊的書一本本變寬、把右邊推開」一樣:第 j 本的位移 = 前面每本還沒變完的寬度差加總 + 自己寬度差的一半
+  //   (書盒在外框裡置中)。這條曲線是好幾本緩動的加總,CSS 寫不出來,先算成關鍵格(每 48ms 一格,線性內插看不出來;
+  //   格數越多,建立動畫越慢)。
+  // - 一本接一本不用 delay:有 delay 的動畫,每一本開始時都會逼主執行緒算一格(書架有上千個面,一格就很貴)。
+  //   改成所有動畫同一格開始、同一格結束,輪到之前停在起點、轉完之後停在終點,都寫在關鍵格裡
+  var moving = [], movingRows = [];
+  function slide(row, oldW, newW, from, to, T, D, d) {
+    var books = Array.prototype.filter.call(row.children, function (b) { return b.classList.contains('b3'); });
+    var diff = books.map(function (b) { return oldW(b) - newW(b); });
+    var turn = function (v) { return v === 'covers' ? 'rotateY(-90deg)' : 'rotateY(0deg)'; };
+    var EASE = 'cubic-bezier(.3,.7,.2,1)';
+    books.forEach(function (b, j) {
+      var s0 = j * d, s1 = s0 + D, m = Math.max(4, Math.ceil(s1 / 48)), frames = [];
+      for (var s = 0; s <= m; s++) {
+        var t = s1 * s / m, x = 0;
+        for (var i = 0; i <= j; i++) {
+          var left = diff[i] * (1 - ease(Math.min(1, Math.max(0, (t - i * d) / D))));
+          x += i < j ? left : left / 2;
+        }
+        frames.push({ offset: t / T, transform: 'translateX(' + x.toFixed(2) + 'px)' });
+      }
+      frames.push({ offset: 1, transform: 'translateX(0px)' });
+      var hold = function (a, z) { return [{ offset: 0, transform: a }, { offset: s0 / T, transform: a, easing: EASE }, { offset: s1 / T, transform: z }, { offset: 1, transform: z }]; };
+      var box = b.querySelector('.box');
+      moving.push(b.animate(frames, T), box.animate(hold(turn(from), turn(to)), T));
+      // 接觸陰影(.b3::after,左右各多 3px)的寬度只跟這本自己的緩動有關
+      if (diff[j]) moving.push(b.animate(hold('scaleX(' + ((newW(b) + diff[j] + 6) / (newW(b) + 6)).toFixed(3) + ')', 'scaleX(1)'), { duration: T, pseudoElement: '::after' }));
+    });
+  }
+
+  // 換排法時只處理畫面裡的排:畫面外、但瀏覽器會預先畫好的那幾排(content-visibility: auto 的預留範圍)
+  // 先暫時跳過(hidden),動畫結束後一格放回一排;捲到它們時立刻放回。不然切到書脊時一次要畫上百本書(卡 0.4 秒)
+  var held = [], holdIO = null, holdToken = 0;
+  function release(wrap) {
+    var i = held.indexOf(wrap);
+    if (i < 0) return;
+    held.splice(i, 1);
+    if (holdIO) holdIO.unobserve(wrap);
+    // 放回時直接是新樣子,不跑過場(沒有搬動過的書還留著舊樣式,放回會轉身)
+    var row = wrap.querySelector('.row');
+    if (row) row.classList.add('snap');
+    wrap.style.contentVisibility = '';
+    if (row) requestAnimationFrame(function () { row.classList.remove('snap'); });
+  }
+  function releaseAll() { held.slice().forEach(release); }
+  function settle(cancel) {
+    if (cancel) moving.forEach(function (a) { a.cancel(); });
+    movingRows.forEach(function (row) { row.classList.remove('snap'); });
+    moving = []; movingRows = [];
+  }
+
   function setView(v, remember) {
     drop();
     var from = view();
-    pack(v);                                   // 先照新排法分好格,再轉身
-    // 搬到新隔間的書會失去原本算好的樣式,過場需要一個「起點」:先套舊排法的樣子(books.css 的 .was-*)畫一格,
-    // 下一格再拿掉。瀏覽器只會算畫面上那幾排,畫面外的書直接是新樣子(只動畫看得到的)
-    var books = root.querySelectorAll('.b3');
-    books.forEach(function (b) { b.classList.remove('was-covers', 'was-spines'); });
-    if (from !== v) {
-      var was = 'was-' + from;
-      books.forEach(function (b) { b.classList.add(was); });
-      requestAnimationFrame(function () { requestAnimationFrame(function () {
-        // 只有真的在畫面裡的排跑過場。瀏覽器會預先算好畫面上下各一段的排(content-visibility 的預留範圍),
-        // 那些排不在畫面裡,直接跳到新樣子(books.css 的 .snap)。版面剛排好,這裡讀位置不花成本
-        var vh = window.innerHeight, snapped = [];
-        rowBoxes().forEach(function (box) {
-          var r = box.getBoundingClientRect(), row = box.classList.contains('row') ? box : box.querySelector('.row');
-          if (row && (r.bottom < 0 || r.top > vh)) { row.classList.add('snap'); snapped.push(row); }
-        });
-        books.forEach(function (b) { b.classList.remove(was); });
-        requestAnimationFrame(function () { snapped.forEach(function (row) { row.classList.remove('snap'); }); });
-      }); });
+    settle(true); releaseAll(); holdToken++;   // 上一次的過場還沒跑完:停掉,放回暫時跳過的排
+    if (from === v || reduce.matches) {
+      pack(v);
+      root.setAttribute('data-view', v);
+    } else {
+      // 先讀:封面寬、速度
+      var w = coverWidth(), speed = parseFloat(getComputedStyle(root).getPropertyValue('--speed')) || 1;
+      pack(v);                                   // 先照新排法分好格,再轉身
+      var wraps = Array.prototype.slice.call(root.querySelectorAll('.row-wrap'));
+      wraps.forEach(function (wr) { wr.style.contentVisibility = 'hidden'; });
+      // 全部的排都跳過時排版很便宜,這時讀位置
+      var vh = window.innerHeight, shown = [], dist = new Map();
+      wraps.forEach(function (wr) {
+        var r = wr.getBoundingClientRect();
+        if (r.bottom > 0 && r.top < vh) shown.push(wr);
+        else { held.push(wr); dist.set(wr, r.top > 0 ? r.top - vh : -r.bottom); }
+      });
+      held.sort(function (a, b) { return dist.get(a) - dist.get(b); });
+      // 再改:畫面裡的排放回來並跑過場;跑的期間關掉 CSS 的轉身過場(.snap),不然 CSS 過場會蓋過動畫
+      shown.forEach(function (wr) { wr.style.contentVisibility = ''; var row = wr.querySelector('.row'); if (row) movingRows.push(row); });
+      root.querySelectorAll('.bay > .row').forEach(function (row) { movingRows.push(row); });   // 沒分格的排(分格的 script 沒跑)
+      var tBook = function (b) { return parseFloat(b.style.getPropertyValue('--t')); };
+      var wOf = function (view) { return view === 'covers' ? function () { return w; } : tBook; };
+      var D = DUR * speed, d = STAGGER * speed, most = 0;
+      movingRows.forEach(function (row) { most = Math.max(most, row.querySelectorAll('.b3').length); });
+      var T = D + Math.max(0, most - 1) * d;
+      movingRows.forEach(function (row) { row.classList.add('snap'); slide(row, wOf(from), wOf(v), from, v, T, D, d); });
+      root.setAttribute('data-view', v);
+      if ('IntersectionObserver' in window) {
+        if (!holdIO) holdIO = new IntersectionObserver(function (es) { es.forEach(function (e) { if (e.isIntersecting) release(e.target); }); });
+        held.forEach(function (wr) { holdIO.observe(wr); });
+      }
+      // 動畫都跑完,再一格放回一排(離畫面近的先)
+      var token = holdToken;
+      Promise.all(moving.map(function (a) { return a.finished; })).then(function () {
+        if (token !== holdToken) return;
+        settle();
+        (function next() {
+          if (token !== holdToken || !held.length) return;
+          release(held[0]);
+          requestAnimationFrame(next);
+        })();
+      }, function () {});
     }
-    root.setAttribute('data-view', v);
     watchRows();
     btns.forEach(function (b) { b.setAttribute('aria-pressed', String(b.getAttribute('data-view-set') === v)); });
     if (remember) { try { localStorage.setItem(KEY, v); } catch (e) {} }
