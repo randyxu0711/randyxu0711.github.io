@@ -51,10 +51,13 @@
 
   // ── 導覽列:頁面在頂端時融入桌面,捲動後變成霧面玻璃 ──
   var nav = document.querySelector('.nav');
-  if (nav) {
-    var onScroll = function () { nav.classList.toggle('glass', window.scrollY > 8); };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll();
+  // 頁首放一條 8px 高的看不見的線,捲到它離開畫面才加陰影;不用每次捲動都跑 JS
+  if (nav && 'IntersectionObserver' in window) {
+    var mark = document.createElement('div');
+    mark.setAttribute('aria-hidden', 'true');
+    mark.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:8px;pointer-events:none;visibility:hidden';
+    document.body.prepend(mark);
+    new IntersectionObserver(function (es) { nav.classList.toggle('glass', !es[0].isIntersecting); }).observe(mark);
   }
 
   // ── 主題鍵 ──

@@ -79,8 +79,10 @@
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   function lift(el) {
     if (stage) return;
+    // 先讀、再改:位置、封面寬、架上的視角都在建立複製品之前讀好
     var r = el.getBoundingClientRect();
     var w = coverWidth();
+    var from3d = shelfView(el);
     var ratio = parseFloat(el.style.getPropertyValue('--ratio')) || 0.66;
     // 中間那本的封面寬:手機上幾乎滿版,也不能高過畫面
     var target = Math.min(18 * 16, window.innerWidth * 0.72, window.innerHeight * 0.8 * ratio);
@@ -113,7 +115,7 @@
     if (cimg) { if (cimg.complete) upgrade(cimg); else cimg.addEventListener('load', function () { upgrade(cimg); }, { once: true }); }
     el.classList.add('taken');
     stage = { el: el, clone: clone, overlay: overlay };
-    setView3d(overlay, shelfView(el));
+    setView3d(overlay, from3d);
     void overlay.offsetWidth;                       // 先畫出起點,再開始飛
     overlay.classList.add('open');
     setView3d(overlay, STAGE_VIEW);
@@ -123,8 +125,9 @@
     if (!stage) return;
     var s = stage; stage = null;
     var r = s.el.getBoundingClientRect();           // 捲動過的話,飛回現在的位置
+    var to3d = shelfView(s.el);
     home(s.clone, r);
-    setView3d(s.overlay, shelfView(s.el));
+    setView3d(s.overlay, to3d);
     s.clone.classList.remove('rear');
     s.overlay.classList.remove('open');
     var done = function () {
