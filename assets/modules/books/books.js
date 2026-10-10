@@ -60,23 +60,32 @@
 
   // ── 拿起一本書:從書架飛到畫面中間放大;再點翻封底;點背景 / Esc / 焦點離開就飛回原位 ──
   // 原本那本留在架上但隱藏(位置空著),畫面上飛的是複製出來的那本,所以書架的排版完全不受影響。
+  // 飛行用 Web Animations API,只動 transform 與 opacity,整段在合成層跑,不用每一格叫主執行緒重算。
   var stage = null;
-  // 書在架上的位置(r)相對畫面中間的位移:起點與飛回去的終點
-  function home(clone, r) {
-    clone.style.setProperty('--dx', (r.left + r.width / 2 - window.innerWidth / 2) + 'px');
-    clone.style.setProperty('--dy', (r.top + r.height / 2 - window.innerHeight / 2) + 'px');
-  }
-  // 架上那一排的 3D 視角(透視距離、視點),換成畫面座標。拿起時從這個視角過渡到畫面中央,放回時再過渡回來,
-  // 落地那一刻跟架上的書一模一樣(不然會換成另一套視角,書的角度、書頂露出多少會跳一下)
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var EASE = 'cubic-bezier(.3,.7,.2,1)';
+  var FLY = 620, TURN = 520, VEIL = 400;
+  var FADE = 100;   // 落地前最後這段:架上那本先出現(被隔壁的書正確遮住),上層的複製品再淡出
+  function ms(n) { return reduce.matches ? 0 : n; }
+  function noop() {}
+  // 架上那一排的 3D 視角:透視距離與視點(畫面座標)
   function shelfView(el) {
     var row = el.closest('.row');
-    if (!row) return { persp: '1400px', origin: '50% 50%' };
+    if (!row) return { d: 1400, ox: window.innerWidth / 2, oy: window.innerHeight / 2 };
     var rr = row.getBoundingClientRect(), cs = getComputedStyle(row), o = cs.perspectiveOrigin.split(' ');
-    return { persp: cs.perspective, origin: (rr.left + parseFloat(o[0])) + 'px ' + (rr.top + parseFloat(o[1])) + 'px' };
+    return { d: parseFloat(cs.perspective) || 1400, ox: rr.left + parseFloat(o[0]), oy: rr.top + parseFloat(o[1]) };
   }
-  function setView3d(overlay, v) { overlay.style.perspective = v.persp; overlay.style.perspectiveOrigin = v.origin; }
-  var STAGE_VIEW = { persp: '1400px', origin: '50% 50%' };
-  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  // 書的 transform。透視不放在外層的 perspective 屬性(那個不能在合成層過渡),而是寫進書本身的 transform:
+  // 先移到視點、套透視、再移回來,數學上等於「放在視點為 (ox, oy) 的 perspective 底下」,
+  // 所以起飛與落地那一刻跟架上的書一模一樣(換一套視角的話,書的角度、書頂露出多少會跳一下)。
+  // r:書在架上的位置(省略 = 畫面中間、原尺寸)
+  function pose(st, v, r) {
+    var dx = 0, dy = 0, k = 1;
+    if (r) { dx = r.left + r.width / 2 - st.cx; dy = r.top + r.height / 2 - st.cy; k = 1 / st.s; }
+    return 'translate(' + (v.ox - st.cx) + 'px, ' + (v.oy - st.cy) + 'px) perspective(' + v.d + 'px) ' +
+      'translate(' + (st.cx - v.ox) + 'px, ' + (st.cy - v.oy) + 'px) translate3d(' + dx + 'px, ' + dy + 'px, 0) scale3d(' + k + ', ' + k + ', ' + k + ')';
+  }
+  function stageView(st) { return { d: 1400, ox: st.cx, oy: st.cy }; }
   function lift(el) {
     if (stage) return;
     // 先讀、再改:位置、封面寬、架上的視角都在建立複製品之前讀好
@@ -86,56 +95,94 @@
     var ratio = parseFloat(el.style.getPropertyValue('--ratio')) || 0.66;
     // 中間那本的封面寬:手機上幾乎滿版,也不能高過畫面
     var target = Math.min(18 * 16, window.innerWidth * 0.72, window.innerHeight * 0.8 * ratio);
-    var s = target / w;
+    var s = target / w, h = r.height * s;
     var overlay = document.createElement('div');
     overlay.className = 'book-stage';
     overlay.setAttribute('role', 'dialog');
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', el.getAttribute('aria-label'));
-    // FLIP:複製的書直接用中間的大小排版(封底才有足夠的空間、字也清楚),
-    // 起點用 transform 縮回架上的位置與大小,再飛到中間、變回原尺寸
     overlay.style.setProperty('--w', target + 'px');
     overlay.style.setProperty('--k', s.toFixed(3));
+    var veil = document.createElement('div');       // 背景:模糊固定,淡入淡出只動這一層的 opacity
+    veil.className = 'veil';
+    var hold = document.createElement('div');       // 書的外層,落地前淡出用(.b3 是 3D 空間,本身不能加 opacity)
+    hold.className = 'hold';
+    // FLIP:複製的書直接用中間的大小排版(封底才有足夠的空間、字也清楚),
+    // 起點用 transform 縮回架上的位置與大小,再飛到中間、變回原尺寸
     var clone = el.cloneNode(true);
     fillBack(clone.querySelector('.back'));
-    clone.classList.add('lifted', view() === 'covers' ? 'from-cover' : 'from-spine');
+    clone.classList.add('lifted');
     clone.style.setProperty('--i', 0);
     clone.style.setProperty('--t', (parseFloat(el.style.getPropertyValue('--t')) * s) + 'px');
     // 外框寬 = 放大後的封面寬(書脊朝外的書在架上很窄,外框沿用的話只有中間一條點得到);書盒在外框裡置中,動畫不受影響
-    clone.style.width = target + 'px'; clone.style.height = (r.height * s) + 'px';
-    clone.style.left = (window.innerWidth - target) / 2 + 'px';
-    clone.style.top = (window.innerHeight - r.height * s) / 2 + 'px';
-    home(clone, r);
-    clone.style.setProperty('--s', (1 / s).toFixed(4));
-    overlay.appendChild(clone);
+    var left = (window.innerWidth - target) / 2, top = (window.innerHeight - h) / 2;
+    clone.style.width = target + 'px'; clone.style.height = h + 'px';
+    clone.style.left = left + 'px'; clone.style.top = top + 'px';
+    hold.appendChild(clone);
+    overlay.append(veil, hold);
     document.body.appendChild(overlay);
     // 放大到中間要用大圖。複製出來的圖等小圖顯示了才換,不然大圖載好前會是空白
     upgrade(el.querySelector('.cover img'));
     var cimg = clone.querySelector('.cover img');
     if (cimg) { if (cimg.complete) upgrade(cimg); else cimg.addEventListener('load', function () { upgrade(cimg); }, { once: true }); }
     el.classList.add('taken');
-    stage = { el: el, clone: clone, overlay: overlay };
-    setView3d(overlay, from3d);
-    void overlay.offsetWidth;                       // 先畫出起點,再開始飛
-    overlay.classList.add('open');
-    setView3d(overlay, STAGE_VIEW);
+    var st = { el: el, clone: clone, box: clone.querySelector('.box'), overlay: overlay, veil: veil, hold: hold,
+      s: s, cx: left + target / 2, cy: top + h / 2, spine: view() !== 'covers' };
+    stage = st;
+    st.flight = clone.animate([{ transform: pose(st, from3d, r) }, { transform: pose(st, stageView(st)) }],
+      { duration: ms(FLY), easing: EASE, fill: 'both' });
+    st.fade = veil.animate([{ opacity: 0 }, { opacity: 1 }], { duration: ms(VEIL), fill: 'both' });
+    // 書脊朝外的書晚一點才轉成封面朝前:先離開書架再轉身。轉完就交回 CSS(封面朝前 / .rear 翻封底)
+    if (st.spine) {
+      var t = st.turn = st.box.animate([{ transform: 'none' }, { transform: 'rotateY(-90deg)' }],
+        { duration: ms(TURN), delay: ms(180), easing: EASE, fill: 'both' });
+      t.finished.then(function () { if (stage === st && st.turn === t) { t.cancel(); st.turn = null; } }, noop);
+    }
     clone.focus({ preventScroll: true });
   }
   function drop() {
     if (!stage) return;
-    var s = stage; stage = null;
-    var r = s.el.getBoundingClientRect();           // 捲動過的話,飛回現在的位置
-    var to3d = shelfView(s.el);
-    home(s.clone, r);
-    setView3d(s.overlay, to3d);
-    s.clone.classList.remove('rear');
-    s.overlay.classList.remove('open');
-    var done = function () {
-      if (!s.overlay.parentNode) return;
-      s.overlay.remove(); s.el.classList.remove('taken'); s.el.focus({ preventScroll: true });
-    };
-    s.clone.addEventListener('transitionend', function (e) { if (e.target === s.clone) done(); });
-    setTimeout(done, reduce.matches ? 0 : 900);     // 保險:沒有 transitionend 時也會收尾
+    var st = stage; stage = null;
+    // 先讀、再改:背景現在的濃淡、捲動過的話書在架上現在的位置
+    var veilNow = parseFloat(getComputedStyle(st.veil).opacity);
+    var turnNow = st.turn ? -90 * (st.turn.effect.getComputedTiming().progress || 0) : null;   // 書脊朝外的書轉到幾度了
+    var flying = st.flight.playState === 'running';
+    var r = flying ? null : st.el.getBoundingClientRect(), to3d = flying ? null : shelfView(st.el);
+    st.overlay.classList.add('closing');            // 飛回去的途中就能點下一本;書盒的 CSS 過場關掉,交給下面的動畫
+    var rear = st.clone.classList.contains('rear');
+    var left, turnFrom = rear ? -270 : -90, turnTo;
+    if (flying) {
+      // 還在飛:從現在的位置原路倒回去(飛行本身倒著播可以交給合成層)
+      st.flight.reverse();
+      left = st.flight.currentTime;
+      turnTo = -90;
+      // 轉身中的書脊朝外的書:從現在的角度轉回去。不用 reverse():還在跑的轉身倒著播,Chrome 不交給合成層
+      if (st.turn) { st.turn.cancel(); st.turn = null; turnFrom = turnNow; turnTo = 0; }
+    } else {
+      var old = st.flight;
+      st.flight = st.clone.animate([{ transform: pose(st, stageView(st)) }, { transform: pose(st, to3d, r) }],
+        { duration: ms(FLY), easing: EASE, fill: 'both' });
+      old.cancel();
+      left = ms(FLY);
+      // 轉回架上的方向;在封底的書脊朝外的書轉到 -360 度(= 0 度),少轉半圈
+      turnTo = st.spine ? (rear ? -360 : 0) : -90;
+    }
+    // 方向沒變就不播:看不出變化的動畫不會交給合成層,主執行緒反而得每一格陪著跑
+    if (Math.abs(turnTo - turnFrom) > 0.5) st.box.animate([{ transform: 'rotateY(' + turnFrom + 'deg)' }, { transform: 'rotateY(' + turnTo + 'deg)' }],
+      { duration: Math.min(left, ms(TURN)), easing: EASE, fill: 'both' });
+    // 背景從現在的濃淡淡出。用新的動畫,不用 reverse():播完的動畫倒著播,Chrome 不交給合成層
+    var oldFade = st.fade;
+    st.fade = st.veil.animate([{ opacity: veilNow }, { opacity: 0 }], { duration: ms(VEIL) * veilNow, fill: 'both' });
+    oldFade.cancel();
+    // 快落地時:架上那本先出現,上層的複製品再淡出。淡出從這裡才開始(不是事先排好時間):
+    // 主執行緒忙、計時器晚到的話,複製品就停在落地的位置等,不會先淡掉、讓書消失一下
+    setTimeout(function () {
+      st.el.classList.remove('taken');
+      st.hold.animate([{ opacity: 1 }, { opacity: 0 }], { duration: Math.min(left, ms(FADE)), fill: 'both' }).finished.then(function () {
+        st.overlay.remove();
+        if (!stage) st.el.focus({ preventScroll: true });   // 飛回去的途中已經拿起別本的話,焦點留在那本
+      }, noop);
+    }, Math.max(0, left - ms(FADE)));
   }
   function flip() { if (stage) stage.clone.classList.toggle('rear'); }
 
@@ -154,8 +201,9 @@
       else if ((e.key === 'Enter' || e.key === ' ') && e.target === stage.clone) { e.preventDefault(); flip(); }
       return;
     }
+    // 只認書架上的書:按 Esc 後焦點還在飛回去的複製品上,這時按 Enter 不能把複製品再拿起來
     var el = e.target.closest && e.target.closest('.b3');
-    if (el && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); lift(el); }
+    if (el && root.contains(el) && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); lift(el); }
   });
   document.addEventListener('focusin', function (e) {
     if (stage && !stage.overlay.contains(e.target)) drop();
