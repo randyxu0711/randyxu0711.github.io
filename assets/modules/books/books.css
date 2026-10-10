@@ -51,7 +51,6 @@ html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
 .b3 {
   --col: oklch(0.55 0.09 var(--h)); --bink: #f7f3ea; --bh: calc(var(--w) / var(--ratio));
   position: relative; flex: none; width: var(--t); height: var(--bh); cursor: pointer; transform-style: preserve-3d; outline: none;
-  transition: width calc(0.6s * var(--speed)) cubic-bezier(.3,.7,.2,1); transition-delay: calc(var(--i) * 40ms * var(--speed));
 }
 .b3:focus-visible .spine, .b3:focus-visible .cover { outline: 2px solid var(--accent); outline-offset: 2px; }
 .box { position: absolute; top: 0; bottom: 0; left: calc(50% - var(--t) / 2); width: var(--t);
@@ -115,44 +114,43 @@ html[data-lang="en"] .spine .ti { --len: var(--len-en, 10); }
 .books .b3:hover .spine, .books .b3:focus-visible .spine { box-shadow: inset 0 -3px 0 var(--edge); }
 /* 被拿起來的書:架上的位置空著 */
 .books .b3.taken { visibility: hidden; }
+/* 放回去時接觸陰影慢慢浮現,不要落地那一刻突然冒出來。拿起時直接消失(書本來就隱藏了,
+   淡出看不到,還會變成一段看不出變化、合成層不接的過場,讓主執行緒每一格陪著跑) */
+.books .b3:not(.taken)::after { transition: opacity 200ms; }
+.books .b3.taken::after { opacity: 0; }
 
 /* ── 封面朝外(陳列) ── */
 .books[data-view="covers"] .b3 { width: var(--w); }
 .books[data-view="covers"] .b3 .box { transform: rotateY(-90deg); }
 
-/* ── 切換排法的過場起點(books.js)──
-   書搬到新隔間後先套「舊排法的樣子」一格,畫面上的那幾排算出這個樣子後才拿掉,過場就從舊樣子轉到新樣子。
-   畫面外的排被 content-visibility 跳過,不會算到舊樣子:捲到時已經排好,不跑過場也不花成本 */
-.books .b3.was-covers { width: var(--w); }
-.books .b3.was-covers .box { transform: rotateY(-90deg); }
-.books[data-view="covers"] .b3.was-spines { width: var(--t); }
-.books[data-view="covers"] .b3.was-spines .box { transform: none; }
-/* 不在畫面裡的排:直接跳到新樣子,不跑過場 */
+/* ── 切換排法(books.js):滑動與轉身都由 Web Animations 跑;跑的期間,以及畫面外的排放回時,關掉 CSS 的過場 ── */
 .books .row.snap .b3, .books .row.snap .box { transition: none !important; }
 /* 游標停留:往前一點、上緣朝你傾,像從陳列架上拿起來 */
 .books[data-view="covers"] .b3:hover .box, .books[data-view="covers"] .b3:focus-visible .box { transform: translateZ(12px) rotateX(6deg) rotateY(-90deg); transition-delay: 0s; }
 
-/* ── 拿起來的書:飛到畫面中間放大 ── */
-.book-stage { position: fixed; inset: 0; z-index: 60; perspective: 1400px; background: transparent;
-  transition: background-color 400ms, backdrop-filter 400ms,
-    perspective 620ms cubic-bezier(.3,.7,.2,1), perspective-origin 620ms cubic-bezier(.3,.7,.2,1); }
-.book-stage.open { background: color-mix(in oklch, var(--desk) 72%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-/* FLIP:書已經用中間的大小排好,起點(還沒 open)縮回架上的位置與大小 */
-.book-stage .b3 { position: absolute; margin: 0; transform-origin: 50% 50%; transform: translate3d(var(--dx), var(--dy), 0) scale3d(var(--s), var(--s), var(--s));
-  transition: transform 620ms cubic-bezier(.3,.7,.2,1); }
-.book-stage.open .b3 { transform: none; }
+/* ── 拿起來的書:飛到畫面中間放大 ──
+   飛行、背景淡入淡出、落地都由 books.js 用 Web Animations API 播,只動 transform 與 opacity。
+   透視寫在書本身的 transform 裡(要從架上那一排的視角過渡到畫面中央;perspective 屬性不能在合成層過渡),這裡不設 perspective */
+.book-stage { position: fixed; inset: 0; z-index: 60; }
+/* 飛回去的途中就能點下一本 */
+.book-stage.closing { pointer-events: none; }
+/* 背景:模糊與底色固定,淡入淡出只動這一層的 opacity(不對 backdrop-filter 做過場) */
+.book-stage .veil { position: absolute; inset: 0; background: color-mix(in oklch, var(--desk) 72%, transparent);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+/* 書的外層:落地前淡出用。不能淡出 .b3 本身:它是 3D 空間,加 opacity 會被壓平 */
+.book-stage .hold { position: absolute; inset: 0; }
+/* FLIP:書已經用中間的大小排好,起點與終點(縮回架上的位置與大小)由 books.js 給 */
+.book-stage .b3 { position: absolute; margin: 0; transform-origin: 50% 50%; }
 /* 書脊與沒有封面圖時的字:跟著放大倍數(--k),起飛那一刻看起來跟架上一樣 */
 .book-stage .spine { font-size: calc(0.78rem * var(--k)); }
 .book-stage .cover-fallback .ti { font-size: calc(0.95rem * var(--k)); }
 .book-stage .cover-fallback .au { font-size: calc(0.7rem * var(--k)); }
 .book-stage .b3::after { display: none; }
-.book-stage .box { left: calc(50% - var(--t) / 2); transition: transform 520ms cubic-bezier(.3,.7,.2,1); }
-.book-stage .from-spine .box { transform: none; }
-.book-stage .from-cover .box { transform: rotateY(-90deg); }
-/* 到中間時轉成封面朝前;書脊朝外的書晚一點才轉,先離開書架再轉身 */
-.book-stage.open .b3 .box { transform: rotateY(-90deg); }
-.book-stage.open .from-spine .box { transition-delay: 180ms; }
-.book-stage.open .b3.rear .box { transform: rotateY(-270deg); transition-delay: 0s; }
+/* 在中間時封面朝前,再點翻到封底。書脊朝外的書拿起時怎麼轉過來、放回時怎麼轉回去,由 books.js 播 */
+.book-stage .box { left: calc(50% - var(--t) / 2); transform: rotateY(-90deg); transition: transform 520ms cubic-bezier(.3,.7,.2,1); }
+.book-stage .b3.rear .box { transform: rotateY(-270deg); }
+/* 飛回去時書盒的轉向交給 books.js;CSS 過場比 JS 的動畫優先,不關掉的話會蓋過去 */
+.book-stage.closing .box { transition: none; }
 .book-stage .b3:focus-visible .cover, .book-stage .b3:focus-visible .back { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 /* 有 JS 時,每一層分好隔間(_includes/books-pack.html)之前先不顯示,分好才出現(不然會先看到沒分格的排法再跳過去)。
