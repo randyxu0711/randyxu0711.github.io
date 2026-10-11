@@ -4,30 +4,84 @@
   summary:
     zh: 文學小說與創作,對很多人來說不容易找到人分享或對談。於是我做了 hyenovel,讓 AI 對文字給出回饋,為創作者提供另一個角度,留一點反思其他可能性的空間。
     en: Literary fiction and creative writing aren't easy to share or talk through with others. hyenovel lets an AI respond to your text, giving writers another angle and some room to reconsider other possibilities.
-  highlights:
-    zh:
-      - 「分析」與「評論」由兩個隔離的 agent 負責,判斷互不污染
-      - 每條論點都要引用原文,程式逐字比對,找不到出處就擋下
-      - 找出串流瓶頸,回應時間從 83 秒降到 20 秒
-    en:
-      - Analysis and critique run in two isolated agents, so judgment stays independent
-      - Every claim must quote the source; code verifies it verbatim and blocks anything it can't find
-      - Found a streaming bottleneck and cut response time from 83s to 20s
   stack: [Python, FastAPI, React, TypeScript]
-
+  video: /assets/img/projects/hyenovel/demo.mp4
+  story:
+    - shot: /assets/img/projects/hyenovel/chain.webp
+      focus: 50 52 1.06
+      title: { zh: 觀察與判斷分開, en: Observation and judgment, kept apart }
+      text:
+        zh: 一篇故事進來，由兩個各自獨立 context 的 agent 分工。analyst 只觀察，拆出主題、意象、技法、效果、角色與節拍；criticizer 只拿到分析結果與原文，以出版編輯的角度下判斷。兩者都只有讀寫檔案的權限，不能執行指令。觀察和判斷放在同一個 context，判斷會回頭影響觀察。
+        en: A story goes to two agents with separate contexts. The analyst only observes, breaking out themes, motifs, techniques, effects, characters and beats; the criticizer sees only that analysis and the text, and judges like a publishing editor. Both can only read and write files, never run commands. Put observation and judgment in one context and the judgment leaks back into what gets observed.
+      code: |
+        source.md ─ analyst ───▶ analysis.json   observe
+                    criticizer ─▶ feedback.json   judge
+    - shot: /assets/img/projects/hyenovel/chain.webp
+      focus: 52 50 1.4
+      title: { zh: 用 schema 固定形狀，內容自由, en: "Schema: fixed shape, free content" }
+      text:
+        zh: 兩份輸出都有 JSON Schema。節點只有六種型別，不允許多出來的欄位；邊固定成「技法產生效果、效果服務主題」，整篇就是畫面上這條意圖鏈。回饋的每一點都指向分析裡的節點 id，才能把回饋釘在對應的節點旁邊。
+        en: Both outputs have a JSON Schema. Nodes come in six types with no extra fields allowed; edges are fixed as "technique produces effect, effect serves theme", which is exactly the chain of intent on screen. Every feedback point references analysis node ids, which is how feedback gets pinned next to the right node.
+      code: |
+        node.type ∈ theme · motif · technique
+                    effect · character · beat
+        additionalProperties: false
+        technique ─produces→ effect ─serves→ theme
+    - shot: /assets/img/projects/hyenovel/feedback.webp
+      focus: 42 62 1.9
+      title: { zh: 找不到出處就擋下, en: No source, no pass }
+      text:
+        zh: 每條主張都要附逐字原文，像畫面上回饋底下那句引文。純 Python 的確定性層先驗 schema，再到原文裡找每一句引文：先逐字比對，再容許全形半形標點的差異，最後忽略換行與空白。找不到就不放行，把錯誤明細交回同一個 agent 重寫，讓它記得自己剛才做了什麼。
+        en: Every claim must quote the text verbatim, like the quote under the feedback on screen. A deterministic Python layer checks the schema, then looks for each quote in the source — exact match first, then tolerating full-width vs half-width punctuation, then ignoring line breaks and spaces. Anything it can't find is rejected and sent back, with the errors, to the same agent so it keeps the context of what it just did.
+    - shot: /assets/img/projects/hyenovel/axis.webp
+      focus: 50 40 1.3
+      title: { zh: 把分析畫出來, en: Drawing the analysis }
+      text:
+        zh: 通過閘門的引文會換算成在全文中的位置，於是能畫出兩張圖：意圖鏈把技法、效果、主題連成線；文本軸沿著全文攤開張力曲線、意象的復現與技法的落點。
+        en: Quotes that pass the gate are mapped to positions in the text, which makes two views possible. The chain of intent links techniques to effects to themes; the text axis lays out the tension curve, recurring motifs and where each technique lands.
+    - focus: 50 50 1
+      stat: 83.6s → 20.3s
+      stat_label: { zh: 討論一輪的回應時間, en: Response time per discussion turn }
+      title: { zh: 能來回討論，但只能讀, en: Discussion, read-only }
+      text:
+        zh: 分析完可以點任一個節點，就這篇來回討論。討論用的 agent 全程唯讀：SDK 只給它讀檔，再加一層 hook 擋下任何寫入；討論得出的結論由它輸出 JSON，經確定性層驗過才寫入。一輪回應原本要 83.6 秒，查出是討論沒關掉 extended thinking，關掉後降到 20.3 秒。
+        en: After the analysis you can pick any node and talk the story through. The discussion agent is read-only throughout — the SDK grants only file reads, and a hook blocks any write on top of that; conclusions come back as JSON and are saved only after the deterministic layer validates them. A turn used to take 83.6s; the cause was extended thinking left on for discussion, and turning it off brought it to 20.3s.
 - name: wpSBOOT
   repo: randyxu0711/wpSBOOT
   image: /assets/img/projects/wpSBOOT.webp
   summary:
     zh: 政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法,我負責開發它的網頁伺服器:上傳序列,以四種比對工具產生 Super-MSA。
     en: "A phylogenetic method from Prof. Jia-Ming Chang's lab at NCCU, published in <i>Bioinformatics</i>. I build its web server: upload sequences, get a Super-MSA built from four aligners."
-  highlights:
-    zh:
-      - PostgreSQL 工作佇列 + heartbeat,worker 崩潰時工作可被接手
-      - Docker Compose 部署,74 個自動化測試,含容器內實跑 4 種比對工具
-      - 結果頁記錄工具版本,方便重現
-    en:
-      - PostgreSQL job queue with heartbeats, so crashed jobs get picked up
-      - Docker Compose deployment, 74 automated tests including all 4 aligners run in-container
-      - Every result page records tool versions for reproducibility
   stack: [Python, FastAPI, PostgreSQL, Docker]
+  story:
+    - shot: /assets/img/projects/wpSBOOT/result.webp
+      focus: 50 66 1.12
+      title: { zh: 四種比對工具，接成一份 Super-MSA, en: Four aligners, one Super-MSA }
+      text:
+        zh: 上傳序列後，MAFFT、MUSCLE、ClustalW、T-Coffee 各自做一次多序列比對，再用實驗室的 concatenate.pl 依隨機順序左右接起來，輸出 PHYLIP 格式的 Super-MSA。結果頁即時顯示每個工具的進度與耗時。
+        en: After upload, MAFFT, MUSCLE, ClustalW and T-Coffee each align the sequences, then the lab's concatenate.pl joins the alignments side by side in a random order into a PHYLIP Super-MSA. The result page shows each tool's progress and timing live.
+    - shot: /assets/img/projects/wpSBOOT/admin.webp
+      title: { zh: 用 PostgreSQL 當工作佇列, en: PostgreSQL as the job queue }
+      text:
+        zh: 不另外架訊息佇列。worker 用一條 SQL 認領最早排隊的工作，FOR UPDATE SKIP LOCKED 讓多個 worker 同時搶也不會拿到同一份。執行中定期更新心跳，順便檢查使用者是否按了取消。
+        en: No separate message broker. A worker claims the oldest queued job with one SQL statement; FOR UPDATE SKIP LOCKED means several workers can claim at once without taking the same job. While running it updates a heartbeat, which is also where it notices a cancel request.
+      code: |
+        UPDATE jobs SET status = 'running', locked_by = :worker,
+                        heartbeat_at = now()
+         WHERE id = (SELECT id FROM jobs WHERE status = 'queued'
+                      ORDER BY created_at
+                      FOR UPDATE SKIP LOCKED LIMIT 1)
+    - shot: /assets/img/projects/wpSBOOT/admin.webp
+      focus: 64 25 2
+      stat: 120 s
+      stat_label: { zh: 沒有心跳就重新排隊, en: No heartbeat, back in the queue }
+      title: { zh: worker 當掉，工作不會卡住, en: A crashed worker doesn't strand the job }
+      text:
+        zh: 維護程序定期找出超過 120 秒沒有心跳的工作，放回佇列給其他 worker 接手；同一份工作被中斷兩次就標成失敗並告知原因，不會無限重試。正常關機的 worker 會主動把工作交回，不算一次失敗。
+        en: A maintenance pass finds running jobs with no heartbeat for 120 seconds and puts them back in the queue for another worker. A job interrupted twice is marked failed with a reason instead of retrying forever, and a worker shutting down cleanly hands its job back without counting it as an attempt.
+    - shot: /assets/img/projects/wpSBOOT/details.webp
+      focus: 50 68 2.1
+      title: { zh: 結果可以重現, en: Reproducible results }
+      text:
+        zh: 每份結果都記下當次使用的工具版本，論文引用或日後重跑時對得上。整套服務用 Docker Compose 部署，測試會在容器裡實際跑過四種比對工具。
+        en: Every result records the exact tool versions used, so a citation or a rerun later lines up. The service deploys with Docker Compose, and the tests actually run all four aligners inside the container.

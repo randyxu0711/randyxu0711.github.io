@@ -8,6 +8,7 @@ body {
 a { color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 h1, h2, h3 { text-wrap: balance; line-height: 1.35; }
+.page-title { font-family: var(--font-display); font-weight: 600; }
 img { max-width: 100%; }
 /* 元件常設 display: flex / inline-flex,會蓋掉 hidden 屬性 */
 [hidden]:not([data-reserve]) { display: none !important; }
@@ -153,67 +154,20 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .page-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 0.75rem 1rem; margin-bottom: 2rem; }
 .page-head p { margin: 0; color: var(--ink-2); font-size: var(--t-sm); }
 
-/* ── About:頭像 + 名字,下面是履歷式兩欄 ── */
-/* 頁首與 .cv-row 共用同一組欄寬(左 9rem、間距 1.5rem),文字與下方內容從同一條線開始 */
-.profile { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1.5rem; align-items: start; margin-bottom: 3.5rem; }
-.profile .coin { width: 7.5rem; height: 7.5rem; }
-.profile-text { max-width: 46rem; }
-.profile h1 { margin: 0; font-size: var(--t-2xl); letter-spacing: -0.01em; }
-.profile .role { margin: 0.2rem 0 1.1rem; color: var(--accent); font-weight: 500; }
-/* 自介:一段一個重點,段落之間留白,行長控制在好讀的範圍 */
-.profile .intro { margin: 0 0 0.85rem; color: var(--ink-2); line-height: 1.85; max-width: 38em; }
-.profile .intro:last-child { margin-bottom: 0; }
-.cv { display: grid; gap: 3rem; }
-.cv-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1.5rem; }
-.cv-row > h2 { margin: 0; padding-top: 0.15rem; font-size: var(--t-sm); font-weight: 700; color: var(--ink-3); }
-.cv-row .content { display: grid; gap: 1rem; max-width: 46rem; min-width: 0; }
-.cv-row .content > p { margin: 0; color: var(--ink-2); }
-.cv-row ul { margin: 0; padding-left: 1.1rem; color: var(--ink-2); display: grid; gap: 0.3rem; }
-/* 經歷的每一點:粗體效益當小標,條目之間多留一點 */
-.cv-row .job-items { gap: 0.75rem; line-height: 1.8; max-width: 42em; }
-.cv-row .job-items strong { display: block; margin-bottom: 0.15rem; color: var(--ink); font-weight: 700; font-size: var(--t-md); }
-.cv-row strong { color: var(--ink); font-weight: 500; }
-.explore { display: grid; gap: 1rem; }
-.explore > div { display: grid; gap: 0.15rem; }
-.explore p { margin: 0; color: var(--ink-2); }
-.job { display: grid; gap: 0.75rem; }
-.job + .job { margin-top: 1.25rem; }
-.job p { margin: 0; color: var(--ink-2); }
-.job-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem; }
-.job-head span { color: var(--ink-3); font-size: var(--t-sm); font-variant-numeric: tabular-nums; }
-.skills { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0.7rem 1rem; align-items: baseline; margin: 0; }
-.skills dt { font-size: var(--t-sm); color: var(--ink-2); white-space: nowrap; }
-.skills dd { margin: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
-.proj-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: 1.75rem 1.5rem; }
-/* project 卡:兩面。正面圖片 + 名稱,翻過來是文字介紹;兩面疊在同一格,卡片高度取兩面較高的那面 */
-.flip { perspective: 1400px; border-radius: 16px; display: grid; }   /* 同一排的卡片拉成一樣高 */
-.flip:focus-visible { outline: 2px solid var(--accent); outline-offset: 6px; }
-.flip-inner { display: grid; height: 100%; transform-style: preserve-3d; transition: transform 650ms cubic-bezier(.2,.7,.2,1); }
-.flip-face { grid-area: 1 / 1; backface-visibility: hidden; -webkit-backface-visibility: hidden; margin-bottom: 0; }
-.flip-back { transform: rotateY(180deg); }
-/* 翻面:滑鼠停留(只在有滑鼠的裝置)、鍵盤聚焦(:focus-visible,點擊不算)、觸控點一下(.flipped,slab.js)。
-   不用 :focus-within:手機點一下卡片就會取得焦點,再點也翻不回來 */
-@media (hover: hover) { .flip:hover .flip-inner { transform: rotateY(180deg); } }
-.flip:focus-visible .flip-inner, .flip:has(:focus-visible) .flip-inner, .flip.flipped .flip-inner { transform: rotateY(180deg); }
-/* 翻著的時候側面亮成琥珀(游標停留的時刻) */
-@media (hover: hover) { .flip:hover .flip-face { --side: var(--edge); --side-2: var(--edge-deep); } }
-.flip:focus-visible .flip-face, .flip:has(:focus-visible) .flip-face, .flip.flipped .flip-face { --side: var(--edge); --side-2: var(--edge-deep); }
-/* 正面:完整的圖(固定 16:10,不裁切)+ 名稱。兩面疊在同一格、高度取較高的那面(通常是背面的介紹),多出來的高度留白 */
-.flip-front { display: flex; flex-direction: column; }
-.flip-img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; background: var(--desk-2); }
-.flip-name { padding: 0.9rem 1.15rem 1rem; font-weight: 700; font-size: var(--t-lg); color: var(--ink); }
-.flip-back-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
-.flip-link { font-size: var(--t-sm); white-space: nowrap; padding: 0.6rem 0 0.6rem 0.6rem; margin: -0.6rem 0 -0.6rem -0.6rem; }
-.flip-back .share-desc { -webkit-line-clamp: unset; }
-.flip-back ul { margin: 0; padding-left: 1.1rem; font-size: var(--t-sm); color: var(--ink-2); line-height: 1.7; display: block; }
-@media (prefers-reduced-motion: reduce) {
-  .flip-inner, .flip:hover .flip-inner, .flip:focus-visible .flip-inner, .flip:has(:focus-visible) .flip-inner, .flip.flipped .flip-inner { transform: none; transition: none; }
-  .flip-back { transform: none; opacity: 0; transition: opacity 200ms; }
-  .flip:focus-visible .flip-back, .flip:has(:focus-visible) .flip-back, .flip.flipped .flip-back { opacity: 1; }
-  @media (hover: hover) { .flip:hover .flip-back { opacity: 1; } }
-}
-@media (max-width: 760px) {
-  .cv-row { grid-template-columns: 1fr; gap: 0.6rem; }
-  .profile { grid-template-columns: 1fr; gap: 1.1rem; }
-  .profile .coin { width: 6rem; height: 6rem; }
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+  .nav { view-transition-name: site-nav; }
+  ::view-transition-old(root) { animation: 160ms ease-in both vt-out; }
+  ::view-transition-new(root) { animation: 320ms cubic-bezier(.2,.7,.2,1) 60ms both vt-in; }
+  @keyframes vt-out { to { opacity: 0; } }
+  @keyframes vt-in { from { opacity: 0; transform: translateY(14px); } }
+
+  @supports (animation-timeline: view()) {
+    .shelf .share {
+      animation: slab-place linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 85%;
+    }
+    @keyframes slab-place { from { opacity: 0; transform: translateY(2.5rem) scale(1.04); } }
+  }
 }

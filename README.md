@@ -65,7 +65,9 @@ javascript:(()=>{const u='https://github.com/randyxu0711/randyxu0711.github.io/i
 
 ## 新增 Project
 
-Projects 列在 About 頁,資料在 `_data/projects.yml`:複製一段,改 `name`、`repo`、中英文的 `summary` 與 `highlights`、`stack` 即可。
+Projects 列在 About 頁,資料在 `_data/projects.yml`:複製一段,改 `name`、`repo`、`image`、中英文的 `summary`、`stack`,
+再寫 `story`(每一步一則:`shot` 截圖、`focus` 鏡頭「x y 倍率」、`title` / `text` 中英文,選填 `code`、`stat` / `stat_label`)。
+截圖放 `assets/img/projects/<name>/`,16:10、2 倍解析度。
 縮圖用 GitHub 自動產生的 `https://opengraph.githubassets.com/1/<owner>/<repo>`。
 
 ## 書單

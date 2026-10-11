@@ -18,6 +18,12 @@
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
   模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入)。
   目前的模組:`shelf-filter`(原地篩選)、`seen`(已開過)、`archive`(失效改連封存版)、`books`(書單頁)。
+- **字型三種角色**:`--font-display`(宋體,只給內容的名字:姓名、project、書名;小標題用黑體)、`--font-ui`(Inter + 思源黑體)、
+  `--font-code`(JetBrains Mono,程式碼與計數)。規則見 `docs/redesign/SLAB.md`〈字型與配色規則〉。
+- **About 頁是捲動敘事**(`_includes/about.html`、`assets/css/about.css`、`assets/js/about.js`):每個 project 左邊是固定的展示台、
+  右邊一步一則 `story`。截圖嵌在板子裡(裱框),連續幾步用同一張圖時不換板子,只移動鏡頭(`focus: x y 倍率`);
+  程式碼放文字欄的 `.groove`,數字放標題上方的大字,展示台只放真畫面。首頁卡片捲進畫面時「放上桌」、換頁有 View Transition,
+  都只動 transform / opacity,書架不套(3D 會被壓平)。
 - **版面不寫個人資料**:名字、自介、導覽在 `_config.yml`,projects 在 `_data/projects.yml`,自介全文在 `_tabs/about.md`。
 - 沒有 JS 時卡片與連結照樣能用;模組的控制項先 `hidden`,JS 啟動後才顯示(全站有 `[hidden] { display: none !important }`)。
   控制項加 `data-reserve` 的話,有 JS 時(head 給 `<html>` 加 `.js`)先看不見但佔好位置,啟動時版面不會跳。

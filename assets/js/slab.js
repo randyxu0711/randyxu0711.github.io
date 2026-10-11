@@ -30,15 +30,6 @@
     ['--ry', '--rx', '--sx', '--px', '--py'].forEach(function (k) { c.style.removeProperty(k); });
   });
 
-  // ── 兩面卡片:觸控裝置沒有 hover,點一下翻面、再點翻回;點別張卡或空白處,翻著的卡翻回來。點背面的連結照常開啟 ──
-  document.addEventListener('click', function (e) {
-    if (window.matchMedia('(hover: hover)').matches) return;
-    var card = e.target.closest && e.target.closest('[data-flip]');
-    if (card && e.target.closest('a')) return;
-    document.querySelectorAll('[data-flip].flipped').forEach(function (c) { if (c !== card) c.classList.remove('flipped'); });
-    if (card) card.classList.toggle('flipped');
-  });
-
   // ── 舊版網站(Chirpy)留下的 service worker:它是 cache-first,會一直給舊頁面。 ──
   // 跑到這裡代表這一頁是新網站給的;如果瀏覽器裡還註冊著,直接註銷並清掉快取。
   // 被它攔住、拿到舊頁面的訪客,則靠根目錄的 /sw.min.js(自毀版)修好。
