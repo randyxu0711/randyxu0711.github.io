@@ -215,7 +215,7 @@ def test_csv_run_keeps_issue_books_and_csv_wins(tmp_path):
          "added": "2026-10-07", "shelves": [], "url": "u", "cover": None, "color": None, "ink": None, "issue": 4},
     ]), encoding="utf-8")
     books.run(FIX / "goodreads_export.csv", d, hide_shelf="hide",
-              fetch_page=lambda i: "", fetch_image=pytest.fail, sleep=lambda s: None)
+              fetch_page=lambda i: "", fetch_image=lambda u: b"GIF89a", sleep=lambda s: None)
     out = {b["id"]: b for b in json.loads((d / "books.json").read_text(encoding="utf-8"))}
     assert out["23361794"]["title"] == "百年孤寂" and "issue" not in out["23361794"]   # CSV 優先
     assert out["777"]["title"] == "Only issue"                                       # issue 加的保留

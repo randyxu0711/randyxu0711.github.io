@@ -44,6 +44,7 @@ def test_select_shapes_fields():
         "rating": 5, "pages": 416, "read": "2024-03-02", "added": "2024-03-05",
         "shelves": ["latin-american"], "url": "https://www.goodreads.com/book/show/23361794",
         "cover": None, "color": None, "ink": None, "ratio": None, "read_count": 1,
+        "_isbn10": books.isbn10(rows()[0]),
     }
 
 
@@ -122,7 +123,7 @@ def test_fill_covers_does_not_cache_failures():
 
 def test_run_writes_both_json_files(tmp_path):
     books.run(FIX / "goodreads_export.csv", tmp_path, hide_shelf="hide",
-              fetch_page=lambda i: "", fetch_image=pytest.fail, sleep=lambda s: None)
+              fetch_page=lambda i: "", fetch_image=lambda u: b"GIF89a", sleep=lambda s: None)
     data = json.loads((tmp_path / "books.json").read_text(encoding="utf-8"))
     assert [b["id"] for b in data] == ["23361794", "555", "111", "444"]
     assert json.loads((tmp_path / "book_covers.json").read_text(encoding="utf-8")) == {}
@@ -198,3 +199,38 @@ def test_run_applies_books_fix_file(tmp_path):
               fetch_page=lambda i: "", fetch_image=lambda u: b"", sleep=lambda s: None)
     b = next(x for x in json.loads((tmp_path / "books.json").read_text(encoding="utf-8")) if x["id"] == bid)
     assert b["read"] == "2020-05-05" and b["read_count"] == 7
+
+
+def test_isbn10_from_export_formats():
+    assert books.isbn10({"ISBN": '="0306406152"', "ISBN13": '="9780306406157"'}) == "0306406152"
+    assert books.isbn10({"ISBN": '=""', "ISBN13": '="9780306406157"'}) == "0306406152"
+    assert books.isbn10({"ISBN": '=""', "ISBN13": '="9791032305690"'}) is None
+    assert books.isbn10({"ISBN": "", "ISBN13": ""}) is None
+
+
+def test_fill_covers_prefers_amazon_by_isbn_without_touching_goodreads():
+    items = [{"id": "1", "title": "A", "_isbn10": "0306406152"}]
+    cache, slept = {}, []
+    books.fill_covers(items, cache, fetch_page=pytest.fail, fetch_image=lambda u: b"x" * 5000,
+                      sleep=slept.append, color=lambda d: "#123456", measure=lambda d: 0.66)
+    assert cache["1"]["cover"] == "https://m.media-amazon.com/images/P/0306406152.01.L.jpg"
+    assert items[0]["cover"] == cache["1"]["cover"] and slept == []
+
+
+def test_fill_covers_falls_back_to_goodreads_when_amazon_has_placeholder():
+    items = [{"id": "1", "title": "A", "_isbn10": "0306406152"}]
+    cache, pages = {}, []
+    def image(url):
+        return b"GIF89a" if "media-amazon.com/images/P/" in url else b"y" * 5000
+    def page(bid):
+        pages.append(bid)
+        return '<meta property="og:image" content="https://i.gr-assets.com/x.jpg">'
+    books.fill_covers(items, cache, fetch_page=page, fetch_image=image,
+                      sleep=lambda s: None, color=lambda d: "#123456", measure=lambda d: 0.66)
+    assert pages == ["1"] and cache["1"]["cover"] == "https://i.gr-assets.com/x.jpg"
+
+
+def test_run_does_not_write_internal_isbn_field(tmp_path):
+    books.run(FIX / "goodreads_export.csv", tmp_path, hide_shelf="hide",
+              fetch_page=lambda i: "", fetch_image=lambda u: b"", sleep=lambda s: None)
+    assert "_isbn10" not in (tmp_path / "books.json").read_text(encoding="utf-8")
