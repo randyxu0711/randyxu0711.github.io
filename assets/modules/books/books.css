@@ -46,6 +46,8 @@ html.js .books .tier.packed .row-wrap { --room: 2rem; content-visibility: auto; 
    而是先超出架子右邊、被 content-visibility 裁掉,再一本本滑進來。隔間寬度鎖住,架子不會被撐長 */
 html.js .books .tier.packed .row { flex-wrap: nowrap; }
 html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
+/* 架上的封底永遠朝後看不到,只有拿起來的那本(複製到 .book-stage)需要;少畫一面,捲動時繪製與合成少約兩成 */
+.row .b3 .back { display: none; }
 
 /* ── 3D 書 ── */
 .b3 {
