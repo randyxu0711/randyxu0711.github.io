@@ -1,6 +1,6 @@
 # Goodreads ID → 台灣譯本的書名與作者譯名。網站切到中文時顯示這裡的名字,沒列在這裡的書顯示原文。
 # CSV 重新匯入不會動這個檔案;用 issue 加書時填的中文書名也寫進這裡。
-# 2026-10-07 依博客來 / 讀冊 / 誠品 / 出版社資料查證,source 是查證網址。
+# 2026-10-07 依博客來 / 讀冊 / 誠品 / 出版社資料查證,source 是查證網址;2026-10-12 補上 IG 匯入的書。
 
 "6282753":  # The Museum of Innocence
   title: "純真博物館"
@@ -567,3 +567,688 @@
   title: "在美洲虎太陽下"
   author: "伊塔洛·卡爾維諾"
   issue: 27
+"220373332":  # A Shining
+  title: "閃光"
+  author: "庸．佛瑟"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0011032647"
+"2858893":  # The Yellow Rain
+  title: "黃雨"
+  author: "胡利歐．亞馬薩雷斯"
+  publisher: "馬可孛羅"
+  source: "https://www.books.com.tw/products/0010896315"
+"17735701":  # Pábitelé
+  title: "中魔的人們"
+  author: "赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010328002"
+"11694":  # The New Life
+  title: "新人生"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010861331"
+"237868450":  # Hard-Boiled Wonderland and the End of the World
+  title: "世界末日與冷酷異境"
+  author: "村上春樹"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010034658"
+"236459587":  # Dubliners: James Joyce's Masterpiece of Irish Life and Identity
+  title: "都柏林人"
+  author: "喬伊斯"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010907613"
+"9396305":  # El Camino
+  title: "山路彎彎"
+  author: "戴利貝斯"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010556629"
+"43609924":  # 大裂：胡遷中短篇小說集 (Chinese Edition)
+  title: "大裂：胡遷中短篇小說集"
+  author: "胡遷"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010803477"
+"28502000":  # Fahrenheit 451
+  title: "華氏451度"
+  author: "雷．布萊伯利"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0011016791"
+"17431478":  # Hateship, Friendship, Courtship, Loveship, Marriage (Storycuts)
+  title: "相愛或是相守"
+  author: "艾莉絲．孟若"
+  publisher: "木馬文化"
+  source: "https://readmoo.com/book/210280892000101"
+"1077363":  # Theatre
+  title: "劇院"
+  author: "威廉．薩默塞特．毛姆"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0011010670"
+"17803":  # After Dark
+  title: "黑夜之後"
+  author: "村上春樹"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010702870"
+"3045862":  # House of the Sleeping Beauties
+  title: "睡美人"
+  author: "川端康成"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010722091"
+"8205197":  # A Good Fall
+  title: "落地"
+  author: "哈金"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010458621"
+"256108980":  # Animal Farm
+  title: "動物農莊"
+  author: "喬治．歐威爾"
+  publisher: "麥田"
+  source: "https://www.taaze.tw/products/14100018319.html"
+"6476180":  # 鱷魚手記
+  title: "鱷魚手記"
+  author: "邱妙津"
+  publisher: "印刻"
+  source: "https://www.books.com.tw/products/0010345844"
+"12998092":  # The Sense of an Ending
+  title: "回憶的餘燼"
+  author: "朱利安．巴恩斯"
+  publisher: "小寫創意"
+  source: "https://www.books.com.tw/products/0010996775"
+"53331754":  # Veba Geceleri
+  title: "大疫之夜"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010995368"
+"17427268":  # Too Much Happiness
+  title: "太多幸福"
+  author: "艾莉絲．孟若"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010949764"
+"24997390":  # A Strangeness in My Mind
+  title: "我心中的陌生人"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010759168"
+"1327681":  # Le passe-muraille
+  title: "穿牆人：埃梅魔幻短篇小說選"
+  author: "馬歇爾．埃梅"
+  publisher: "好讀"
+  source: "https://www.books.com.tw/products/0010978924"
+"905523":  # Dance of the Happy Shades: And Other Stories
+  title: "幸福陰影之舞"
+  author: "艾莉絲．孟若"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010922200"
+"17426513":  # Girl At The Lion d'Or
+  title: "金獅旅店"
+  author: "賽巴斯欽．福克斯"
+  publisher: "潮浪文化"
+  source: "https://www.books.com.tw/web/sys_puballb/books/?pubid=wavespress"
+"209971736":  # 偽悪病患者
+  title: "偽惡病患者"
+  author: "大下宇陀兒"
+  publisher: "新雨"
+  source: "https://www.books.com.tw/products/0010984742"
+"40072384":  # Orlando, a Biography
+  title: "歐蘭多"
+  author: "維吉尼亞．吳爾芙"
+  publisher: "漫遊者文化"
+  source: "https://www.books.com.tw/products/0010819872"
+"35573307":  # All the Light We Cannot See
+  title: "呼喚奇蹟的光"
+  author: "安東尼．杜爾"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010954804"
+"36965470":  # The Catcher in the Rye: Jd Edition
+  title: "麥田捕手"
+  author: "沙林傑"
+  publisher: "麥田"
+  source: "https://www.books.com.tw/products/0010381407"
+"17431126":  # Anil's Ghost
+  title: "菩薩凝視的島嶼"
+  author: "麥可．翁達傑"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010958514"
+"112714":  # Allah is Not Obliged
+  title: "阿拉不是一定要"
+  author: "阿瑪杜．庫忽瑪"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010201997"
+"60791193":  # Morning and Evening
+  title: "日與夜"
+  author: "庸．佛瑟"
+  publisher: "木馬文化"
+  source: "https://www.eslite.com/product/10072302132683143857007"
+"21185683":  # The Hunger Angel
+  title: "呼吸鞦韆"
+  author: "荷塔．慕勒"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010515604"
+"536550":  # Panther in the Basement
+  title: "地下室的黑豹"
+  author: "艾默思．奧茲"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010762411"
+"528689":  # My Merry Mornings: Stories from Prague (English and Czech Edition)
+  title: "我快樂的早晨"
+  author: "伊凡．克里瑪"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010189658"
+"30408033":  # A Horse Walks into a Bar
+  title: "一匹馬走進酒吧"
+  author: "大衛．格羅斯曼"
+  publisher: "大塊文化"
+  source: "https://readmoo.com/book/210193466000101"
+"12818197":  # The English Patient
+  title: "英倫情人"
+  author: "麥可．翁達傑"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010486221"
+"67141":  # Contempt
+  title: "鄙視"
+  author: "艾伯托．莫拉維亞"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/CN11722882"
+"50736031":  # Breasts and Eggs
+  title: "夏的故事"
+  author: "川上未映子"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010908692"
+"45031527":  # A Flag on the Island
+  title: "島上的旗幟"
+  author: "V. S. 奈波爾"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010746187"
+"13569199":  # Krasosmutnění
+  title: "甜甜的憂傷"
+  author: "博胡米爾．赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010747438"
+"17302874":  # Between Friends
+  title: "朋友之間"
+  author: "艾默思．奧茲"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010807049"
+"22175":  # Strange Pilgrims: Twelve Stories
+  title: "異鄉客"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.books.com.tw/products/0010879210"
+"42963288":  # Last Witnesses: An Oral History of the Children of World War II
+  title: "我還是想你，媽媽"
+  author: "斯維拉娜．亞歷塞維奇"
+  publisher: "貓頭鷹"
+  source: "https://www.books.com.tw/products/0011001908"
+"238379":  # Summerhouse, Later
+  title: "夏之屋，再說吧"
+  author: "尤荻特．赫爾曼"
+  publisher: "一方出版"
+  source: "https://www.books.com.tw/products/0010210901"
+"2394578":  # Prima che tu dica «Pronto»
+  title: "在你說「喂」之前"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010172967"
+"36592659":  # Die Obstdiebin - oder - Einfache Fahrt ins Landesinnere
+  title: "水果賊，或前往內陸的單純之旅"
+  author: "彼得．漢德克"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010998436"
+"28004654":  # A Brief History of Seven Killings
+  title: "七殺簡史"
+  author: "馬龍．詹姆斯"
+  publisher: "堡壘文化"
+  source: "https://www.books.com.tw/products/0010987702"
+"3329813":  # Winesburg, Ohio
+  title: "小城畸人"
+  author: "舍伍德．安德森"
+  publisher: "遠流"
+  source: "https://www.books.com.tw/products/0010346377"
+"10542733":  # White Noise
+  title: "白噪音"
+  author: "唐．德里羅"
+  publisher: "寶瓶文化"
+  source: "https://share.readmoo.com/book/289824"
+"132433":  # The Long Goodbye (Philip Marlowe, #6)
+  title: "漫長的告別"
+  author: "瑞蒙．錢德勒"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010409058"
+"537611":  # House of Day, House of Night
+  title: "收集夢的剪貼簿"
+  author: "奧爾嘉．朵卡萩"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010388002"
+"236227517":  # The Handmaid's Tale
+  title: "使女的故事"
+  author: "瑪格麗特．愛特伍"
+  publisher: "天培"
+  source: "https://www.books.com.tw/products/0010752948"
+"36360029":  # House of Names
+  title: "阿垂阿斯家族"
+  author: "柯姆．托賓"
+  publisher: "時報出版"
+  source: "https://search.books.com.tw/search/query/key/COLM+T%C3%93IB%C3%8DN/adv_author/1/"
+"52036":  # Siddhartha
+  title: "流浪者之歌"
+  author: "赫曼．赫塞"
+  publisher: "遠流"
+  source: "https://www.books.com.tw/products/0010610334"
+"27071491":  # The Noise of Time
+  title: "時代的噪音"
+  author: "朱利安．巴恩斯"
+  publisher: "小寫出版"
+  source: "https://readmoo.com/book/210344903000101"
+"148751":  # The Fly-Truffler
+  title: "尋找松露的人"
+  author: "古斯塔夫．索賓"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010204369"
+"45892040":  # L'Archipel du Chien
+  title: "犬列島"
+  author: "菲立普．克婁代"
+  publisher: "木馬文化"
+  source: "https://readmoo.com/book/210146943000101"
+"17615430":  # Atomised
+  title: "無愛繁殖"
+  author: "米榭．韋勒貝克"
+  publisher: "大塊文化"
+  source: "https://www.taaze.tw/products/11100222401.html"
+"23346410":  # A General Theory of Oblivion
+  title: "遺忘之書"
+  author: "喬塞．愛德華多．阿瓜盧薩"
+  publisher: "聯合文學"
+  source: "https://www.eslite.com/product/10012011762682417449009"
+"73723":  # The President
+  title: "總統先生"
+  author: "米格爾．安赫爾．阿斯杜里亞斯"
+  publisher: "南方家園"
+  source: "https://www.eslite.com/product/1001194491892121"
+"143475":  # The Diamond as Big as the Ritz, and Other Stories
+  title: "大如「麗池」的鑽石"
+  author: "F.S.費滋傑羅"
+  publisher: "一方出版"
+  source: "https://www.books.com.tw/products/0010228560"
+"32703682":  # The Black Book
+  title: "黑色之書"
+  author: "奧罕．帕慕克"
+  publisher: "麥田"
+  source: "https://www.eslite.com/product/10012013192682608531001"
+"36885304":  # Flights
+  title: "雲遊者"
+  author: "奧爾嘉．朵卡萩"
+  publisher: "大塊文化"
+  source: "https://www.eslite.com/product/1001129722846662"
+"6395581":  # As I Lay Dying (Norton Critical Editions)
+  title: "我彌留之際"
+  author: "威廉．福克納"
+  publisher: "麥田"
+  source: "https://www.eslite.com/product/1001156502826604"
+"75103454":  # Vita Nuova
+  title: "漂浮的打字機"
+  author: "赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://www.eslite.com/product/1001129721754009"
+"50705049":  # Satantango
+  title: "撒旦的探戈"
+  author: "卡勒斯納霍凱．拉斯洛"
+  publisher: "聯合文學"
+  source: "https://www.eslite.com/product/10012011762683069623007"
+"49921028":  # Song of Solomon
+  title: "所羅門之歌"
+  author: "童妮‧摩里森"
+  publisher: "臺灣商務"
+  source: "https://www.taaze.tw/products/11100126683.html"
+"20115781":  # The Complete Cosmicomics
+  title: "宇宙連環圖"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://www.eslite.com/product/10012010632682516204004"
+"2377118":  # 死者の奢り・飼育 [Shisha no ogori / Shiiku]
+  title: "飼育"
+  author: "大江健三郎"
+  publisher: "聯合文學"
+  source: "https://www.books.com.tw/products/0010514194"
+"285339":  # War Trash
+  title: "戰廢品"
+  author: "哈金"
+  publisher: "時報出版"
+  source: "https://www.eslite.com/product/10012010632682996695002"
+"23351195":  # Jazz
+  title: "爵士樂"
+  source: "https://www.books.com.tw/activity/jmc/tonimorrison/"
+"220161128":  # Wuthering Heights (Word Cloud Classics)
+  title: "咆哮山莊"
+  author: "艾蜜莉．勃朗特"
+  publisher: "商周出版"
+  source: "https://www.eslite.com/product/10012013192683082101001"
+"5860":  # The Suffrage of Elvira
+  title: "艾薇拉投票記"
+  author: "V. S. 奈波爾"
+  publisher: "時報出版"
+  source: "https://www.eslite.com/product/1001110932576384"
+"2490661":  # Los fantasmas: Novela (Colección Escritura de hoy) (Spanish Edition)
+  title: "鬼魂們：當代波赫士：西塞‧埃拉傑作選"
+  author: "西塞‧埃拉"
+  publisher: "木馬文化"
+  source: "https://www.books.com.tw/products/0010753424"
+"254738381":  # Love
+  title: "LOVE"
+  author: "童妮‧摩里森"
+  publisher: "臺灣商務"
+  source: "https://ir.lib.nycu.edu.tw/handle/11536/107015"
+"210152386":  # 越南現代小說選
+  title: "越南現代小說選"
+  author: "南高 等"
+  publisher: "春山出版"
+  source: "https://www.eslite.com/product/10012010632682538834005"
+"12831542":  # The Tiger's Wife
+  title: "老虎的妻子"
+  author: "蒂亞．歐布萊特"
+  publisher: "時報出版"
+  source: "https://www.eslite.com/product/10012010632682529112006"
+"49442618":  # 失樂園
+  title: "失樂園"
+  author: "渡邊淳一"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010800079"
+"19275784":  # Coin Locker Babies
+  title: "寄物櫃的嬰孩"
+  author: "村上龍"
+  publisher: "大田出版"
+  source: "https://www.eslite.com/product/1001120822025945"
+"15797914":  # Purple Hibiscus
+  title: "紫色木槿花"
+  author: "奇瑪曼達．恩格茲．阿迪契"
+  publisher: "黑體文化"
+  source: "https://www.eslite.com/product/10012043902682852721005"
+"101778365":  # Os alimentos terrestres e os novos alimentos
+  title: "地糧．新糧"
+  author: "安德烈．紀德"
+  publisher: "麥田"
+  source: "https://www.eslite.com/product/10072302132682746367005"
+"2602758":  # Without Blood (Vintage International)
+  title: "不流血"
+  author: "巴瑞科"
+  publisher: "大塊文化"
+  source: "https://www.kingstone.com.tw/basic/2018770012176"
+"10057815":  # The Master
+  title: "大師"
+  author: "柯姆．托賓"
+  publisher: "時報出版"
+  source: "https://www.eslite.com/product/10072302132682786564006"
+"1054622":  # The Torrents of Spring
+  title: "春潮"
+  author: "伊凡．屠格涅夫"
+  publisher: "時報出版"
+  source: "https://www.eslite.com/product/1001110932682060607009"
+"1131717":  # In einer dunklen Nacht ging ich aus meinem stillen Haus
+  title: "在漆黑的夜晚，我離開了我安靜的房子"
+  author: "彼得．漢德克"
+  publisher: "木馬文化"
+  source: "https://www.eslite.com/product/10012043902682456422001"
+"323512":  # Les Boulevards de ceinture
+  title: "環城大道"
+  author: "派屈克．蒙迪安諾"
+  publisher: "允晨文化"
+  source: "https://www.taaze.tw/products/11100774313.html"
+"830978":  # Almost Transparent Blue
+  title: "接近無限透明的藍"
+  author: "村上龍"
+  publisher: "大田出版"
+  source: "https://readmoo.com/book/210484787000101"
+"57044484":  # Erasure
+  title: "擦除"
+  author: "帕西瓦‧艾佛列特"
+  publisher: "大塊文化"
+  source: "https://readmoo.com/book/210400962000101"
+"1276137":  # The Ballad of The Sad Cafe
+  title: "傷心咖啡館之歌"
+  author: "卡森．麥卡勒斯"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210128884000101"
+"15238034":  # Across the River and Into the Trees
+  title: "渡河入林"
+  author: "海明威"
+  publisher: "臉譜"
+  source: "https://www.taaze.tw/products/11100154352.html"
+"762476":  # Kokoro
+  title: "心"
+  author: "夏目漱石"
+  publisher: "野人"
+  source: "https://readmoo.com/book/210096586000101"
+"16211466":  # They Divided the Sky
+  title: "分裂的天空"
+  author: "克里斯塔．沃爾夫"
+  publisher: "啟明出版"
+  source: "https://readmoo.com/book/2100864380001"
+"14027":  # Thousand Cranes
+  title: "千羽鶴"
+  author: "川端康成"
+  publisher: "木馬文化"
+  source: "https://readmoo.com/book/210272100000101"
+"23882":  # Ojos de perro azul
+  title: "藍狗的眼睛"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.kingstone.com.tw/basic/2018850062589/"
+"34798535":  # Inhumaines (French Edition)
+  title: "非人"
+  author: "菲立普．克婁代"
+  publisher: "木馬文化"
+  source: "https://readmoo.com/book/210146951000101"
+"1052274":  # Call If You Need Me: The Uncollected Fiction & Prose
+  title: "需要我的時候給個電話"
+  author: "瑞蒙．卡佛"
+  publisher: "寶瓶文化"
+  source: "https://www.taaze.tw/products/11100665853.html"
+"748164":  # Sleepwalking Land
+  title: "夢遊的大地"
+"83024":  # The Lake
+  title: "湖"
+  author: "川端康成"
+  publisher: "大牌出版"
+  source: "https://readmoo.com/book/210354061000101"
+"22522808":  # Trigger Warning: Short Fictions and Disturbances
+  title: "觸發警告"
+  author: "尼爾．蓋曼"
+  publisher: "獨步文化"
+  source: "https://www.books.com.tw/products/0010719351"
+"117833":  # The Master and Margarita
+  title: "大師與瑪格麗特"
+  author: "布爾加科夫"
+  publisher: "究竟出版"
+  source: "https://www.taaze.tw/products/11100225122.html"
+"17458064":  # Perlička na dně
+  title: "底層的珍珠"
+  author: "博胡米爾．赫拉巴爾"
+  publisher: "大塊文化"
+  source: "https://readmoo.com/book/210327184000101"
+"44778712":  # The Baron in the Trees
+  title: "樹上的男爵"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210370351000101"
+"17429238":  # Marcovaldo
+  title: "馬可瓦多"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210314749000101"
+"16558816":  # Smile as they Bow
+  title: "神婆的歡喜生活"
+  author: "努努伊．茵瓦"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210197242000101"
+"45484529":  # The Castle of Crossed Destinies
+  title: "命運交織的城堡"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210314750000101"
+"17340766":  # Ibiza
+  title: "IBIZA"
+  author: "村上龍"
+  publisher: "世紀書房"
+  source: "https://www.taaze.tw/products/11100243328.html"
+"17575112":  # The Death of Ivan Ilyich and Confession
+  title: "伊凡．伊里奇之死"
+  author: "列夫．托爾斯泰"
+  publisher: "漫遊者文化"
+  source: "https://readmoo.com/book/210383984000101"
+"3329568":  # Testa Fra Le Nuvole
+  title: "飛過星空的聲音"
+  author: "蘇珊娜．塔瑪洛"
+  publisher: "大塊文化"
+  source: "https://www.kingstone.com.tw/basic/2018770012626/"
+"221558081":  # Oraşul şi zidurile sale incerte
+  title: "城與不確定的牆"
+  author: "村上春樹"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210361446000101"
+"60106":  # Mr Palomar
+  title: "帕洛瑪先生"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://www.taaze.tw/products/11100175135.html"
+"126225056":  # La Maitresse De Brecht
+  title: "布萊希特的情人"
+  author: "賈克-皮耶．阿梅特"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010358126"
+"199928937":  # Until August
+  title: "八月見"
+  author: "加布列．賈西亞．馬奎斯"
+  publisher: "皇冠"
+  source: "https://www.crown.com.tw/view.aspx?bc=044122"
+"12505":  # The Idiot
+  title: "白癡"
+  author: "杜斯妥也夫斯基"
+  publisher: "商周出版"
+  source: "https://www.taaze.tw/products/11100983973.html"
+"16087986":  # Sandalwood Death
+  title: "檀香刑"
+  author: "莫言"
+  publisher: "麥田"
+  source: "https://www.taaze.tw/products/11101071209.html"
+"1444718":  # The Goalie's Anxiety at the Penalty Kick
+  title: "守門員的焦慮"
+  author: "彼得．漢德克"
+  publisher: "木馬文化"
+  source: "https://www.taaze.tw/products/11100916273.html"
+"37380":  # The Heart Is a Lonely Hunter
+  title: "心是孤獨的獵手"
+  author: "卡森．麥卡勒斯"
+  publisher: "自由之丘"
+  source: "https://www.taaze.tw/products/11100586321.html"
+"14476345":  # Tender is the Night (The F. Scott Fitzgerald Collection)
+  title: "夜未央"
+  author: "史考特．費茲傑羅"
+  publisher: "一人出版社"
+  source: "https://www.taaze.tw/products/11100741027.html"
+"9135002":  # The Green Mare
+  title: "綠色之馬"
+  author: "馬歇爾．埃梅"
+  publisher: "時報文化"
+  source: "https://www.taaze.tw/products/11100210686.html"
+"10106590":  # Point Omega
+  title: "最終點"
+  author: "唐．德里羅"
+  publisher: "寶瓶文化"
+  source: "https://www.taaze.tw/products/11100769145.html"
+"256662747":  # Beloved
+  title: "寵兒"
+  author: "童妮‧摩里森"
+  publisher: "臺灣商務印書館"
+  source: "https://www.taaze.tw/products/11100125630.html"
+"11984245":  # Scenes from Village Life
+  title: "鄉村生活圖景"
+  author: "艾默思．奧茲"
+  publisher: "木馬文化"
+  source: "https://www.taaze.tw/products/11317372262.html"
+"20696580":  # Out Stealing Horses
+  title: "外出偷馬"
+  author: "佩爾．派特森"
+  publisher: "寶瓶文化"
+  source: "https://www.taaze.tw/products/11100243017.html"
+"22553530":  # 天空的冒險
+  title: "天空的冒險"
+  author: "吉田修一"
+  publisher: "麥田"
+  source: "https://www.taaze.tw/products/11100670630.html"
+"220251642":  # Small Things Like These
+  title: "像這樣的小事"
+  author: "克萊爾．吉根"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210364019000101"
+"58980518":  # Frog
+  title: "蛙"
+  author: "莫言"
+  publisher: "麥田"
+  source: "https://www.taaze.tw/products/11100200653.html"
+"193755":  # The Diving Bell and the Butterfly: A Memoir of Life in Death
+  title: "潛水鐘與蝴蝶"
+  author: "尚-多明尼克．鮑比"
+  publisher: "大塊文化"
+  source: "https://www.books.com.tw/products/0010887366"
+"348":  # The Door Into Summer
+  title: "夏之門"
+  author: "羅伯特．A．海萊因"
+  publisher: "獨步文化"
+  source: "https://readmoo.com/book/210117104000101"
+"36540959":  # The Brief and Frightening Reign of Phil
+  title: "統治者菲爾的瘋狂崛起"
+  author: "喬治．桑德斯"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210266875000101"
+"22908":  # The Blue Octavo Notebooks
+  title: "卡夫卡遺稿集"
+  author: "法蘭茲．卡夫卡"
+  publisher: "木馬文化"
+  source: "https://readmoo.com/book/210340738000101"
+"553791":  # Particularily Cats & Rufus
+  title: "特別的貓"
+  author: "多麗絲．萊辛"
+  publisher: "時報出版"
+  source: "https://search.books.com.tw/search/query/cat/all/adv_author/1/key/彭倩文"
+"883235":  # The Shell Collector
+  title: "拾貝人"
+  author: "安東尼．杜爾"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210094839000101"
+"54776222":  # The Phone Booth at the Edge of the World
+  title: "風之電話亭"
+  author: "勞烏拉．伊麥．梅希納"
+  publisher: "啟明出版"
+  source: "https://readmoo.com/book/210166964000101"
+"7588":  # A Portrait of the Artist as a Young Man
+  title: "一個青年藝術家的畫像"
+  author: "詹姆斯．喬伊斯"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210246611000101"
+"24019191":  # The Virgin Suicides
+  title: "少女死亡日記"
+  author: "傑佛瑞．尤金尼德斯"
+  publisher: "時報出版"
+  source: "https://www.books.com.tw/products/0010567163"
+"18708208":  # Levels of Life
+  title: "生命的測量"
+  author: "朱利安‧拔恩斯"
+  publisher: "麥田"
+  source: "https://www.taaze.tw/products/11100839388.html"
+"40338442":  # The White Book
+  title: "白"
+  author: "韓江"
+  publisher: "漫遊者文化"
+  source: "https://readmoo.com/book/210116352000101"
+"46262177":  # Farewell, My Lovely (Philip Marlowe, #2)
+  title: "再見，吾愛"
+  author: "瑞蒙．錢德勒"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210193081000101"
+"417466":  # La Symphonie pastorale
+  title: "田園交響曲"
+  author: "安德烈．紀德"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210308070000101"
+"26223716":  # 困難的愛故事集
+  title: "困難的愛故事集"
+  author: "伊塔羅．卡爾維諾"
+  publisher: "時報出版"
+  source: "https://readmoo.com/book/210314743000101"

@@ -3721,10 +3721,10 @@
   "added": "2025-01-06",
   "shelves": [],
   "url": "https://www.goodreads.com/book/show/3329568",
-  "cover": null,
-  "color": null,
-  "ink": null,
-  "ratio": null,
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1580591491i/3329568.jpg",
+  "color": "#ccb4b5",
+  "ink": "#1c1a17",
+  "ratio": 0.584,
   "read_count": 1
  },
  {
@@ -3737,10 +3737,10 @@
   "added": "2025-01-05",
   "shelves": [],
   "url": "https://www.goodreads.com/book/show/127081568",
-  "cover": null,
-  "color": null,
-  "ink": null,
-  "ratio": null,
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1681048992i/127081568.jpg",
+  "color": "#cdc0b7",
+  "ink": "#1c1a17",
+  "ratio": 0.676,
   "read_count": 1
  },
  {
@@ -3833,10 +3833,10 @@
   "added": "2024-12-30",
   "shelves": [],
   "url": "https://www.goodreads.com/book/show/6692745",
-  "cover": null,
-  "color": null,
-  "ink": null,
-  "ratio": null,
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1320493431i/6692745.jpg",
+  "color": "#84716a",
+  "ink": "#f7f3ea",
+  "ratio": 0.624,
   "read_count": 1
  },
  {
@@ -3849,10 +3849,10 @@
   "added": "2026-10-11",
   "shelves": [],
   "url": "https://www.goodreads.com/book/show/52036",
-  "cover": null,
-  "color": null,
-  "ink": null,
-  "ratio": null,
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1629378189i/52036.jpg",
+  "color": "#3b3488",
+  "ink": "#f7f3ea",
+  "ratio": 0.591,
   "read_count": 1
  },
  {
