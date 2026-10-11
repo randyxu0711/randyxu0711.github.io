@@ -1,87 +1,127 @@
-{%- comment -%}
-  關於頁。內容在 _data/profile.yml,這裡只負責版面。參數:lang(zh / en)。
-  技能的 items 可以是一份清單(中英相同),或 { zh: […], en: […] }。
-{%- endcomment -%}
 {%- assign pf = site.data.profile -%}
 {%- assign L = include.lang -%}
-<div class="lang-{{ L }}" lang="{% if L == 'en' %}en{% else %}zh-Hant{% endif %}">
-{%- comment -%} 頁首跟下面的 .cv-row 用同一組兩欄格線:頭像在左欄、文字在右欄,整頁對齊同一條線 {%- endcomment -%}
-<header class="profile">
-  <img class="coin" src="{{ pf.avatar | relative_url }}" alt="{{ pf.name }}" width="120" height="120" decoding="async">
-  <div class="profile-text">
-    <h1>{{ pf.name }}</h1>
-    <p class="role">{{ pf.role[L] }}</p>
-    {%- for para in pf.intro[L] %}
-    <p class="intro">{{ para }}</p>
-    {%- endfor %}
+<div class="as lang-{{ L }}" lang="{% if L == 'en' %}en{% else %}zh-Hant{% endif %}">
+<header class="as-hero">
+  <div class="as-hero-in">
+    <img class="coin" src="{{ pf.avatar | relative_url }}" alt="{{ pf.name }}" width="120" height="120" decoding="async">
+    <div>
+      <h1>{{ pf.name }}</h1>
+      <p class="as-role">{{ pf.role[L] }}</p>
+    </div>
   </div>
+  <p class="as-cue" aria-hidden="true">{% if L == 'en' %}Scroll{% else %}往下捲{% endif %} ↓</p>
 </header>
-<div class="cv">
-  {%- if pf.exploring.size > 0 %}
-  <section class="cv-row">
-    <h2>{{ pf.headings.exploring[L] }}</h2>
-    <div class="content explore">
-      {%- for x in pf.exploring %}
-      <div><strong>{{ x.title[L] }}</strong><p>{{ x.text[L] }}</p></div>
+
+<section class="as-intro">
+  {%- for para in pf.intro[L] %}
+  <p>{{ para }}</p>
+  {%- endfor %}
+</section>
+
+{%- if pf.exploring.size > 0 %}
+<section class="as-row">
+  <h2 class="as-h">{{ pf.headings.exploring[L] }}</h2>
+  <ol class="as-content as-now">
+    {%- for x in pf.exploring %}
+    <li data-in><h3>{{ x.title[L] }}</h3><p>{{ x.text[L] }}</p></li>
+    {%- endfor %}
+  </ol>
+</section>
+{%- endif %}
+
+{%- if site.data.projects.size > 0 %}
+<section class="as-projects">
+  <h2 class="as-h">{{ pf.headings.projects[L] }}</h2>
+  {%- for pr in site.data.projects %}
+  {%- assign img = pr.image | default: '' -%}
+  {%- if img == '' -%}{%- assign img = 'https://opengraph.githubassets.com/1/' | append: pr.repo -%}{%- else -%}{%- assign img = img | relative_url -%}{%- endif -%}
+  {%- assign steps = pr.story -%}
+  {%- assign total = steps.size | plus: 1 -%}
+  <div class="as-proj" data-proj>
+    <div class="as-stage">
+      <div class="as-stack">
+        <figure class="as-shot" data-i="0"><div class="slab as-slab" data-tilt="3"><div class="as-win">
+          {%- if pr.video %}<video src="{{ pr.video | relative_url }}" poster="{{ img }}" muted loop playsinline preload="none" aria-hidden="true"></video>{% else %}<img src="{{ img }}" alt="" decoding="async">{% endif -%}
+        </div></div></figure>
+        {%- assign k = 0 %}{% assign prev = '' %}
+        {%- for st in steps %}
+        {%- if st.shot and st.shot != prev %}{% assign k = k | plus: 1 %}{% assign prev = st.shot %}
+        <figure class="as-shot" data-i="{{ k }}"><div class="slab as-slab" data-tilt="3"><div class="as-win"><img src="{{ st.shot | relative_url }}" alt="" loading="lazy" decoding="async"></div></div></figure>
+        {%- endif %}
+        {%- endfor %}
+      </div>
+      <p class="as-count"><span data-cur>01</span> / {% if total < 10 %}0{% endif %}{{ total }}</p>
+    </div>
+    <div class="as-steps">
+      <div class="as-step" data-step="0" data-shot="0">
+        <h3>{{ pr.name }}</h3>
+        <p>{{ pr.summary[L] }}</p>
+        <div class="as-stack-tags">{% for s in pr.stack %}<span class="tag">{{ s | escape }}</span>{% endfor %}</div>
+        <a href="https://github.com/{{ pr.repo }}" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+      {%- assign k = 0 %}{% assign prev = '' %}
+      {%- for st in steps %}
+      {%- if st.shot and st.shot != prev %}{% assign k = k | plus: 1 %}{% assign prev = st.shot %}{% endif %}
+      <div class="as-step" data-step="{{ forloop.index }}" data-shot="{{ k }}"{% if st.focus %} data-focus="{{ st.focus }}"{% endif %}>
+        <span class="as-num">0{{ forloop.index | plus: 1 }}</span>
+        {%- if st.stat %}<p class="as-big">{{ st.stat }}<small>{{ st.stat_label[L] }}</small></p>{% endif %}
+        <h4>{{ st.title[L] }}</h4>
+        <p class="as-detail">{{ st.text[L] }}</p>
+        {%- if st.code %}<pre class="groove as-code"><code>{{ st.code | escape }}</code></pre>{% endif %}
+      </div>
       {%- endfor %}
     </div>
-  </section>
-  {%- endif %}
-  {%- if site.data.projects.size > 0 %}
-  <section class="cv-row">
-    <h2>{{ pf.headings.projects[L] }}</h2>
-    <div class="content"><div class="proj-grid">
-      {%- for pr in site.data.projects %}{% include project-card.html project=pr lang=L %}{% endfor %}
-    </div></div>
-  </section>
-  {%- endif %}
-  {%- if pf.experience.size > 0 %}
-  <section class="cv-row">
-    <h2>{{ pf.headings.experience[L] }}</h2>
-    <div class="content">
-      {%- for job in pf.experience %}
-      <div class="job">
-        <div class="job-head"><strong>{{ job.org[L] }}{% if L == 'en' %}, {% else %},{% endif %}{{ job.title[L] }}</strong><span>{{ job.when[L] }}</span></div>
-        {%- if job.lead %}<p>{{ job.lead[L] }}</p>{% endif %}
-        {%- if job.items %}
-        <ul class="job-items">
-          {%- for it in job.items[L] -%}
-          {%- comment -%} 「**標題**:內容」拆成標題一行、內容一行;沒有標題的條目照原樣顯示 {%- endcomment -%}
-          {%- assign parts = it | split: "**:" -%}
-          {%- if parts.size > 1 %}
-          <li><strong>{{ parts[0] | remove_first: "**" }}</strong>{{ parts[1] | strip }}</li>
-          {%- else %}
-          <li>{{ it }}</li>
-          {%- endif -%}
-          {%- endfor %}
-        </ul>
+  </div>
+  {%- endfor %}
+</section>
+{%- endif %}
+
+{%- if pf.experience.size > 0 %}
+<section class="as-row">
+  <h2 class="as-h">{{ pf.headings.experience[L] }}</h2>
+  <div class="as-content as-tl">
+    <span class="as-tl-fill" aria-hidden="true"></span>
+    {%- for job in pf.experience %}
+    <div class="as-job" data-in>
+      <div class="job-head"><strong>{{ job.org[L] }}{% if L == 'en' %}, {% else %}，{% endif %}{{ job.title[L] }}</strong><span>{{ job.when[L] }}</span></div>
+      {%- if job.lead %}<p class="as-lead">{{ job.lead[L] }}</p>{% endif %}
+      {%- for it in job.items[L] -%}
+      {%- assign parts = it | split: "**:" -%}
+      <div class="as-item" data-in>
+        {%- if parts.size > 1 %}
+        <strong>{{ parts[0] | remove_first: "**" }}</strong><p>{{ parts[1] | strip }}</p>
+        {%- else %}
+        <p>{{ it }}</p>
         {%- endif %}
       </div>
       {%- endfor %}
     </div>
-  </section>
-  {%- endif %}
-  {%- if pf.skills.size > 0 %}
-  <section class="cv-row">
-    <h2>{{ pf.headings.skills[L] }}</h2>
-    <div class="content"><dl class="skills">
-      {%- for s in pf.skills %}
-      {%- assign items = s.items -%}
-      {%- if s.items[L] %}{% assign items = s.items[L] %}{% endif %}
-      <dt>{{ s.name[L] }}</dt><dd>{% for it in items %}<span class="tag">{{ it }}</span>{% endfor %}</dd>
-      {%- endfor %}
-    </dl></div>
-  </section>
-  {%- endif %}
-  {%- if pf.education.size > 0 %}
-  <section class="cv-row">
-    <h2>{{ pf.headings.education[L] }}</h2>
-    <div class="content">
-      {%- for ed in pf.education %}
-      <div class="job-head"><strong>{{ ed.school[L] }}</strong><span>{{ ed.when }}</span></div>
-      {%- endfor %}
-    </div>
-  </section>
-  {%- endif %}
-</div>
+    {%- endfor %}
+  </div>
+</section>
+{%- endif %}
+
+{%- if pf.skills.size > 0 %}
+<section class="as-row">
+  <h2 class="as-h">{{ pf.headings.skills[L] }}</h2>
+  <div class="as-content"><dl class="skills">
+    {%- for s in pf.skills %}
+    {%- assign items = s.items -%}
+    {%- if s.items[L] %}{% assign items = s.items[L] %}{% endif %}
+    <dt>{{ s.name[L] }}</dt><dd data-in>{% for it in items %}<span class="key as-key" style="--i:{{ forloop.index0 }}">{{ it }}</span>{% endfor %}</dd>
+    {%- endfor %}
+  </dl></div>
+</section>
+{%- endif %}
+
+{%- if pf.education.size > 0 %}
+<section class="as-row">
+  <h2 class="as-h">{{ pf.headings.education[L] }}</h2>
+  <div class="as-content">
+    {%- for ed in pf.education %}
+    <div class="job-head"><strong>{{ ed.school[L] }}</strong><span>{{ ed.when }}</span></div>
+    {%- endfor %}
+  </div>
+</section>
+{%- endif %}
 </div>

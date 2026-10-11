@@ -66,7 +66,7 @@ html.js .books .tier.packed .bay { grid-template-columns: minmax(0, 1fr); }
 .spine { inset: 0; border-radius: 2px 2px 1px 1px; overflow: hidden; color: var(--bink);
   background: linear-gradient(90deg, oklch(0 0 0 / 0.28), oklch(1 0 0 / 0.14) 22%, oklch(1 0 0 / 0.06) 50%, oklch(1 0 0 / 0.14) 78%, oklch(0 0 0 / 0.3)), var(--col);
   writing-mode: vertical-rl; text-orientation: mixed; display: flex; justify-content: center; align-items: center;
-  padding: 0.9em 0 0.77em; font-size: 0.78rem; font-weight: 500; line-height: 1; transition: box-shadow 200ms; }
+  padding: 0.9em 0 0.77em; font-family: var(--font-display); font-size: 0.78rem; font-weight: 600; line-height: 1; transition: box-shadow 200ms; }
 /* 書名的字級 = 書脊可用高度 ÷ 書名長度(--len,建置時算好,book-3d.html),介於 0.72 倍與原字級之間;
    長度多算 12%,書名兩端留點空,不要剛好頂到。還是放不下才用 … 截斷。用 em,拿起來放大時跟著書脊的字一起放大 */
 .spine .ti { --len: var(--len-zh, 10); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 100%;
@@ -82,7 +82,7 @@ html[data-lang="en"] .spine .ti { --len: var(--len-en, 10); }
 /* 封面圖載入失敗時:書名排在書的顏色上 */
 .cover-fallback { position: absolute; inset: 0; display: grid; align-content: space-between; padding: 14% 12%; color: var(--bink);
   background: linear-gradient(160deg, oklch(1 0 0 / 0.16), transparent 45%), var(--col); }
-.cover-fallback .ti { font-size: 0.95rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
+.cover-fallback .ti { font-family: var(--font-display); font-size: 0.95rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
 .cover-fallback .au { font-size: 0.7rem; opacity: 0.8; }
 
 /* 封底:上(書名、另一種語言的書名、作者)/ 中(閱讀紀錄)/ 下(頁數與 Goodreads,貼底)。星等在每層的標題,不重複 */
@@ -91,7 +91,7 @@ html[data-lang="en"] .spine .ti { --len: var(--len-en, 10); }
   padding: 1.2em 1.1em 1em; box-sizing: border-box; display: flex; flex-direction: column; gap: 0.75em;
   font-size: clamp(0.85rem, calc(var(--w) * 0.06), 1.05rem); line-height: 1.45; overflow: hidden; }
 .bk-head { display: grid; gap: 0.2em; }
-.bk-title { font-size: 1.25em; font-weight: 700; line-height: 1.3; }
+.bk-title { font-family: var(--font-display); font-size: 1.25em; font-weight: 700; line-height: 1.3; }
 .bk-alt, .bk-au { opacity: 0.8; }
 .bk-rule { display: block; height: 1px; background: currentColor; opacity: 0.22; flex: none; }
 .bk-log { display: grid; gap: 0.15em; }

@@ -7,5 +7,7 @@ hide_title: true
 wide: true
 order: 4
 ---
+<link rel="stylesheet" href="{{ '/assets/css/about.css' | relative_url }}?v={{ site.time | date: '%s' }}">
 {% include about.html lang="zh" %}
 {% include about.html lang="en" %}
+<script defer src="{{ '/assets/js/about.js' | relative_url }}?v={{ site.time | date: '%s' }}"></script>
