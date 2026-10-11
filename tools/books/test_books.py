@@ -181,3 +181,20 @@ def test_fetch_page_raises_on_empty_response(monkeypatch):
     monkeypatch.setattr(books, "_get", lambda url: b"")
     with pytest.raises(RuntimeError, match="空白"):
         books.fetch_page("1")
+
+
+def test_apply_fixes_overrides_only_read_date_and_count():
+    items = [{"id": "1", "title": "A", "read": "2024-02-07", "read_count": 3, "rating": 4},
+             {"id": "2", "title": "B", "read": "2024-01-01", "read_count": 2, "rating": 3}]
+    books.apply_fixes(items, {"1": {"read": "2025-03-19", "read_count": 2, "title": "X"}, "2": {"read_count": 1}, "9": {"read_count": 5}})
+    assert items[0] == {"id": "1", "title": "A", "read": "2025-03-19", "read_count": 2, "rating": 4}
+    assert items[1]["read"] == "2024-01-01" and items[1]["read_count"] == 1
+
+
+def test_run_applies_books_fix_file(tmp_path):
+    bid = rows()[0]["Book Id"]
+    (tmp_path / "books_fix.json").write_text(json.dumps({bid: {"read": "2020-05-05", "read_count": 7}}), encoding="utf-8")
+    books.run(FIX / "goodreads_export.csv", tmp_path, hide_shelf="hide",
+              fetch_page=lambda i: "", fetch_image=lambda u: b"", sleep=lambda s: None)
+    b = next(x for x in json.loads((tmp_path / "books.json").read_text(encoding="utf-8")) if x["id"] == bid)
+    assert b["read"] == "2020-05-05" and b["read_count"] == 7
