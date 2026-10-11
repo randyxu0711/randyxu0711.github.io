@@ -124,6 +124,11 @@
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1320492158i/125432.jpg",
   "ratio": 0.631
  },
+ "127081568": {
+  "color": "#cdc0b7",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1681048992i/127081568.jpg",
+  "ratio": 0.676
+ },
  "1276137": {
   "color": "#3c3631",
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1355133033i/1276137.jpg",
@@ -659,6 +664,11 @@
   "cover": "https://s.gr-assets.com/assets/facebook/goodreads_wide-e23f6858b6bf20dcaf8493237a214a0e.png",
   "ratio": 1.911
  },
+ "3329568": {
+  "color": "#ccb4b5",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1580591491i/3329568.jpg",
+  "ratio": 0.584
+ },
  "3329813": {
   "color": "#b68d85",
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1347398893i/3329813.jpg",
@@ -859,6 +869,11 @@
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1175375786i/509675.jpg",
   "ratio": 0.661
  },
+ "52036": {
+  "color": "#3b3488",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1629378189i/52036.jpg",
+  "ratio": 0.591
+ },
  "52744975": {
   "color": "#86b880",
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1585333938i/52744975.jpg",
@@ -1033,6 +1048,11 @@
   "color": "#63654e",
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1489621832i/6617921.jpg",
   "ratio": 0.688
+ },
+ "6692745": {
+  "color": "#84716a",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1320493431i/6692745.jpg",
+  "ratio": 0.624
  },
  "67141": {
   "color": "#938155",
