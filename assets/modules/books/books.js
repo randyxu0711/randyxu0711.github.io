@@ -12,13 +12,13 @@
   // ── 依寬度分格:由 _includes/books-pack.html(書架後面的行內 script)提供,首次繪製前就分好 ──
   function pack(forView) { if (window.booksPack) window.booksPack(forView); }
 
-  // ── 封面畫質:先載 150px(src),封面排法捲到附近、或拿起來放大時換成 400px(data-big)──
+  // ── 封面畫質:先載 150px(src),拿起來放大時換成 400px(data-big);封面排法捲到附近時,只有 150px 不夠清楚的螢幕才換 ──
   // 換 src 時瀏覽器會先留著舊圖,等新圖載好才換上,所以只會變清楚、不會閃白。書脊排法只露出側面,維持 150px
   function upgrade(img) {
     if (img && img.dataset.big && img.src !== img.dataset.big && img.src !== img.dataset.orig) img.src = img.dataset.big;
   }
   var io = 'IntersectionObserver' in window ? new IntersectionObserver(function (entries) {
-    if (view() !== 'covers') return;
+    if (view() !== 'covers' || coverWidth() * (window.devicePixelRatio || 1) <= 160) return;
     entries.forEach(function (e) { if (e.isIntersecting) e.target.querySelectorAll('.cover img').forEach(upgrade); });
   }, { rootMargin: '300px 0px' }) : null;
   // 分格會換掉每一排,每次分完重新觀察。觀察外層 .row-wrap(content-visibility 在它身上),
@@ -192,7 +192,11 @@
   });
   document.addEventListener('click', function (e) {
     if (!stage || !e.target.closest('.book-stage')) return;
-    if (e.target.closest('a')) return;              // 封底的 Goodreads 連結照常開
+    if (e.target.closest('a')) return;
+    // 3D 的書面不參與點擊判定(點到的是外框),封底的連結改用位置判斷;鍵盤 Tab 到連結照常開
+    var link = stage.clone.classList.contains('rear') && stage.clone.querySelector('.back a');
+    var r = link && link.getBoundingClientRect();
+    if (r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) { window.open(link.href, '_blank', 'noopener'); return; }
     if (e.target.closest('.lifted')) flip(); else drop();
   });
   document.addEventListener('keydown', function (e) {
