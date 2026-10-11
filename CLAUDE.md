@@ -65,7 +65,9 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   (封面網址與主色快取在 `_data/book_covers.json`),commit 這兩個檔。
 - **CSV 永遠不進 repo**(含 Private Notes、心得、想讀清單):放在 `/books/`,已 gitignore,`_config.yml` 也排除。
 - 只輸出 read 書架、不在 `books.hide_shelf` 的書;輸出永遠不含 Private Notes 與 My Review。
-- 不抓 Goodreads 的 RSS(`robots.txt` 禁止 `/review/list_rss`);封面從書頁 `/book/show/<id>` 的 og:image 取得。
+- 不抓 Goodreads 的 RSS(`robots.txt` 禁止 `/review/list_rss`)。封面**先用 ISBN 組 Amazon CDN 網址**(`m.media-amazon.com/images/P/<ISBN10>.01.L.jpg`,
+  佔位圖不算),沒有 ISBN 或 Amazon 沒圖才抓書頁 `/book/show/<id>` 的 og:image。**Goodreads 書頁不要連續大量抓**:
+  AWS WAF 很快就回 202 空白頁擋下,一擋就是幾小時。
 - 書單是空的或 books 模組關掉時,`_plugins/books-page.rb` 不產生 `/books/`,導覽列也不顯示。
 - **3D 書架**(`_layouts/books.html`、`_includes/book-3d.html`、`assets/modules/books/`):每層是書櫃隔間(`_includes/book-cab.html`),
   書是 5 面的 3D 盒子,厚度 = 頁數、高度 = 封面比例(`ratio`,`books.py` 下載封面時量)。書脊 / 封面兩種排法是同一批書轉向,

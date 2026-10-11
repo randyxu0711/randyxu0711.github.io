@@ -3,7 +3,8 @@
 用法: python books.py <goodreads_library_export.csv> <data_dir> [hide_shelf]
 - 只輸出 read 書架、且不在 hide_shelf 的書。
 - 永遠不輸出 Private Notes 與 My Review。
-- 封面從 Goodreads 書頁的 og:image 取得,只抓快取裡沒有的;成功的才進快取。
+- 封面先用 ISBN 組 Amazon CDN 網址(不碰 Goodreads),沒有 ISBN 或 Amazon 沒圖才抓 Goodreads 書頁的 og:image;
+  只抓快取裡沒有的,成功的才進快取。
 - 主色用 Pillow 算(只有這裡需要 Pillow)。
 - 用 issue 加的書(_data/books_added.json)會合進來,同一本以 CSV 為準。
 - _data/books_fix.json 修正 Goodreads 匯出不對的讀完日期與次數(id → {read, read_count})。
@@ -22,6 +23,7 @@ from pathlib import Path
 
 USER_AGENT = "Mozilla/5.0 (compatible; ShareBot/1.0; +https://randyxu0711.github.io)"
 BOOK_URL = "https://www.goodreads.com/book/show/{}"
+AMAZON_COVER = "https://m.media-amazon.com/images/P/{}.01.L.jpg"
 INK_DARK, INK_LIGHT = "#1c1a17", "#f7f3ea"
 
 
@@ -44,6 +46,19 @@ def _int(s):
         return None
 
 
+def isbn10(row):
+    """匯出檔的 ISBN 是 ="0140186476" 這種形式;沒有 ISBN-10 時由 978 開頭的 ISBN-13 換算。"""
+    a = "".join(c for c in (row.get("ISBN") or "") if c.isdigit() or c == "X")
+    if len(a) == 10:
+        return a
+    b = "".join(c for c in (row.get("ISBN13") or "") if c.isdigit())
+    if len(b) == 13 and b.startswith("978"):
+        core = b[3:12]
+        d = (11 - sum((10 - i) * int(c) for i, c in enumerate(core)) % 11) % 11
+        return core + ("X" if d == 10 else str(d))
+    return None
+
+
 def select(rows, hide_shelf):
     out = []
     for r in rows:
@@ -64,6 +79,7 @@ def select(rows, hide_shelf):
             "cover": None, "color": None, "ink": None, "ratio": None,
             # 匯出檔只有「最近一次」的讀完日期加上次數;在 read 書架上至少讀過一次
             "read_count": _int(r.get("Read Count")) or 1,
+            "_isbn10": isbn10(r),
         })
     return out
 
@@ -140,24 +156,41 @@ def fetch_image(url):
     return _get(url)
 
 
+def amazon_cover(isbn, fetch_image):
+    """Amazon 沒有這本的圖時回 1×1 的佔位圖(幾十位元組);當成沒有。"""
+    if not isbn:
+        return None, None
+    url = AMAZON_COVER.format(isbn)
+    try:
+        data = fetch_image(url)
+    except Exception:
+        return None, None
+    return (url, data) if data and len(data) > 1000 else (None, None)
+
+
 def fill_covers(items, cache, fetch_page=fetch_page, fetch_image=fetch_image,
                 sleep=time.sleep, color=dominant_color, measure=cover_ratio):
-    """回傳實際連網的次數。快取裡沒有的書抓書頁 + 圖片;舊快取缺比例的只重抓圖片。"""
+    """回傳實際連網的次數。快取裡沒有的書先試 Amazon,再退回 Goodreads 書頁;舊快取缺比例的只重抓圖片。"""
     fetched = 0
     for b in items:
         hit = cache.get(b["id"])
         if hit is None:
             fetched += 1
+            cover, data = amazon_cover(b.get("_isbn10"), fetch_image)
+            used_goodreads = False
             try:
-                cover = extract_cover(fetch_page(b["id"]))
-                data = fetch_image(cover) if cover else None
+                if not cover:
+                    used_goodreads = True
+                    cover = extract_cover(fetch_page(b["id"]))
+                    data = fetch_image(cover) if cover else None
                 hit = {"cover": cover, "color": color(data) if data else None, "ratio": measure(data) if data else None}
                 if cover:
                     cache[b["id"]] = hit
             except Exception as e:  # 抓不到就先不放封面,下次再試
                 print(f"{b['id']} {b['title']}:抓不到封面({e})")
                 hit = None
-            sleep(3)   # 對 Goodreads 客氣一點:1 秒一頁連抓幾十頁會被 AWS WAF 暫時擋下(回 202 空白頁)
+            if used_goodreads:
+                sleep(3)   # 對 Goodreads 客氣一點:連抓幾十頁會被 AWS WAF 暫時擋下(回 202 空白頁)
         elif hit.get("cover") and "ratio" not in hit:
             fetched += 1
             try:
@@ -183,6 +216,8 @@ def run(csv_path, data_dir, hide_shelf="hide", **fetchers):
     added = json.loads(added_path.read_text(encoding="utf-8")) if added_path.exists() else []
     csv_ids = {b["id"] for b in items}
     items = sort_books(items + [b for b in added if b["id"] not in csv_ids])
+    for b in items:
+        b.pop("_isbn10", None)
     data_dir.mkdir(parents=True, exist_ok=True)
     (data_dir / "books.json").write_text(
         json.dumps(items, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
