@@ -6,6 +6,7 @@
 - 封面從 Goodreads 書頁的 og:image 取得,只抓快取裡沒有的;成功的才進快取。
 - 主色用 Pillow 算(只有這裡需要 Pillow)。
 - 用 issue 加的書(_data/books_added.json)會合進來,同一本以 CSV 為準。
+- _data/books_fix.json 修正 Goodreads 匯出不對的讀完日期與次數(id → {read, read_count})。
 CSV 本身含私人資料,不要 commit(books/ 在 .gitignore)。
 """
 
@@ -65,6 +66,15 @@ def select(rows, hide_shelf):
             "read_count": _int(r.get("Read Count")) or 1,
         })
     return out
+
+
+def apply_fixes(items, fixes):
+    for b in items:
+        fix = fixes.get(b["id"]) or {}
+        for k in ("read", "read_count"):
+            if k in fix:
+                b[k] = fix[k]
+    return items
 
 
 def sort_books(items):
@@ -162,7 +172,9 @@ def fill_covers(items, cache, fetch_page=fetch_page, fetch_image=fetch_image,
 
 def run(csv_path, data_dir, hide_shelf="hide", **fetchers):
     data_dir = Path(data_dir)
-    items = sort_books(select(parse_csv(Path(csv_path).read_bytes()), hide_shelf))
+    fix_path = data_dir / "books_fix.json"
+    fixes = json.loads(fix_path.read_text(encoding="utf-8")) if fix_path.exists() else {}
+    items = sort_books(apply_fixes(select(parse_csv(Path(csv_path).read_bytes()), hide_shelf), fixes))
     cache_path = data_dir / "book_covers.json"
     cache = json.loads(cache_path.read_text(encoding="utf-8")) if cache_path.exists() else {}
     fetched = fill_covers(items, cache, **fetchers)
