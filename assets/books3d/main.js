@@ -947,14 +947,28 @@ async function start() {
   updateTier(true);
 
   let fontsReady = false;
-  tex = createTextures(gl, books, dims, {
-    density: m.ppu * Math.min(window.devicePixelRatio || 1, 2),
-    fontsReady: () => fontsReady,
+  function loadTextures() {
+    tex = createTextures(gl, books, dims, {
+      density: m.ppu * Math.min(window.devicePixelRatio || 1, 2),
+      fontsReady: () => fontsReady,
+    });
+    gl.setTextures(tex.covers, null);
+    const center = cam.yTop - canvas.clientHeight / m.ppu / 2;
+    const distance = (i) => Math.abs(P[i * 4 + 1] + dims[i].h / 2 - center) * 4 + Math.abs(P[i * 4] - cam.cx);
+    tex.start(books.map((b, i) => i).sort((a, b) => distance(a) - distance(b)), invalidate);
+    if (fontsReady) tex.fontsChanged();
+  }
+  loadTextures();
+  canvas.addEventListener('webglcontextrestored', () => {
+    for (let i = 0; i < n; i++) {
+      gl.setState(i, 0, 0);
+      gl.setState(i, 3, 0);
+    }
+    loadTextures();
+    applyColors();
+    dirty = true;
+    invalidate();
   });
-  gl.setTextures(tex.covers, null);
-  const center = cam.yTop - canvas.clientHeight / m.ppu / 2;
-  const distance = (i) => Math.abs(P[i * 4 + 1] + dims[i].h / 2 - center) * 4 + Math.abs(P[i * 4] - cam.cx);
-  tex.start(books.map((b, i) => i).sort((a, b) => distance(a) - distance(b)), invalidate);
   const drawText = () => {
     fontsReady = true;
     tex.fontsChanged();

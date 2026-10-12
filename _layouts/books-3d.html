@@ -7,6 +7,21 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
 <link rel="stylesheet" href="{{ '/assets/books3d/books3d.css' | relative_url }}?v={{ v }}">
 <section class="b3d" id="b3d">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
+  <div class="b3d-bar" id="b3d-bar" hidden>
+    <div class="b3d-keys" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
+      <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">直立</button>
+      <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books3d.covers">陳列</button>
+    </div>
+    <div class="b3d-keys" role="group" aria-label="排序" data-i18n-attr="aria-label:books3d.sort">
+      {%- for k in site.data.i18n -%}
+        {%- assign key = k[0] -%}
+        {%- if key contains 'books3d.sort_' -%}
+          {%- assign name = key | remove: 'books3d.sort_' %}
+      <button type="button" class="key" data-sort-set="{{ name }}" aria-pressed="false" data-i18n="{{ key }}">{{ k[1].zh }}</button>
+        {%- endif -%}
+      {%- endfor %}
+    </div>
+  </div>
   <div class="b3d-list" id="b3d-list">
     {%- for r in ratings -%}
       {%- assign rn = r | plus: 0 -%}
@@ -28,21 +43,6 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
   <div class="b3d-scene" id="b3d-scene" hidden>
     <div class="b3d-tier empty" id="b3d-tier" aria-hidden="true"></div>
     <div class="b3d-arrows" id="b3d-arrows"></div>
-  </div>
-  <div class="b3d-bar" id="b3d-bar" hidden>
-    <div class="b3d-keys" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
-      <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">直立</button>
-      <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books3d.covers">陳列</button>
-    </div>
-    <div class="b3d-keys" role="group" aria-label="排序" data-i18n-attr="aria-label:books3d.sort">
-      {%- for k in site.data.i18n -%}
-        {%- assign key = k[0] -%}
-        {%- if key contains 'books3d.sort_' -%}
-          {%- assign name = key | remove: 'books3d.sort_' %}
-      <button type="button" class="key" data-sort-set="{{ name }}" aria-pressed="false" data-i18n="{{ key }}">{{ k[1].zh }}</button>
-        {%- endif -%}
-      {%- endfor %}
-    </div>
   </div>
   <div class="b3d-held" id="b3d-held" role="dialog" aria-modal="true" tabindex="-1" hidden>
     <p class="visually-hidden" id="b3d-held-text"></p>
