@@ -50,3 +50,5 @@ html.js[data-theme="dark"] .b3d.lit::before { opacity: 0; animation: b3d-lamp 42
   html.js .b3d::before { transition: none; }
   html.js .b3d.lit::before { animation: none !important; }
 }
+.b3d-bar, .b3d-tier, .b3d-arrows { transition: opacity 200ms, visibility 200ms; }
+.b3d.holding :is(.b3d-bar, .b3d-tier, .b3d-arrows) { opacity: 0; visibility: hidden; pointer-events: none; }

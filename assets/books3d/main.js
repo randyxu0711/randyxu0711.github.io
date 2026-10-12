@@ -361,9 +361,13 @@ async function start() {
   function heldTarget() {
     const v = gl.view;
     const d = dims[held.i];
-    const dist = Math.max(d.h * v.D / (0.7 * v.hv), W * v.D / (0.8 * cam.span));
+    const ch = canvas.clientHeight;
+    const top = nav ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
+    const bottom = Math.min(window.innerHeight, ch);
+    const ppw = ch / v.hv;
+    const dist = Math.max(d.h * v.D * ppw / (Math.max(120, bottom - top) * 0.85), W * v.D / (0.8 * cam.span));
     const k = dist / v.D;
-    const fy = cam.yTop - v.hv / 2;
+    const fy = cam.yTop - (top + bottom) / 2 / ppw;
     return { x: cam.cx, y: lerp(v.eyeY, fy, k) - d.h / 2, z: lerp(v.D, 0, k) };
   }
 
@@ -451,6 +455,7 @@ async function start() {
       if (b !== undefined) lnT[b] = Math.min(LEAN, Math.asin(Math.min(1, (gap - 1) / dims[b].h)));
     }
     heldEl.hidden = false;
+    root.classList.add('holding');
     heldEl.classList.remove('rear');
     heldEl.setAttribute('aria-label', titleOf(books[i]));
     heldText.textContent = describe(i);
@@ -486,6 +491,7 @@ async function start() {
     const back = held.returnTo;
     const inside = heldEl.contains(document.activeElement);
     heldEl.hidden = true;
+    root.classList.remove('holding');
     heldEl.classList.remove('rear');
     if (inside && back) back.focus({ preventScroll: true });
     invalidate();

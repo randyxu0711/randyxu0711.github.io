@@ -381,58 +381,71 @@ export function drawBack(b, w, h, t) {
   c.width = cw;
   c.height = ch;
   const g = c.getContext('2d');
-  g.fillStyle = b.c || '#888';
-  g.fillRect(0, 0, cw, ch);
-  const grad = g.createLinearGradient(0, 0, cw * 0.5, ch);
-  grad.addColorStop(0, 'rgba(255,255,255,0.12)');
-  grad.addColorStop(0.5, 'rgba(255,255,255,0)');
-  g.fillStyle = grad;
-  g.fillRect(0, 0, cw, ch);
-  const em = 13.6 * S;
-  const padX = 1.1 * em;
-  const maxW = cw - 2 * padX;
   const display = displayFont();
   const ui = getComputedStyle(document.documentElement).getPropertyValue('--font-ui').trim() || 'sans-serif';
   const l = lang();
-  g.fillStyle = b.k || '#f7f3ea';
-  g.textBaseline = 'top';
-  let y = 1.2 * em;
-  const para = (text, font, size, lh, alpha) => {
-    if (!text) return;
-    g.font = `${font.replace('%', (size * em).toFixed(1) + 'px')}`;
-    g.globalAlpha = alpha;
-    wrap(g, text, maxW).slice(0, 5).forEach((line) => {
-      g.fillText(line, padX, y);
-      y += size * em * lh;
-    });
+  const draw = (scale) => {
     g.globalAlpha = 1;
-  };
-  para(titleOf(b, l), `700 % ${display}`, 1.25, 1.3, 1);
-  const other = l === 'en' ? b.tz : b.t;
-  if (b.tz && b.tz !== b.t) {
+    g.fillStyle = b.c || '#888';
+    g.fillRect(0, 0, cw, ch);
+    const grad = g.createLinearGradient(0, 0, cw * 0.5, ch);
+    grad.addColorStop(0, 'rgba(255,255,255,0.12)');
+    grad.addColorStop(0.5, 'rgba(255,255,255,0)');
+    g.fillStyle = grad;
+    g.fillRect(0, 0, cw, ch);
+    const em = 13.6 * S * scale;
+    const padX = 1.1 * 13.6 * S;
+    const maxW = cw - 2 * padX;
+    g.fillStyle = b.k || '#f7f3ea';
+    g.textBaseline = 'top';
+    let y = 1.2 * em;
+    const para = (text, font, size, lh, alpha, max) => {
+      if (!text) return;
+      g.font = font.replace('%', (size * em).toFixed(1) + 'px');
+      g.globalAlpha = alpha;
+      const lines = wrap(g, text, maxW);
+      if (lines.length > max) {
+        lines.length = max;
+        let last = lines[max - 1];
+        while (last && g.measureText(last + '…').width > maxW) last = Array.from(last).slice(0, -1).join('');
+        lines[max - 1] = last.trimEnd() + '…';
+      }
+      lines.forEach((line) => {
+        g.fillText(line, padX, y);
+        y += size * em * lh;
+      });
+      g.globalAlpha = 1;
+    };
+    para(titleOf(b, l), `700 % ${display}`, 1.25, 1.3, 1, 4);
+    const other = l === 'en' ? b.tz : b.t;
+    if (b.tz && b.tz !== b.t) {
+      y += 0.2 * em;
+      para(other, `400 % ${ui}`, 1, 1.45, 0.8, 3);
+    }
     y += 0.2 * em;
-    para(other, `400 % ${ui}`, 1, 1.45, 0.8);
-  }
-  y += 0.2 * em;
-  para(authorOf(b, l), `400 % ${ui}`, 1, 1.45, 0.8);
-  y += 0.75 * em;
-  g.globalAlpha = 0.22;
-  g.fillRect(padX, y, maxW, S);
-  g.globalAlpha = 1;
-  y += 0.75 * em + S;
-  if (b.d) {
-    para(t('books.log'), `400 % ${ui}`, 0.88, 1.45, 0.7);
-    y += 0.1 * em;
-    para(t('books.read_in', b.d.slice(0, 4)), `400 % ${ui}`, 1, 1.45, 1);
-    if (b.n > 1) para(t('books.read_times', b.n), `400 % ${ui}`, 1, 1.45, 1);
-  }
-  if (b.p) {
-    g.font = `400 ${(0.9 * em).toFixed(1)}px ${ui}`;
-    g.globalAlpha = 0.8;
-    g.textBaseline = 'alphabetic';
-    g.fillText(t('books.pages', b.p), padX, ch - 1.4 * em);
+    para(authorOf(b, l), `400 % ${ui}`, 1, 1.45, 0.8, 2);
+    y += 0.75 * em;
+    g.globalAlpha = 0.22;
+    g.fillRect(padX, y, maxW, S);
     g.globalAlpha = 1;
-  }
+    y += 0.75 * em + S;
+    if (b.d) {
+      para(t('books.log'), `400 % ${ui}`, 0.88, 1.45, 0.7, 1);
+      y += 0.1 * em;
+      para(t('books.read_in', b.d.slice(0, 4)), `400 % ${ui}`, 1, 1.45, 1, 1);
+      if (b.n > 1) para(t('books.read_times', b.n), `400 % ${ui}`, 1, 1.45, 1, 1);
+    }
+    if (b.p) {
+      g.font = `400 ${(0.9 * em).toFixed(1)}px ${ui}`;
+      g.globalAlpha = 0.8;
+      g.textBaseline = 'alphabetic';
+      g.fillText(t('books.pages', b.p), padX, ch - 1.4 * em);
+      g.globalAlpha = 1;
+    }
+    return y <= ch - (b.p ? 2.8 : 1) * em;
+  };
+  let scale = 1;
+  while (!draw(scale) && scale > 0.6) scale *= 0.9;
   return c;
 }
 
