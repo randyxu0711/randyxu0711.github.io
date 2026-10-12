@@ -29,10 +29,9 @@ modules:           # 註解掉一行 = 關掉一個功能
   shelf-filter: { slots: [before-shelf] }
   seen:         { slots: [card-meta, footer] }
   archive:      { slots: [card-meta] }
-  books:        { slots: [] }
+  books:        { slots: [], assets: false }
 
 books:
-  default_view: covers   # spines / covers
   hide_shelf: hide
 
 plugins:

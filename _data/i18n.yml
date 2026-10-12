@@ -35,7 +35,6 @@ archive.mark:    { zh: ",原文已下架,這是封存版", en: ", original remov
 
 books.view:      { zh: "排法", en: "View" }
 books.spines:    { zh: "直立", en: "Shelved" }
-books.covers:    { zh: "展示", en: "Displayed" }
 books.unrated:   { zh: "未評分", en: "Unrated" }
 books.count:     { zh: "{n} 本", en: "{n} books", en_one: "{n} book" }
 books.stars:     { zh: "{n} 顆星", en: "{n} stars", en_one: "{n} star" }
