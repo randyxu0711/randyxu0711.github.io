@@ -1,7 +1,7 @@
 import { layout, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'books3d/colors.js';
 import { createScene } from 'books3d/scene.js';
-import { createTextures, loadFonts } from 'books3d/textures.js';
+import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf } from 'books3d/textures.js';
 import { ease, easeInOut, lerp, clamp, approach } from 'books3d/anim.js';
 
 const root = document.getElementById('b3d');
@@ -9,6 +9,9 @@ const stage = document.getElementById('b3d-scene');
 const bar = document.getElementById('b3d-bar');
 const tier = document.getElementById('b3d-tier');
 const arrows = document.getElementById('b3d-arrows');
+const heldEl = document.getElementById('b3d-held');
+const heldText = document.getElementById('b3d-held-text');
+const grLink = document.getElementById('b3d-gr');
 const books = JSON.parse(document.getElementById('b3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
@@ -18,6 +21,9 @@ const SHUFFLE = 1600;
 const STAGGER = 400;
 const TURN = 600;
 const SLIDE_OUT = 14;
+const FLY = 620;
+const FLIP = 520;
+const LEAN = (7 * Math.PI) / 180;
 const STAR = '<svg class="%" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.6l2.55 5.4 5.9.72-4.35 4.06 1.12 5.86L10 14.76l-5.22 2.88 1.12-5.86L1.55 7.72l5.9-.72z"/></svg>';
 const CHEVRON = {
   prev: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -58,6 +64,13 @@ function start() {
   const P = new Float32Array(n * 4);
   const hv = new Float32Array(n);
   const hvT = new Float32Array(n);
+  const ln = new Float32Array(n);
+  const lnV = new Float32Array(n);
+  const lnT = new Float32Array(n);
+  const br = new Float32Array(n);
+  const brV = new Float32Array(n);
+  let held = null;
+  let dim = 0;
   let m = null;
   let trans = null;
   let shelfPose = [];
@@ -258,14 +271,215 @@ function start() {
     };
   }
 
+  const pose = { x: 0, y: 0, z: 0, rot: 0, sx: 1, sy: 1, sz: W, brush: 0, front: 0, lean: 0, pivot: 0 };
+  function bookPose(i, out) {
+    const d = dims[i];
+    const rot = P[i * 4 + 3];
+    out.x = P[i * 4];
+    out.y = P[i * 4 + 1];
+    out.z = P[i * 4 + 2] + hv[i] * SLIDE_OUT;
+    out.rot = rot;
+    out.sx = d.t;
+    out.sy = d.h;
+    out.sz = W;
+    out.brush = br[i];
+    out.front = out.z + (d.t * Math.abs(Math.sin(rot)) + W * Math.abs(Math.cos(rot))) / 2;
+    out.lean = ln[i];
+    out.pivot = out.x + (ln[i] > 0 ? -1 : 1) * footprint(i, rot) / 2;
+    return out;
+  }
+
   function writeBooks() {
     for (let i = 0; i < n; i++) {
-      const d = dims[i];
-      gl.setBook(i, P[i * 4], P[i * 4 + 1], P[i * 4 + 2] + hv[i] * SLIDE_OUT, P[i * 4 + 3], d.t, d.h, W);
+      bookPose(i, pose);
+      if (held && held.i === i) pose.sx = pose.sy = pose.sz = 1e-5;
+      gl.setBook(i, pose);
       gl.setState(i, 1, hv[i]);
     }
     gl.booksChanged();
     gl.setShelves(shelfPose);
+  }
+
+  function springs(dt) {
+    let active = false;
+    const steps = Math.ceil(dt * 240);
+    const h = dt / steps;
+    for (let i = 0; i < n; i++) {
+      if (ln[i] === lnT[i] && !lnV[i] && !br[i] && !brV[i]) continue;
+      active = true;
+      for (let k = 0; k < steps; k++) {
+        lnV[i] += (180 * (lnT[i] - ln[i]) - 15 * lnV[i]) * h;
+        ln[i] += lnV[i] * h;
+        brV[i] += (-160 * br[i] - 9 * brV[i]) * h;
+        br[i] += brV[i] * h;
+      }
+      if (Math.abs(ln[i] - lnT[i]) < 1e-4 && Math.abs(lnV[i]) < 1e-3) { ln[i] = lnT[i]; lnV[i] = 0; }
+      if (Math.abs(br[i]) < 1e-4 && Math.abs(brV[i]) < 1e-3) { br[i] = 0; brV[i] = 0; }
+    }
+    return active;
+  }
+
+  function kick(i, speed) {
+    if (reduce.matches || (held && held.i === i)) return;
+    brV[i] += Math.min(2.2, 0.4 + speed * 1.1);
+  }
+
+  function brushFrom(a, b, speed) {
+    if (a < 0 || b < 0 || a === b) return;
+    const ia = state.L.items[a];
+    const ib = state.L.items[b];
+    if (ia.shelf !== ib.shelf) {
+      kick(b, speed);
+      return;
+    }
+    const list = state.L.shelves[ia.shelf].list;
+    const step = ib.rank > ia.rank ? 1 : -1;
+    for (let j = ia.rank + step; j !== ib.rank + step; j += step) kick(list[j], speed);
+    invalidate();
+  }
+
+  function neighbours(i) {
+    const it = state.L.items[i];
+    const list = state.L.shelves[it.shelf].list;
+    return [list[it.rank - 1], list[it.rank + 1]];
+  }
+
+  function heldTarget() {
+    const v = gl.view;
+    const d = dims[held.i];
+    const dist = Math.max(d.h * v.D / (0.7 * v.hv), W * v.D / (0.8 * cam.span));
+    const k = dist / v.D;
+    const fy = cam.yTop - v.hv / 2;
+    return { x: cam.cx, y: lerp(v.eyeY, fy, k) - d.h / 2, z: lerp(v.D, 0, k) };
+  }
+
+  const heldPose = { x: 0, y: 0, z: 0, rot: 0, sx: 1, sy: 1, sz: W, brush: 0, front: 0, lean: 0, pivot: 0 };
+  function stepHeld(now) {
+    const h = held;
+    const ms = reduce.matches ? 0 : 1;
+    const e = ms ? ease(clamp((now - h.pt0) / FLY, 0, 1)) : 1;
+    const to = h.phase === 'down' ? { x: P[h.i * 4], y: P[h.i * 4 + 1], z: P[h.i * 4 + 2] } : heldTarget();
+    heldPose.x = lerp(h.pf.x, to.x, e);
+    heldPose.y = lerp(h.pf.y, to.y, e);
+    heldPose.z = lerp(h.pf.z, to.z, e);
+    const re = ms ? ease(clamp((now - h.rt0) / h.rdur, 0, 1)) : 1;
+    heldPose.rot = lerp(h.rf, h.rt, re);
+    heldPose.sx = dims[h.i].t;
+    heldPose.sy = dims[h.i].h;
+    gl.setHeld(heldPose);
+    const p = gl.project(-0.5, 23 / dims[h.i].h, 0.25);
+    grLink.style.transform = 'translate(' + p.x.toFixed(1) + 'px, ' + p.y.toFixed(1) + 'px) translate(-50%, -50%)';
+    const settled = e === 1 && re === 1;
+    if (h.phase === 'down') {
+      if (e > 0.6) neighbours(h.i).forEach((j) => { if (j !== undefined) lnT[j] = 0; });
+      if (e === 1) {
+        gl.holdBook(-1);
+        if (h.big) h.big.dispose();
+        h.back.dispose();
+        held = null;
+        dirty = true;
+        return true;
+      }
+    }
+    return !settled;
+  }
+
+  function describe(i) {
+    const b = books[i];
+    const parts = [titleOf(b) + ', ' + authorOf(b)];
+    if (b.d) parts.push(t('books.read_in', b.d.slice(0, 4)));
+    if (b.n > 1) parts.push(t('books.read_times', b.n));
+    if (b.p) parts.push(t('books.pages', b.p));
+    return parts.join(' · ');
+  }
+
+  function lift(i, returnTo) {
+    if (held) {
+      if (held.phase !== 'down') return;
+      finishNow();
+    }
+    const now = performance.now();
+    bookPose(i, pose);
+    const backTex = gl.canvasTexture(drawBack(books[i], W, dims[i].h, t));
+    held = {
+      i,
+      phase: 'up',
+      pf: { x: pose.x, y: pose.y, z: pose.z },
+      pt0: now,
+      rf: pose.rot,
+      rt: -Math.PI / 2,
+      rt0: now + (state.view === 'covers' ? 0 : 180),
+      rdur: FLIP,
+      rear: false,
+      back: backTex,
+      big: null,
+      returnTo: returnTo || null,
+    };
+    gl.holdBook(i, backTex);
+    const h = held;
+    const url = bigCover(books[i].cv);
+    if (url) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        if (held !== h || h.phase === 'down') return;
+        h.big = gl.imageTexture(img);
+        gl.heldCover(h.big);
+        invalidate();
+      };
+      img.src = url;
+    }
+    setHover(-1);
+    if (!reduce.matches) {
+      const [a, b] = neighbours(i);
+      const gap = footprint(i, P[i * 4 + 3]) / 2 + GAP;
+      if (a !== undefined) lnT[a] = -Math.min(LEAN, Math.asin(Math.min(1, (gap - 1) / dims[a].h)));
+      if (b !== undefined) lnT[b] = Math.min(LEAN, Math.asin(Math.min(1, (gap - 1) / dims[b].h)));
+    }
+    heldEl.hidden = false;
+    heldEl.classList.remove('rear');
+    heldEl.setAttribute('aria-label', titleOf(books[i]));
+    heldText.textContent = describe(i);
+    grLink.href = books[i].u;
+    heldEl.focus({ preventScroll: true });
+    dirty = true;
+    invalidate();
+  }
+
+  function flip(rear) {
+    if (!held || held.phase === 'down') return;
+    const now = performance.now();
+    held.rear = rear === undefined ? !held.rear : rear;
+    held.rf = heldPose.rot;
+    held.rt = held.rear ? -1.5 * Math.PI : -Math.PI / 2;
+    held.rt0 = now;
+    held.rdur = FLIP;
+    heldEl.classList.toggle('rear', held.rear);
+    invalidate();
+  }
+
+  function drop() {
+    if (!held || held.phase === 'down') return;
+    const now = performance.now();
+    const covers = state.view === 'covers';
+    held.phase = 'down';
+    held.pf = { x: heldPose.x, y: heldPose.y, z: heldPose.z };
+    held.pt0 = now;
+    held.rf = heldPose.rot;
+    held.rt = covers ? (held.rear ? -2.5 * Math.PI : -Math.PI / 2) : (held.rear ? -2 * Math.PI : 0);
+    held.rt0 = now;
+    held.rdur = FLY;
+    const back = held.returnTo;
+    const inside = heldEl.contains(document.activeElement);
+    heldEl.hidden = true;
+    heldEl.classList.remove('rear');
+    if (inside && back) back.focus({ preventScroll: true });
+    invalidate();
+  }
+
+  function finishNow() {
+    held.pt0 = held.rt0 = -1e9;
+    stepHeld(performance.now());
   }
 
   let raf = 0;
@@ -274,7 +488,7 @@ function start() {
     if (!raf) raf = requestAnimationFrame(frame);
   }
 
-  const pointer = { x: 0, y: 0, in: false, moved: false };
+  const pointer = { x: 0, y: 0, in: false, moved: false, speed: 0, time: 0 };
   let hovered = -1;
   let focused = -1;
 
@@ -319,10 +533,25 @@ function start() {
     }
 
     gl.frustum(cam);
-    if (pointer.in && !drag && (pointer.moved || camMoved || dirty)) {
+    if (pointer.in && !drag && !held && (pointer.moved || camMoved || dirty)) {
       pointer.moved = false;
       const hit = trans ? -1 : gl.pick(pointer.x, pointer.y);
-      if (hit !== hovered) setHover(hit);
+      if (hit !== hovered) {
+        brushFrom(hovered, hit, pointer.speed);
+        setHover(hit);
+      }
+    }
+    if (springs(dt)) {
+      dirty = true;
+      busy = true;
+    }
+    if (held && stepHeld(now)) busy = true;
+    const dimT = held && held.phase !== 'down' ? 0.4 : 0;
+    if (dim !== dimT) {
+      dim = reduce.matches ? dimT : approach(dim, dimT, dt, 10);
+      if (Math.abs(dim - dimT) < 0.003) dim = dimT;
+      gl.setDim(dim);
+      busy = true;
     }
     for (let i = 0; i < n; i++) {
       if (hv[i] === hvT[i]) continue;
@@ -470,6 +699,9 @@ function start() {
   });
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'mouse') {
+      const dtm = Math.max(1, e.timeStamp - pointer.time);
+      pointer.speed = 0.6 * pointer.speed + 0.4 * (Math.hypot(e.clientX - pointer.x, e.clientY - pointer.y) / dtm);
+      pointer.time = e.timeStamp;
       pointer.x = e.clientX;
       pointer.y = e.clientY;
       pointer.in = isScene(e.target);
@@ -482,13 +714,22 @@ function start() {
     const dy = e.clientY - drag.y0;
     if (!drag.mode) {
       if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy)) {
-        drag.mode = drag.s && drag.s.minOffset < 0 ? 'slide' : 'none';
+        drag.mode = drag.s && drag.s.minOffset < 0 ? 'slide' : 'brush';
         drag.x = e.clientX;
+        drag.hit = -1;
         if (drag.mode === 'slide') setHover(-1);
       } else if (Math.abs(dy) > 8) {
         drag = null;
         return;
       }
+    }
+    if (drag.mode === 'brush') {
+      const hit = gl.pick(e.clientX, e.clientY);
+      const speed = Math.abs(e.clientX - drag.x) / Math.max(1, e.timeStamp - drag.time);
+      if (hit >= 0 && drag.hit >= 0) brushFrom(drag.hit, hit, speed);
+      drag.hit = hit;
+      drag.x = e.clientX;
+      drag.time = e.timeStamp;
     }
     if (drag.mode === 'slide') {
       const step = (e.clientX - drag.x) / m.ppu;
@@ -503,6 +744,10 @@ function start() {
     const d = drag;
     drag = null;
     if (d.mode === 'slide' && !reduce.matches && e.timeStamp - d.time < 80) slide(d.s, d.v * 280);
+    if (!d.mode && e.type === 'pointerup' && !trans) {
+      const hit = gl.pick(e.clientX, e.clientY);
+      if (hit >= 0) lift(hit);
+    }
   };
   window.addEventListener('pointerup', endDrag);
   window.addEventListener('pointercancel', endDrag);
@@ -527,6 +772,27 @@ function start() {
     if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
     const s = shelfAt(window.innerHeight / 2);
     if (s && slide(s, (e.key === 'ArrowLeft' ? 1 : -1) * s.avail * 0.7)) e.preventDefault();
+  });
+
+  heldEl.addEventListener('click', (e) => {
+    if (!held || e.target.closest('a')) return;
+    if (gl.pickHeld(e.clientX, e.clientY)) flip();
+    else drop();
+  });
+  heldEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      drop();
+    } else if ((e.key === 'Enter' || e.key === ' ') && e.target === heldEl) {
+      e.preventDefault();
+      flip();
+    }
+  });
+  grLink.addEventListener('focus', () => flip(true));
+  heldEl.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (held && held.phase !== 'down' && document.hasFocus() && !heldEl.contains(document.activeElement)) drop();
+    }, 0);
   });
 
   function applyColors() {
@@ -585,6 +851,16 @@ function start() {
   });
   document.addEventListener('langchange', () => {
     updateTier(true);
+    if (held && held.phase !== 'down') {
+      const old = held.back;
+      held.back = gl.canvasTexture(drawBack(books[held.i], W, dims[held.i].h, t));
+      gl.holdBook(held.i, held.back);
+      if (held.big) gl.heldCover(held.big);
+      old.dispose();
+      heldEl.setAttribute('aria-label', titleOf(books[held.i]));
+      heldText.textContent = describe(held.i);
+      invalidate();
+    }
     if (!fontsReady) return;
     tex.fontsChanged();
     invalidate();

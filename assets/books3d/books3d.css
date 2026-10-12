@@ -26,3 +26,8 @@
   box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 4px 0 0 var(--edge-n), 0 5.5px 0 0 var(--edge-n-deep), 0 16px 30px -12px var(--drop-far); }
 .b3d-keys { display: flex; gap: 0.35rem; }
 .main:has(> .b3d.on) { touch-action: pan-y pinch-zoom; padding-bottom: 0; }
+
+.b3d-held { position: fixed; inset: 0; z-index: 40; outline: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.b3d-gr { position: fixed; left: 0; top: 0; opacity: 0; pointer-events: none; transition: opacity 200ms; white-space: nowrap; }
+.b3d-held.rear .b3d-gr, .b3d-gr:focus-visible { opacity: 1; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .b3d-gr { transition: none; } }

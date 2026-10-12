@@ -333,6 +333,69 @@ export function createTextures(gl, books, dims, opts) {
   };
 }
 
+export function drawBack(b, w, h, t) {
+  const S = 4;
+  const cw = Math.round(w * S);
+  const ch = Math.round(h * S);
+  const c = document.createElement('canvas');
+  c.width = cw;
+  c.height = ch;
+  const g = c.getContext('2d');
+  g.fillStyle = b.c || '#888';
+  g.fillRect(0, 0, cw, ch);
+  const grad = g.createLinearGradient(0, 0, cw * 0.5, ch);
+  grad.addColorStop(0, 'rgba(255,255,255,0.12)');
+  grad.addColorStop(0.5, 'rgba(255,255,255,0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, cw, ch);
+  const em = 13.6 * S;
+  const padX = 1.1 * em;
+  const maxW = cw - 2 * padX;
+  const display = displayFont();
+  const ui = getComputedStyle(document.documentElement).getPropertyValue('--font-ui').trim() || 'sans-serif';
+  const l = lang();
+  g.fillStyle = b.k || '#f7f3ea';
+  g.textBaseline = 'top';
+  let y = 1.2 * em;
+  const para = (text, font, size, lh, alpha) => {
+    if (!text) return;
+    g.font = `${font.replace('%', (size * em).toFixed(1) + 'px')}`;
+    g.globalAlpha = alpha;
+    wrap(g, text, maxW).slice(0, 5).forEach((line) => {
+      g.fillText(line, padX, y);
+      y += size * em * lh;
+    });
+    g.globalAlpha = 1;
+  };
+  para(titleOf(b, l), `700 % ${display}`, 1.25, 1.3, 1);
+  const other = l === 'en' ? b.tz : b.t;
+  if (b.tz && b.tz !== b.t) {
+    y += 0.2 * em;
+    para(other, `400 % ${ui}`, 1, 1.45, 0.8);
+  }
+  y += 0.2 * em;
+  para(authorOf(b, l), `400 % ${ui}`, 1, 1.45, 0.8);
+  y += 0.75 * em;
+  g.globalAlpha = 0.22;
+  g.fillRect(padX, y, maxW, S);
+  g.globalAlpha = 1;
+  y += 0.75 * em + S;
+  if (b.d) {
+    para(t('books.log'), `400 % ${ui}`, 0.88, 1.45, 0.7);
+    y += 0.1 * em;
+    para(t('books.read_in', b.d.slice(0, 4)), `400 % ${ui}`, 1, 1.45, 1);
+    if (b.n > 1) para(t('books.read_times', b.n), `400 % ${ui}`, 1, 1.45, 1);
+  }
+  if (b.p) {
+    g.font = `400 ${(0.9 * em).toFixed(1)}px ${ui}`;
+    g.globalAlpha = 0.8;
+    g.textBaseline = 'alphabetic';
+    g.fillText(t('books.pages', b.p), padX, ch - 1.4 * em);
+    g.globalAlpha = 1;
+  }
+  return c;
+}
+
 export function loadFonts(books) {
   const font = displayFont();
   const sample = books.map((b) => (b.tz || '') + (b.az || '')).join('') + 'AaBbCc…';

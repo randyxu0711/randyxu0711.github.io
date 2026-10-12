@@ -47,11 +47,19 @@ vec3 lit(vec3 c, vec3 n) {
 
 const BOOK_VERT = /* glsl */ `
 attribute float face;
+#ifdef HELD
+uniform vec3 iColor;
+uniform vec3 iInk;
+uniform vec4 iState;
+uniform vec4 iCover;
+uniform vec4 iSpine;
+#else
 attribute vec3 iColor;
 attribute vec3 iInk;
 attribute vec4 iState;
 attribute vec4 iCover;
 attribute vec4 iSpine;
+#endif
 varying vec3 vColor;
 varying vec3 vInk;
 varying vec4 vState;
@@ -88,6 +96,11 @@ uniform vec3 uPaperDeep;
 uniform vec3 uEdge;
 uniform sampler2D uCovers;
 uniform sampler2D uSpines;
+uniform vec3 uDesk;
+uniform float uDim;
+#ifdef HELD
+uniform sampler2D uBack;
+#endif
 varying vec3 vColor;
 varying vec3 vInk;
 varying vec4 vState;
@@ -132,11 +145,15 @@ void main() {
     c = mix(c, vec3(0.0), 0.22 * (1.0 - smoothstep(0.0, 0.06, u)));
     c = mix(c, vec3(1.0), 0.08 * smoothstep(0.06, 0.08, u) * (1.0 - smoothstep(0.08, 0.13, u)));
   } else if (f == 1) {
+#ifdef HELD
+    c = texture2D(uBack, vUv).rgb;
+#else
     c = mix(c, vec3(1.0), 0.06);
+#endif
   }
   if (f == 0 || f == 4) c = mix(c, uEdge, vState.y * (1.0 - smoothstep(2.6, 3.6, ly)));
   if (f != 2 && f != 3) c *= mix(1.0, mix(0.8, 1.0, smoothstep(0.0, 14.0, ly)), vState.z);
-  gl_FragColor = vec4(lit(c, vN), 1.0);
+  gl_FragColor = vec4(mix(lit(c, vN), uDesk, uDim), 1.0);
 }
 `;
 
@@ -158,6 +175,7 @@ const SHELF_FRAG = /* glsl */ `
 uniform vec3 uShelf;
 uniform vec3 uDesk;
 uniform vec3 uEdgeN;
+uniform float uDim;
 varying vec3 vN;
 varying vec3 vLocal;
 varying float vFace;
@@ -174,7 +192,7 @@ void main() {
   } else {
     c = uEdgeN;
   }
-  gl_FragColor = vec4(lit(c, vN), 1.0);
+  gl_FragColor = vec4(mix(lit(c, vN), uDesk, uDim), 1.0);
 }
 `;
 
@@ -188,9 +206,10 @@ void main() {
 
 const SHADOW_FRAG = /* glsl */ `
 uniform vec4 uDrop;
+uniform float uDim;
 varying float vT;
 void main() {
-  gl_FragColor = vec4(uDrop.rgb, uDrop.a * vT * vT);
+  gl_FragColor = vec4(uDrop.rgb, uDrop.a * vT * vT * (1.0 - uDim));
 }
 `;
 
@@ -220,6 +239,7 @@ export function createScene(books, dims) {
     uDrop: { value: new THREE.Vector4() },
     uCovers: { value: null },
     uSpines: { value: null },
+    uDim: { value: 0 },
   };
 
   const n = books.length;
@@ -264,7 +284,7 @@ export function createScene(books, dims) {
   const shadowGeo = new THREE.PlaneGeometry(1, SHADOW);
   shadowGeo.translate(0.5, -LIP - SHADOW / 2, SHELF_FRONT - 1);
   const shadowMat = new THREE.ShaderMaterial({
-    uniforms: { uDrop: colors.uDrop },
+    uniforms: { uDrop: colors.uDrop, uDim: colors.uDim },
     vertexShader: SHADOW_VERT,
     fragmentShader: SHADOW_FRAG,
     transparent: true,
@@ -280,11 +300,97 @@ export function createScene(books, dims) {
   const _q = new THREE.Quaternion();
   const _s = new THREE.Vector3();
   const _up = new THREE.Vector3(0, 1, 0);
+  const _r = new THREE.Matrix4();
+  const _t = new THREE.Matrix4();
 
-  function setBook(i, x, y, z, rot, sx, sy, sz) {
-    _q.setFromAxisAngle(_up, rot);
-    _m.compose(_p.set(x, y, z), _q, _s.set(sx, sy, sz));
-    bookMesh.setMatrixAt(i, _m);
+  function pivot(m, axis, angle, px, py, pz) {
+    if (!angle) return;
+    if (axis === 'z') _r.makeRotationZ(angle);
+    else _r.makeRotationX(angle);
+    _t.makeTranslation(-px, -py, -pz);
+    m.premultiply(_t).premultiply(_r);
+    _t.makeTranslation(px, py, pz);
+    m.premultiply(_t);
+  }
+
+  function compose(m, b) {
+    _q.setFromAxisAngle(_up, b.rot);
+    m.compose(_p.set(b.x, b.y, b.z), _q, _s.set(b.sx, b.sy, b.sz));
+    pivot(m, 'x', b.brush, 0, b.y, b.front);
+    pivot(m, 'z', b.lean, b.pivot, b.y, 0);
+    return m;
+  }
+
+  function setBook(i, b) {
+    bookMesh.setMatrixAt(i, compose(_m, b));
+  }
+
+  const heldUniforms = Object.assign({}, common, colors, {
+    uDim: { value: 0 },
+    uCovers: { value: null },
+    uBack: { value: null },
+    iColor: { value: new THREE.Color() },
+    iInk: { value: new THREE.Color() },
+    iState: { value: new THREE.Vector4(0, 0, 0, 0) },
+    iCover: { value: new THREE.Vector4() },
+    iSpine: { value: new THREE.Vector4() },
+  });
+  const held = new THREE.Mesh(bookGeo, new THREE.ShaderMaterial({
+    uniforms: heldUniforms,
+    vertexShader: BOOK_VERT,
+    fragmentShader: BOOK_FRAG,
+    defines: { HELD: '' },
+  }));
+  held.matrixAutoUpdate = false;
+  held.frustumCulled = false;
+  held.visible = false;
+  scene.add(held);
+
+  function holdBook(i, back) {
+    if (i < 0) {
+      held.visible = false;
+      return;
+    }
+    const u = heldUniforms;
+    u.iColor.value.setRGB(...dims[i].color);
+    u.iInk.value.setRGB(...dims[i].ink);
+    u.iState.value.set(iState.getX(i), 0, 0, iState.getW(i));
+    u.iCover.value.fromBufferAttribute(attrs.iCover, i);
+    u.iSpine.value.fromBufferAttribute(attrs.iSpine, i);
+    u.uCovers.value = colors.uCovers.value;
+    u.uBack.value = back;
+    held.visible = true;
+  }
+
+  function heldCover(tex) {
+    heldUniforms.uCovers.value = tex;
+    heldUniforms.iCover.value.set(0, 0, 1, 1);
+    heldUniforms.iState.value.x = 1;
+  }
+
+  function setHeld(b) {
+    compose(held.matrix, b);
+    held.matrixWorldNeedsUpdate = true;
+  }
+
+  function canvasTexture(c) {
+    return new THREE.CanvasTexture(c);
+  }
+
+  function imageTexture(img) {
+    const tex = new THREE.Texture(img);
+    tex.needsUpdate = true;
+    return tex;
+  }
+
+  function setDim(v) {
+    colors.uDim.value = v;
+  }
+
+  const _v = new THREE.Vector3();
+  function project(lx, ly, lz) {
+    _v.set(lx, ly, lz).applyMatrix4(held.matrix).project(camera);
+    return { x: (_v.x + 1) / 2 * size.w, y: (1 - _v.y) / 2 * size.h };
   }
 
   function booksChanged() {
@@ -337,10 +443,12 @@ export function createScene(books, dims) {
     renderer.setSize(w, h, false);
   }
 
+  const view = { D: 1, eyeY: 0, hv: 1 };
   function frustum(cam) {
     const hv = cam.span * size.h / size.w;
     const D = Math.max(cam.span, hv) * DIST;
     const eyeY = cam.yTop - EYE * hv;
+    Object.assign(view, { D, eyeY, hv });
     camera.position.set(cam.cx, eyeY, D);
     camera.updateMatrixWorld();
     const near = Math.max(1, D * 0.05);
@@ -361,10 +469,18 @@ export function createScene(books, dims) {
     return hit ? hit.instanceId : -1;
   }
 
+  function pickHeld(x, y) {
+    if (!held.visible) return false;
+    held.updateMatrixWorld(true);
+    ndc.set(x / size.w * 2 - 1, 1 - y / size.h * 2);
+    raycaster.setFromCamera(ndc, camera);
+    return raycaster.intersectObject(held, false).length > 0;
+  }
+
   function render(cam) {
     frustum(cam);
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture };
 }

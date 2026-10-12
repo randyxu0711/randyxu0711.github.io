@@ -44,6 +44,10 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
       {%- endfor %}
     </div>
   </div>
+  <div class="b3d-held" id="b3d-held" role="dialog" aria-modal="true" tabindex="-1" hidden>
+    <p class="visually-hidden" id="b3d-held-text"></p>
+    <a class="key b3d-gr" id="b3d-gr" href="https://www.goodreads.com/" target="_blank" rel="noopener">Goodreads</a>
+  </div>
 </section>
 {%- capture books_json -%}
 [{%- for b in site.data.books -%}
