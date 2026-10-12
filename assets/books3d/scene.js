@@ -338,8 +338,8 @@ export function createScene(books, dims) {
   }
 
   function frustum(cam) {
-    const D = cam.span * DIST;
     const hv = cam.span * size.h / size.w;
+    const D = Math.max(cam.span, hv) * DIST;
     const eyeY = cam.yTop - EYE * hv;
     camera.position.set(cam.cx, eyeY, D);
     camera.updateMatrixWorld();
@@ -352,10 +352,19 @@ export function createScene(books, dims) {
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
   }
 
+  const raycaster = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  function pick(x, y) {
+    ndc.set(x / size.w * 2 - 1, 1 - y / size.h * 2);
+    raycaster.setFromCamera(ndc, camera);
+    const hit = raycaster.intersectObject(bookMesh, false)[0];
+    return hit ? hit.instanceId : -1;
+  }
+
   function render(cam) {
     frustum(cam);
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick };
 }

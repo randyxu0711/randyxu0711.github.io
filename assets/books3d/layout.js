@@ -3,7 +3,7 @@ export const GAP = 3;
 export const PAD = 18;
 export const LIP = 14;
 export const ROW_GAP = 64;
-export const GROUP_GAP = 110;
+export const GROUP_GAP = 90;
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 

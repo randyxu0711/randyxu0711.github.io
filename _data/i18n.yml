@@ -45,4 +45,8 @@ books.log:       { zh: "閱讀紀錄", en: "Reading log" }
 books.read_in:   { zh: "{n} 讀完", en: "Read in {n}" }
 books.read_times: { zh: "讀過 {n} 次", en: "Read {n} times" }
 
+books3d.covers:  { zh: "陳列", en: "Face out" }
+books3d.prev:    { zh: "層板往左滑", en: "Slide shelf left" }
+books3d.next:    { zh: "層板往右滑", en: "Slide shelf right" }
+
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

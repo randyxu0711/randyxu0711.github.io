@@ -1,6 +1,6 @@
 ---
 layout: default
-modules: [layout.js, colors.js, scene.js, textures.js]
+modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
 ---
 {%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
 {%- assign v = site.time | date: '%s' -%}
@@ -25,7 +25,16 @@ modules: [layout.js, colors.js, scene.js, textures.js]
     </ol>
     {%- endfor %}
   </div>
-  <div class="b3d-scene" id="b3d-scene" hidden></div>
+  <div class="b3d-scene" id="b3d-scene" hidden>
+    <div class="b3d-tier empty" id="b3d-tier" aria-hidden="true"></div>
+    <div class="b3d-arrows" id="b3d-arrows"></div>
+  </div>
+  <div class="b3d-bar" id="b3d-bar" hidden>
+    <div class="b3d-keys" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
+      <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">直立</button>
+      <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books3d.covers">陳列</button>
+    </div>
+  </div>
 </section>
 {%- capture books_json -%}
 [{%- for b in site.data.books -%}
