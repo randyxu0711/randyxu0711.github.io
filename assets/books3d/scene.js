@@ -48,9 +48,15 @@ vec3 lit(vec3 c, vec3 n) {
 const BOOK_VERT = /* glsl */ `
 attribute float face;
 attribute vec3 iColor;
+attribute vec3 iInk;
 attribute vec4 iState;
+attribute vec4 iCover;
+attribute vec4 iSpine;
 varying vec3 vColor;
+varying vec3 vInk;
 varying vec4 vState;
+varying vec4 vCover;
+varying vec4 vSpine;
 varying vec3 vN;
 varying vec3 vLocal;
 varying vec3 vSize;
@@ -68,7 +74,10 @@ void main() {
   vUv = uv;
   vFace = face;
   vColor = iColor;
+  vInk = iInk;
   vState = iState;
+  vCover = iCover;
+  vSpine = iSpine;
   gl_Position = projectionMatrix * viewMatrix * w;
 }
 `;
@@ -77,8 +86,13 @@ const BOOK_FRAG = /* glsl */ `
 uniform vec3 uPaper;
 uniform vec3 uPaperDeep;
 uniform vec3 uEdge;
+uniform sampler2D uCovers;
+uniform sampler2D uSpines;
 varying vec3 vColor;
+varying vec3 vInk;
 varying vec4 vState;
+varying vec4 vCover;
+varying vec4 vSpine;
 varying vec3 vN;
 varying vec3 vLocal;
 varying vec3 vSize;
@@ -111,6 +125,12 @@ void main() {
     c = uPaperDeep;
   } else if (f == 4) {
     c = spineShade(c, vUv.x);
+    if (vState.w > 0.5) c = mix(c, vInk, texture2D(uSpines, vSpine.xy + vec2(vUv.x, 1.0 - vUv.y) * vSpine.zw).r);
+  } else if (f == 0) {
+    if (vState.x > 0.5) c = texture2D(uCovers, vCover.xy + vUv * vCover.zw).rgb;
+    float u = vUv.x;
+    c = mix(c, vec3(0.0), 0.22 * (1.0 - smoothstep(0.0, 0.06, u)));
+    c = mix(c, vec3(1.0), 0.08 * smoothstep(0.06, 0.08, u) * (1.0 - smoothstep(0.08, 0.13, u)));
   } else if (f == 1) {
     c = mix(c, vec3(1.0), 0.06);
   }
@@ -198,6 +218,8 @@ export function createScene(books, dims) {
     uDesk: { value: new THREE.Color() },
     uEdgeN: { value: new THREE.Color() },
     uDrop: { value: new THREE.Vector4() },
+    uCovers: { value: null },
+    uSpines: { value: null },
   };
 
   const n = books.length;
@@ -208,13 +230,21 @@ export function createScene(books, dims) {
   });
   const bookGeo = box(-0.5, 0.5, 0, 1, -0.5, 0.5);
   const iColor = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3);
+  const iInk = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3);
   const iState = new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4);
+  const attrs = {
+    iState,
+    iCover: new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4),
+    iSpine: new THREE.InstancedBufferAttribute(new Float32Array(n * 4), 4),
+  };
   books.forEach((b, i) => {
     iColor.setXYZ(i, ...dims[i].color);
+    iInk.setXYZ(i, ...dims[i].ink);
     iState.setXYZW(i, 0, 0, 1, 0);
   });
   bookGeo.setAttribute('iColor', iColor);
-  bookGeo.setAttribute('iState', iState);
+  bookGeo.setAttribute('iInk', iInk);
+  Object.keys(attrs).forEach((k) => bookGeo.setAttribute(k, attrs[k]));
   const bookMesh = new THREE.InstancedMesh(bookGeo, bookMat, n);
   bookMesh.frustumCulled = false;
   bookMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -267,6 +297,16 @@ export function createScene(books, dims) {
     iState.needsUpdate = true;
   }
 
+  function setAttr(name, i, x, y, z, w) {
+    attrs[name].setXYZW(i, x, y, z, w);
+    attrs[name].needsUpdate = true;
+  }
+
+  function setTextures(covers, spines) {
+    colors.uCovers.value = covers;
+    colors.uSpines.value = spines;
+  }
+
   function setShelves(list) {
     shelfMesh.count = shadowMesh.count = Math.min(list.length, MAX_SHELVES);
     for (let k = 0; k < shelfMesh.count; k++) {
@@ -317,5 +357,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setShelves, setColors, resize, render, frustum };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum };
 }

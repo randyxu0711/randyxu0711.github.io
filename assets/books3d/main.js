@@ -1,6 +1,7 @@
 import { layout, thickness, height, W } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'books3d/colors.js';
 import { createScene } from 'books3d/scene.js';
+import { createTextures, loadFonts } from 'books3d/textures.js';
 
 const root = document.getElementById('b3d');
 const stage = document.getElementById('b3d-scene');
@@ -8,7 +9,7 @@ const books = JSON.parse(document.getElementById('b3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
-const dims = books.map((b) => ({ t: thickness(b), h: height(b), color: hexRgb(b.c) }));
+const dims = books.map((b) => ({ t: thickness(b), h: height(b), color: hexRgb(b.c), ink: hexRgb(b.k || '#f7f3ea') }));
 
 function start() {
   let gl;
@@ -73,7 +74,7 @@ function start() {
     raf = 0;
     const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
     last = now;
-    let busy = false;
+    let busy = tex.pump();
     const target = scrollTarget();
     if (reduce.matches) cam.yTop = target;
     else cam.yTop += (target - cam.yTop) * (1 - Math.exp(-dt * 16));
@@ -105,6 +106,35 @@ function start() {
   applyColors();
   cam.yTop = scrollTarget();
   gl.render(cam);
+
+  let fontsReady = false;
+  const tex = createTextures(gl, books, dims, {
+    density: m.ppu * Math.min(window.devicePixelRatio || 1, 2),
+    fontsReady: () => fontsReady,
+  });
+  gl.setTextures(tex.covers, tex.spines);
+  const center = cam.yTop - canvas.clientHeight / m.ppu / 2;
+  const order = books.map((b, i) => i).sort((a, b) => distance(a) - distance(b));
+  function distance(i) {
+    const s = state.L.shelves[state.L.items[i].shelf];
+    return Math.abs(s.y + s.tallest / 2 - center) * 4 + Math.abs(s.x0 + offsetOf(s) + state.L.items[i].lx);
+  }
+  tex.start(order, invalidate);
+  const drawText = () => {
+    fontsReady = true;
+    tex.fontsChanged();
+    invalidate();
+  };
+  const fontTimer = setTimeout(drawText, 3000);
+  loadFonts(books).then(() => {
+    clearTimeout(fontTimer);
+    drawText();
+  });
+  document.addEventListener('langchange', () => {
+    if (!fontsReady) return;
+    tex.fontsChanged();
+    invalidate();
+  });
 
   window.addEventListener('scroll', invalidate, { passive: true });
   watchTheme(applyColors);
