@@ -83,7 +83,7 @@ function start() {
   function metrics() {
     const vw = canvas.clientWidth;
     const k = clamp((vw - 480) / (1024 - 480), 0, 1);
-    const across = state.view === 'covers' ? (2.6 + 4.4 * k) * 150 : (9 + 8 * k) * 28;
+    const across = state.view === 'covers' ? (3 + 5 * k) * 150 : (10.5 + 9 * k) * 28;
     const sp = Math.max(across, 320 * vw / window.innerHeight);
     const ppu = vw / sp;
     return { vw, span: sp, ppu, gutter: 16 / ppu, head: (tier.offsetHeight + 24) / ppu + 12 };
