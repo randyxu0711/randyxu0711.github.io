@@ -6,6 +6,8 @@ const PITCH_X = CW + 4;
 const PITCH_Y = CH + 4;
 const EM = 12.48;
 const PER_FRAME = 12;
+const IN_FLIGHT = 8;
+const MIP_EVERY = 500;
 
 export function smallCover(u) {
   return u && u.indexOf('//m.media-amazon.com/') > -1 && /\.jpg$/.test(u) ? u.slice(0, -4) + '._SX150_.jpg' : u;
@@ -89,6 +91,7 @@ export function createTextures(gl, books, dims, opts) {
   renderer.setRenderTarget(rt);
   renderer.clear();
   renderer.setRenderTarget(null);
+  rt.texture.generateMipmaps = false;
 
   const quadScene = new THREE.Scene();
   const quadCam = new THREE.OrthographicCamera(0, rt.width, rt.height, 0, -1, 1);
@@ -96,7 +99,31 @@ export function createTextures(gl, books, dims, opts) {
 
   const coverState = new Array(n).fill(0);
   const queue = [];
+  const waiting = [];
+  let inFlight = 0;
+  let quadReady = false;
+  let lastMip = 0;
   let onReady = () => {};
+
+  const quadMat = () => new THREE.ShaderMaterial({ uniforms: { map: { value: null } }, vertexShader: QUAD_VERT, fragmentShader: QUAD_FRAG, depthTest: false, depthWrite: false });
+  const probe = new THREE.Mesh(quadGeo, quadMat());
+  quadScene.add(probe);
+  renderer.compileAsync(quadScene, quadCam).then(() => {
+    quadScene.remove(probe);
+    quadReady = true;
+    onReady();
+  });
+
+  function next() {
+    while (inFlight < IN_FLIGHT && waiting.length) {
+      inFlight++;
+      load(waiting.shift());
+    }
+  }
+  function settled() {
+    inFlight--;
+    next();
+  }
 
   function cell(i) {
     return { x: (i % cols) * PITCH_X + 2, y: Math.floor(i / cols) * PITCH_Y + 2 };
@@ -141,6 +168,7 @@ export function createTextures(gl, books, dims, opts) {
   function load(i) {
     const b = books[i];
     if (!b.cv) {
+      settled();
       coverState[i] = 2;
       if (opts.fontsReady()) enqueue(i, fallbackCanvas(i));
       return;
@@ -149,6 +177,7 @@ export function createTextures(gl, books, dims, opts) {
     img.crossOrigin = 'anonymous';
     img.decoding = 'async';
     img.onload = () => {
+      settled();
       const done = () => { coverState[i] = 1; enqueue(i, img); };
       if (img.decode) img.decode().then(done, done);
       else done();
@@ -158,6 +187,7 @@ export function createTextures(gl, books, dims, opts) {
         img.src = b.cv;
         return;
       }
+      settled();
       coverState[i] = 2;
       if (opts.fontsReady()) enqueue(i, fallbackCanvas(i));
     };
@@ -165,7 +195,7 @@ export function createTextures(gl, books, dims, opts) {
   }
 
   function pump() {
-    if (!queue.length) return false;
+    if (!queue.length || !quadReady) return false;
     const batch = queue.splice(0, PER_FRAME);
     const used = [];
     batch.forEach(({ i, source }) => {
@@ -173,7 +203,8 @@ export function createTextures(gl, books, dims, opts) {
       tex.generateMipmaps = false;
       tex.minFilter = THREE.LinearFilter;
       tex.needsUpdate = true;
-      const mat = new THREE.ShaderMaterial({ uniforms: { map: { value: tex } }, vertexShader: QUAD_VERT, fragmentShader: QUAD_FRAG, depthTest: false, depthWrite: false });
+      const mat = quadMat();
+      mat.uniforms.map.value = tex;
       const mesh = new THREE.Mesh(quadGeo, mat);
       const c = cell(i);
       mesh.position.set(c.x + CW / 2, c.y + CH / 2, 0);
@@ -183,6 +214,9 @@ export function createTextures(gl, books, dims, opts) {
     const prevTarget = renderer.getRenderTarget();
     const prevAuto = renderer.autoClear;
     renderer.autoClear = false;
+    const now = performance.now();
+    rt.texture.generateMipmaps = !queue.length || now - lastMip > MIP_EVERY;
+    if (rt.texture.generateMipmaps) lastMip = now;
     renderer.setRenderTarget(rt);
     renderer.render(quadScene, quadCam);
     renderer.setRenderTarget(prevTarget);
@@ -320,7 +354,8 @@ export function createTextures(gl, books, dims, opts) {
     covers: rt.texture,
     start(order, ready) {
       onReady = ready;
-      order.forEach(load);
+      waiting.push(...order);
+      next();
     },
     pump,
     fontsChanged() {

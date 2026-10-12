@@ -513,10 +513,14 @@ export function createScene(books, dims) {
     return raycaster.intersectObject(held, false).length > 0;
   }
 
+  function warm() {
+    return renderer.compileAsync(scene, camera);
+  }
+
   function render(cam) {
     frustum(cam);
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture, setLamp, setLampAt };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture, setLamp, setLampAt, warm };
 }
