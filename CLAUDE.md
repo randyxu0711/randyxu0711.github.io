@@ -16,7 +16,7 @@
   導覽列底色不透明、不用 `backdrop-filter`(每格都要重算底下的 3D 書架,iPhone 捲動會卡)。
 - **模組與插槽**:`_config.yml` 的 `modules:` 一行一個模組,註解掉就關掉。版面用 `{% include slot.html name="…" %}`
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
-  模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入)。
+  模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入;模組設 `assets: false` 就不載入)。
   目前的模組:`shelf-filter`(原地篩選)、`seen`(已開過)、`archive`(失效改連封存版)、`books`(書單頁)。
 - **字型三種角色**:`--font-display`(宋體,只給內容的名字:姓名、project、書名;小標題用黑體)、`--font-ui`(Inter + 思源黑體)、
   `--font-code`(JetBrains Mono,程式碼與計數)。規則見 `docs/redesign/SLAB.md`〈字型與配色規則〉。
@@ -69,23 +69,25 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   佔位圖不算),沒有 ISBN 或 Amazon 沒圖才抓書頁 `/book/show/<id>` 的 og:image。**Goodreads 書頁不要連續大量抓**:
   AWS WAF 很快就回 202 空白頁擋下,一擋就是幾小時。
 - 書單是空的或 books 模組關掉時,`_plugins/books-page.rb` 不產生 `/books/`,導覽列也不顯示。
-- **3D 書架**(`_layouts/books.html`、`_includes/book-3d.html`、`assets/modules/books/`):每層是書櫃隔間(`_includes/book-cab.html`),
-  書是 5 面的 3D 盒子,厚度 = 頁數、高度 = 封面比例(`ratio`,`books.py` 下載封面時量)。書脊 / 封面兩種排法是同一批書轉向,
-  每一層讀完就由行內 script(`_includes/books-pack.html`)依寬度把書分到多個隔間,`books.js` 換排法 / 轉向時呼叫同一個函式;
-  手機沒選過排法時預設書脊(排法在 `books.html` 開頭的行內 script 決定);點一本書 = 複製一本飛到畫面中間放大(架上原位空著),再點翻封底,
-  點背景 / Esc / 焦點離開就飛回。書架只有層板(上面 + 前緣),不做背板與側板。3D 書盒參考 mawise/bookshelf(MIT)。
-- **書架效能**(上千個 3D 面,改之前先看):
-  - 每一排外面包一層 `.row-wrap`,上面加 `content-visibility: auto`,畫面外的排不排版不繪製;
-    排高用算的(`books-pack.html` 的 `sizeRows`,書高 = 封面寬 ÷ `--ratio`),不實際排版去量。改 `.row` 的 padding / min-height / margin 要確認公式還對。
-  - **不要在 `.row`(或任何 3D 空間裡的元素)加 `content-visibility`、`contain: paint`、`overflow`、`opacity`、`filter`**:
-    這些是 grouping property,規範上強制 `transform-style: flat`。`.row` 被壓平後每本書各自成 3D 空間,
-    iOS WebKit 不依深度排序、照 HTML 順序畫,右半邊書的側面會整片蓋到隔壁(Chrome 還沒實作這條,桌面看不出來)。
-  - JS **先讀、再改**:搬動 DOM 或改 `--w` 之後再讀尺寸或樣式,瀏覽器得先把全部書重算一遍(手機上一次就卡 0.5 秒以上)。
-  - 切換排法的過場:書搬到新隔間後先套 `.was-*`(舊排法的樣子)畫一格再拿掉;只有真的在畫面裡的排跑過場,其他排 `.snap` 直接到位。
-  - 拿起的書用 FLIP(直接用放大後的尺寸排版,`scale3d` 縮回起點),透視(`perspective` / `-origin`)跟著從那一排過渡到畫面中央。
-  - 書脊只放書名;字級 = 書脊可用高度 ÷ 書名長度(`_plugins/spine-length.rb` 建置時算好 `--len-zh` / `--len-en`),不用 JS 量。
-  - 封底在架上只是一片書的顏色,文字在拿起時由 `books.js` 的 `fillBack` 依 `.back` 的 `data-*` 填入(HTML 少 27%、元素少一半)。
-  - 封面用 Amazon CDN 縮圖:先載 `._SX150_`,封面排法捲到附近或拿起時換 `._SX400_`(`data-big`);載不到退回原圖(`data-orig`)。
+- **3D 書架是 WebGL**(three.js r170,放在 `assets/vendor/three/`;規格與決策紀錄 `docs/books-webgl.md`):
+  `_layouts/books.html` 輸出書的 JSON、一份純 HTML 書單、工具列;程式在 `assets/books3d/`,只有這頁用 import map 載入。
+  books 模組設 `assets: false`,不在每頁載入 `assets/modules/books/`。
+  - 檔案:`layout.js`(五種排序與分組 → 每本書的位置,純函式)、`scene.js`(場景、shader、鏡頭、點擊判定)、
+    `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)、`colors.js`(從 CSS token 讀色)。
+  - 書是一個 InstancedMesh,一次繪製;厚度 = 頁數 ÷ 11、高度 = 封面寬 ÷ `ratio`。顏色從 token 讀(1px canvas 填色再讀像素),主題切換時重讀。
+    夜間模式自動開檯燈(跟著游標,拿起書時移到書前上方)。
+  - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑。
+    陳列時鏡頭比直立遠。換排法 / 排序以畫面中央那本書為錨點。**靜止時不重畫**(`invalidate()` 才排下一格)。
+  - **純 HTML 書單**:有 JS 時從首次繪製就藏起來,WebGL 啟動後改成視覺隱藏、給螢幕閱讀器與鍵盤(Tab 到一本 = 場景裡高亮);
+    WebGL 開不起來(`.fail`)或 4 秒內沒啟動就顯示。
+  - **開燈**:有 JS 時書架區一開始蓋著暗幕(`.b3d::before`,`--unlit`),畫面裡的封面都貼好(最多等到 2 秒)才加 `.lit` 拿掉。
+  - 封面先載 `._SX150_` 畫進拼貼貼圖,拿起時那本換 `._SX400_`。Amazon CDN 回 `access-control-allow-origin: *`,圖片要 `crossOrigin = 'anonymous'`。
+  - 書脊字畫在 2D canvas 再上傳;字級規則同 `_plugins/spine-length.rb`(建置時算好書名長度)。換語言時重畫。
+- **書架效能**(改之前先看):
+  - **貼封面用的材質不能全部 dispose**:three.js 在沒有材質用某個 shader 時會刪掉它,下一批又得重新編譯(曾經因此載入時卡了 20 幾次)。
+  - 封面拼貼貼圖的縮圖鏈(mipmap)最多每 0.5 秒重算一次、貼完再算一次,不要每批都算(那張圖 4096 寬)。
+  - shader 用 `compileAsync` 先編好才開始畫(`gl.warm()`)。
+  - WebGL context 遺失(iOS 背景回收)後,`webglcontextrestored` 重新載入封面與書脊字、重設清除色。
 - **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
   從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);
   CSV 匯入時合併,同一本以 CSV 為準。撤下 = 關成 not planned。
@@ -95,7 +97,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   網站切到中文時顯示譯名,沒列在裡面的書顯示原文。
 
 ## 測試
-`uvx --with pillow pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。
+`uvx --with pillow --with pyyaml pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。
 解析 issue body、驗證、抽 og、產 md、遷移、strike 規則、CSV 篩選與私人資料不外洩,這些我們的政策都要測;
 GitHub API 與網路本身不測。前端沒有測試框架,靠建置 + htmlproofer + 手動檢查。
 

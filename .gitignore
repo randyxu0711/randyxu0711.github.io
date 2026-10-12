@@ -35,3 +35,6 @@ __pycache__/
 
 # Goodreads 匯出檔含 Private Notes 與完整書單,永遠不進 repo
 /books/
+
+# three.js 放在 assets/vendor/(上面的 vendor 是 Bundler 用的)
+!/assets/vendor/

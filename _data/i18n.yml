@@ -35,7 +35,6 @@ archive.mark:    { zh: ",原文已下架,這是封存版", en: ", original remov
 
 books.view:      { zh: "排法", en: "View" }
 books.spines:    { zh: "直立", en: "Shelved" }
-books.covers:    { zh: "展示", en: "Displayed" }
 books.unrated:   { zh: "未評分", en: "Unrated" }
 books.count:     { zh: "{n} 本", en: "{n} books", en_one: "{n} book" }
 books.stars:     { zh: "{n} 顆星", en: "{n} stars", en_one: "{n} star" }
@@ -44,5 +43,17 @@ books.pages:     { zh: "{n} 頁", en: "{n} pages", en_one: "{n} page" }
 books.log:       { zh: "閱讀紀錄", en: "Reading log" }
 books.read_in:   { zh: "{n} 讀完", en: "Read in {n}" }
 books.read_times: { zh: "讀過 {n} 次", en: "Read {n} times" }
+
+books3d.covers:  { zh: "陳列", en: "Face out" }
+books3d.prev:    { zh: "層板往左滑", en: "Slide shelf left" }
+books3d.next:    { zh: "層板往右滑", en: "Slide shelf right" }
+books3d.sort:    { zh: "排序", en: "Sort" }
+books3d.sort_rating: { zh: "星等", en: "Rating" }
+books3d.sort_year:   { zh: "年份", en: "Year" }
+books3d.sort_color:  { zh: "顏色", en: "Color" }
+books3d.sort_author: { zh: "作者", en: "Author" }
+books3d.sort_pages:  { zh: "頁數", en: "Pages" }
+books3d.undated: { zh: "沒有日期", en: "Undated" }
+books3d.nopages: { zh: "沒有頁數", en: "No page count" }
 
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

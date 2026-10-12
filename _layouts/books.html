@@ -1,49 +1,70 @@
 ---
 layout: default
+modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
 ---
-{%- comment -%}
-  3D 書架:依評分分層,每層是一個書櫃隔間(層板、背板、側板),書站在裡面。
-  兩種排法是同一批書轉向:書脊朝外 / 封面朝外。每一層讀完就依螢幕寬度把書分到多個隔間(一行一格,books-pack.html)。
-{%- endcomment -%}
 {%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
-<section class="books" id="books" data-view="{{ site.books.default_view | default: 'covers' }}">
-  <script>
-    // 繪製前決定排法(否則會先畫出預設排法、等 books.js 載入才轉):選過的 > 手機用書脊 > 設定。
-    // key 與 books.js 的 KEY 相同;600px 與 books.css 的手機斷點相同
-    (function () {
-      var v = null, el = document.currentScript.parentNode;
-      try { v = localStorage.getItem('books-view'); } catch (e) {}
-      if (v !== 'spines' && v !== 'covers' && window.matchMedia('(max-width: 600px)').matches) v = 'spines';
-      if (v === 'spines' || v === 'covers') el.setAttribute('data-view', v);
-    })();
-  </script>
-  {% include books-pack.html %}
+{%- assign v = site.time | date: '%s' -%}
+<link rel="stylesheet" href="{{ '/assets/books3d/books3d.css' | relative_url }}?v={{ v }}">
+<section class="b3d" id="b3d">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
-  <header class="page-head">
-    <div class="chips" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view" data-view-switch hidden data-reserve>
+  <div class="b3d-bar" id="b3d-bar" hidden>
+    <div class="b3d-keys" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
       <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">直立</button>
-      <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books.covers">展示</button>
+      <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books3d.covers">陳列</button>
     </div>
-  </header>
-  {%- for r in ratings -%}
-    {%- assign rn = r | plus: 0 -%}
-    {%- assign list = site.data.books | where: "rating", r -%}
-    {%- if list.size == 0 -%}{%- continue -%}{%- endif -%}
-  <section class="tier" data-row="{{ r }}">
-    <h2 class="row-head">
+    <div class="b3d-keys" role="group" aria-label="排序" data-i18n-attr="aria-label:books3d.sort">
+      {%- for k in site.data.i18n -%}
+        {%- assign key = k[0] -%}
+        {%- if key contains 'books3d.sort_' -%}
+          {%- assign name = key | remove: 'books3d.sort_' %}
+      <button type="button" class="key" data-sort-set="{{ name }}" aria-pressed="false" data-i18n="{{ key }}">{{ k[1].zh }}</button>
+        {%- endif -%}
+      {%- endfor %}
+    </div>
+  </div>
+  <div class="b3d-list" id="b3d-list">
+    {%- for r in ratings -%}
+      {%- assign rn = r | plus: 0 -%}
+      {%- assign list = site.data.books | where: "rating", r -%}
+      {%- if list.size == 0 -%}{%- continue -%}{%- endif %}
+    <h2 class="b3d-list-head">
       {%- if rn == 0 -%}<span class="stars-label" data-i18n="books.unrated">未評分</span>
       {%- else -%}{% include stars.html n=rn %}{%- endif -%}
       <span class="n" data-i18n="books.count" data-i18n-n="{{ list.size }}">{% include t.html k="books.count" n=list.size %}</span>
     </h2>
-    <div class="bay" data-bay>
-      {%- comment -%} 沒有 JS 時就是一個會換行的隔間;有 JS 時這一層後面的 script 依寬度拆成多格 {%- endcomment -%}
-      <div class="row">
-        {% include book-cab.html %}
-        {%- for b in list -%}{% include book-3d.html book=b index=forloop.index0 %}{%- endfor -%}
-      </div>
-    </div>
-    {%- comment -%} 這一層讀完就分好並顯示(books-pack.html) {%- endcomment %}
-    <script>(function (bay) { if (window.booksPack) window.booksPack(null, [bay]); bay.parentNode.classList.add('packed'); })(document.currentScript.previousElementSibling);</script>
-  </section>
-  {%- endfor -%}
+    <ol>
+      {%- for b in list -%}
+        {%- assign zh = site.data.books_zh[b.id] %}
+      <li><a href="{{ b.url | escape }}" target="_blank" rel="noopener">{% include book-name.html zh=zh.title en=b.title %}</a> <span class="au">{% include book-name.html zh=zh.author en=b.author %}</span></li>
+      {%- endfor %}
+    </ol>
+    {%- endfor %}
+  </div>
+  <div class="b3d-scene" id="b3d-scene" hidden>
+    <div class="b3d-tier empty" id="b3d-tier" aria-hidden="true"></div>
+    <div class="b3d-arrows" id="b3d-arrows"></div>
+  </div>
+  <div class="b3d-held" id="b3d-held" role="dialog" aria-modal="true" tabindex="-1" hidden>
+    <p class="visually-hidden" id="b3d-held-text"></p>
+    <a class="key b3d-gr" id="b3d-gr" href="https://www.goodreads.com/" target="_blank" rel="noopener">Goodreads</a>
+  </div>
 </section>
+{%- capture books_json -%}
+[{%- for b in site.data.books -%}
+  {%- assign zh = site.data.books_zh[b.id] -%}
+  {%- assign t_zh = zh.title | default: b.title -%}
+  {%- unless forloop.first %},{% endunless -%}
+  {"id":{{ b.id | jsonify }},"t":{{ b.title | jsonify }},"tz":{{ zh.title | jsonify }},"a":{{ b.author | jsonify }},"az":{{ zh.author | jsonify }},
+  "r":{{ b.rating | default: 0 }},"p":{{ b.pages | jsonify }},"d":{{ b.read | jsonify }},"n":{{ b.read_count | default: 1 }},
+  "c":{{ b.color | jsonify }},"k":{{ b.ink | jsonify }},"q":{{ b.ratio | default: 0.66 }},"cv":{{ b.cover | jsonify }},"u":{{ b.url | jsonify }},
+  "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }}}
+{%- endfor -%}]
+{%- endcapture %}
+<script type="application/json" id="b3d-data">{{ books_json | replace: "</", "<\/" }}</script>
+<script type="importmap">{"imports": {
+  "three": "{{ '/assets/vendor/three/three.module.min.js' | relative_url }}"
+  {%- for m in layout.modules %},
+  "books3d/{{ m }}": "{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}"
+  {%- endfor %}
+}}</script>
+<script type="module" src="{{ '/assets/books3d/main.js' | relative_url }}?v={{ v }}"></script>
