@@ -34,6 +34,15 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
       <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">直立</button>
       <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books3d.covers">陳列</button>
     </div>
+    <div class="b3d-keys" role="group" aria-label="排序" data-i18n-attr="aria-label:books3d.sort">
+      {%- for k in site.data.i18n -%}
+        {%- assign key = k[0] -%}
+        {%- if key contains 'books3d.sort_' -%}
+          {%- assign name = key | remove: 'books3d.sort_' %}
+      <button type="button" class="key" data-sort-set="{{ name }}" aria-pressed="false" data-i18n="{{ key }}">{{ k[1].zh }}</button>
+        {%- endif -%}
+      {%- endfor %}
+    </div>
   </div>
 </section>
 {%- capture books_json -%}

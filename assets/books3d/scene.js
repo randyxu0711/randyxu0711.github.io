@@ -250,7 +250,7 @@ export function createScene(books, dims) {
   bookMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(bookMesh);
 
-  const MAX_SHELVES = 128;
+  const MAX_SHELVES = n + 8;
   const shelfMat = new THREE.ShaderMaterial({
     uniforms: Object.assign({}, common, colors),
     vertexShader: SHELF_VERT,

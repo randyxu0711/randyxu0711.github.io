@@ -48,5 +48,13 @@ books.read_times: { zh: "讀過 {n} 次", en: "Read {n} times" }
 books3d.covers:  { zh: "陳列", en: "Face out" }
 books3d.prev:    { zh: "層板往左滑", en: "Slide shelf left" }
 books3d.next:    { zh: "層板往右滑", en: "Slide shelf right" }
+books3d.sort:    { zh: "排序", en: "Sort" }
+books3d.sort_rating: { zh: "星等", en: "Rating" }
+books3d.sort_year:   { zh: "年份", en: "Year" }
+books3d.sort_color:  { zh: "顏色", en: "Color" }
+books3d.sort_author: { zh: "作者", en: "Author" }
+books3d.sort_pages:  { zh: "頁數", en: "Pages" }
+books3d.undated: { zh: "沒有日期", en: "Undated" }
+books3d.nopages: { zh: "沒有頁數", en: "No page count" }
 
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

@@ -17,6 +17,8 @@ export function bezier(x1, y1, x2, y2) {
 
 export const ease = bezier(0.3, 0.7, 0.2, 1);
 
+export const easeInOut = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+
 export const lerp = (a, b, t) => a + (b - a) * t;
 
 export const clamp = (v, a, b) => Math.min(b, Math.max(a, v));

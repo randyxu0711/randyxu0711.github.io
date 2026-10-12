@@ -1,8 +1,8 @@
-import { layout, thickness, height, W, PAD, GAP, LIP } from 'books3d/layout.js';
+import { layout, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'books3d/colors.js';
 import { createScene } from 'books3d/scene.js';
 import { createTextures, loadFonts } from 'books3d/textures.js';
-import { ease, lerp, clamp, approach } from 'books3d/anim.js';
+import { ease, easeInOut, lerp, clamp, approach } from 'books3d/anim.js';
 
 const root = document.getElementById('b3d');
 const stage = document.getElementById('b3d-scene');
@@ -13,6 +13,8 @@ const books = JSON.parse(document.getElementById('b3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
 const VIEW_KEY = 'books3d-view';
+const SORT_KEY = 'books3d-sort';
+const SHUFFLE = 1600;
 const STAGGER = 400;
 const TURN = 600;
 const SLIDE_OUT = 14;
@@ -43,9 +45,13 @@ function start() {
   root.classList.add('on');
   stage.hidden = false;
 
-  let stored = null;
-  try { stored = localStorage.getItem(VIEW_KEY); } catch (e) {}
-  const state = { view: stored === 'covers' ? 'covers' : 'spines', sort: 'rating', L: null };
+  let stored = [null, null];
+  try { stored = [localStorage.getItem(VIEW_KEY), localStorage.getItem(SORT_KEY)]; } catch (e) {}
+  const state = {
+    view: stored[0] === 'covers' ? 'covers' : 'spines',
+    sort: SORT_NAMES.includes(stored[1]) ? stored[1] : 'rating',
+    L: null,
+  };
   const off = new Map();
   const offT = new Map();
   const cam = { cx: 0, yTop: 0, span: 1 };
@@ -106,6 +112,8 @@ function start() {
     const anchor = oldL ? anchorBook() : -1;
     const anchorY = oldL ? (scrollTarget() - (P[anchor * 4 + 1] + dims[anchor].h / 2)) * m.ppu : 0;
     const oldSpan = m ? m.span : 1;
+    const camFrom = Object.assign({}, cam);
+    const shelvesFrom = shelfPose;
     m = metrics();
     cam.span = m.span;
     const L = layout(books, { view: state.view, sort: state.sort, width: m.span, gutter: m.gutter, head: m.head });
@@ -114,7 +122,7 @@ function start() {
 
     const pivots = L.shelves.map((s) => {
       if (!oldL) return null;
-      const centre = animate && s.list.includes(anchor);
+      const centre = !!animate && s.list.includes(anchor);
       let p = 0;
       let bd = Infinity;
       s.list.forEach((i, j) => {
@@ -138,7 +146,8 @@ function start() {
       if (Math.abs(y - window.scrollY) > 1) window.scrollTo(0, y);
     }
 
-    if (animate && oldL && !reduce.matches) planSwitch(oldL, L, from, pivots);
+    if (animate === 'turn' && oldL && !reduce.matches) planSwitch(oldL, L, from, pivots);
+    else if (animate === 'shuffle' && oldL && !reduce.matches) planShuffle(oldL, L, from, camFrom, shelvesFrom);
     else {
       trans = null;
       home();
@@ -194,6 +203,61 @@ function start() {
     };
   }
 
+  function planShuffle(oldL, L, from, camFrom, shelvesFrom) {
+    const vw = canvas.clientWidth;
+    const vh = canvas.clientHeight;
+    const hvOf = (sp) => sp * vh / vw;
+    const wallH = Math.max(oldL.height, L.height);
+    const spanW = clamp(wallH * vw / vh * 1.05, m.span * 1.6, m.span * 5);
+    const hvW = hvOf(spanW);
+    const cyFrom = camFrom.yTop - hvOf(camFrom.span) / 2;
+    const centerTo = () => scrollTarget() - hvOf(m.span) / 2;
+    const cyW = hvW >= wallH ? -wallH / 2 : clamp((cyFrom + centerTo()) / 2, -wallH + hvW / 2, -hvW / 2);
+    const cxW = L.grouped ? (spanW - m.span) / 2 : 0;
+    const frame = (a, b, e) => {
+      const sp = Math.exp(lerp(Math.log(a.span), Math.log(b.span), e));
+      return { cx: lerp(a.cx, b.cx, e), yTop: lerp(a.cy, b.cy, e) + hvOf(sp) / 2, span: sp };
+    };
+    const A = { cx: camFrom.cx, cy: cyFrom, span: camFrom.span };
+    const Wd = { cx: cxW, cy: cyW, span: spanW };
+
+    const dist = new Float32Array(n);
+    let dmax = 1;
+    for (let i = 0; i < n; i++) {
+      dist[i] = Math.hypot(homeX(L, i) - from[i * 4], L.shelves[L.items[i].shelf].y - from[i * 4 + 1]);
+      dmax = Math.max(dmax, dist[i]);
+    }
+    const rotTo = rotOf(state.view);
+    const t0 = performance.now();
+    const newShelves = L.shelves.map((s) => ({ x: s.x0 + offsetOf(s), y: s.y, length: s.length }));
+    shelfPose = shelvesFrom;
+    trans = {
+      camera(now) {
+        const p = (now - t0) / SHUFFLE;
+        if (p < 0.35) return frame(A, Wd, easeInOut(p / 0.35));
+        if (p < 0.65) return frame(Wd, Wd, 0);
+        return frame(Wd, { cx: 0, cy: centerTo(), span: m.span }, easeInOut(clamp((p - 0.65) / 0.35, 0, 1)));
+      },
+      step(now) {
+        const el = now - t0;
+        if (el >= SHUFFLE * 0.5) shelfPose = newShelves;
+        for (let i = 0; i < n; i++) {
+          const k = dist[i] / dmax;
+          const e = easeInOut(clamp((el - SHUFFLE * (0.1 + 0.2 * (1 - k))) / (SHUFFLE * 0.5), 0, 1));
+          const arc = Math.sin(Math.PI * e);
+          P[i * 4] = lerp(from[i * 4], homeX(L, i), e);
+          P[i * 4 + 1] = lerp(from[i * 4 + 1], L.shelves[L.items[i].shelf].y, e) + Math.min(dist[i] * 0.3, 700) * arc;
+          P[i * 4 + 2] = lerp(from[i * 4 + 2], zOf(state.view, i), e) + Math.min(dist[i] * 0.2, 400) * arc;
+          P[i * 4 + 3] = lerp(from[i * 4 + 3], rotTo, e);
+        }
+        if (el >= SHUFFLE) {
+          trans = null;
+          home();
+        }
+      },
+    };
+  }
+
   function writeBooks() {
     for (let i = 0; i < n; i++) {
       const d = dims[i];
@@ -221,9 +285,16 @@ function start() {
     let busy = tex ? tex.pump() : false;
     const target = scrollTarget();
     const before = cam.yTop;
-    cam.yTop = reduce.matches ? target : approach(cam.yTop, target, dt, 16);
-    if (Math.abs(target - cam.yTop) * m.ppu < 0.3) cam.yTop = target;
-    else busy = true;
+    if (trans && trans.camera) {
+      Object.assign(cam, trans.camera(now));
+      busy = true;
+    } else {
+      cam.cx = 0;
+      cam.span = m.span;
+      cam.yTop = reduce.matches ? target : approach(cam.yTop, target, dt, 16);
+      if (Math.abs(target - cam.yTop) * m.ppu < 0.3) cam.yTop = target;
+      else busy = true;
+    }
     const camMoved = cam.yTop !== before;
 
     let moved = false;
@@ -346,14 +417,18 @@ function start() {
       tier.textContent = '';
       return;
     }
-    const count = '<span class="n">' + t('books.count', l.count) + '</span>';
+    const count = l.count ? '<span class="n">' + t('books.count', l.count) + '</span>' : '';
+    let head = '';
     if (l.kind === 'stars') {
-      let stars = '';
-      for (let k = 1; k <= 5; k++) stars += STAR.replace('%', k <= l.n ? 'on' : 'off');
-      tier.innerHTML = '<span class="stars">' + stars + '</span>' + count;
-    } else if (l.kind === 'unrated') {
-      tier.innerHTML = '<span class="stars-label">' + t('books.unrated') + '</span>' + count;
-    }
+      for (let k = 1; k <= 5; k++) head += STAR.replace('%', k <= l.n ? 'on' : 'off');
+      head = '<span class="stars">' + head + '</span>';
+    } else if (l.kind === 'unrated') head = t('books.unrated');
+    else if (l.kind === 'year') head = l.year;
+    else if (l.kind === 'undated') head = t('books3d.undated');
+    else if (l.kind === 'letters') head = l.text;
+    else if (l.kind === 'pages') head = t('books.pages', l.text);
+    else if (l.kind === 'nopages') head = t('books3d.nopages');
+    tier.innerHTML = '<span class="h">' + head + '</span>' + count;
   }
 
   const viewBtns = bar.querySelectorAll('[data-view-set]');
@@ -363,9 +438,25 @@ function start() {
     viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewSet === v)));
     try { localStorage.setItem(VIEW_KEY, v); } catch (e) {}
     setHover(-1);
-    relayout(true);
+    relayout('turn');
     invalidate();
   }
+
+  const sortBtns = bar.querySelectorAll('[data-sort-set]');
+  function setSort(v) {
+    if (v === state.sort || !SORT_NAMES.includes(v)) return;
+    state.sort = v;
+    sortBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sortSet === v)));
+    try { localStorage.setItem(SORT_KEY, v); } catch (e) {}
+    setHover(-1);
+    relayout('shuffle');
+    tierKey = null;
+    invalidate();
+  }
+  sortBtns.forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.sortSet === state.sort));
+    b.addEventListener('click', () => setSort(b.dataset.sortSet));
+  });
   viewBtns.forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.viewSet === state.view));
     b.addEventListener('click', () => setView(b.dataset.viewSet));

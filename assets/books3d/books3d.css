@@ -12,7 +12,7 @@
 .b3d-tier { position: sticky; top: calc(var(--nav-h, 4rem) + 0.75rem); z-index: 2; display: inline-flex; align-items: center; gap: 0.75rem;
   padding: 0.35rem 0.8rem; border-radius: 999px; background: var(--desk); font-size: var(--t-md); font-weight: 500; line-height: 1; pointer-events: none; }
 .b3d-tier.empty { visibility: hidden; }
-.b3d-tier .stars-label { color: var(--ink-2); }
+.b3d-tier .h { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .b3d-tier .n { color: var(--ink-3); font-size: var(--t-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
 .b3d-arrows { position: absolute; top: 0; height: 0; }
 .b3d-arrow { position: absolute; transform: translateY(-50%); }

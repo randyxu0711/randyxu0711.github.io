@@ -258,7 +258,9 @@ export function createTextures(gl, books, dims, opts) {
         else runs.pop();
         total = measure() + fs;
       }
-      runs.push({ up: true, text: '…' });
+      const r = runs[runs.length - 1];
+      if (r && !r.up) r.text += '…';
+      else runs.push({ up: true, text: '⋮' });
       total = measure();
     }
     const cx = c.x + 1 + t / 2;
