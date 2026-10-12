@@ -50,7 +50,7 @@ vec3 lit(vec3 c, vec3 n) {
   vec3 d = uLamp.xyz - vWorld;
   float dist = length(d);
   float fall = 1.0 / (1.0 + pow(dist / uLampReach, 2.0));
-  vec3 lamp = uLampColor * (0.06 + 1.6 * max(dot(nn, d / dist), 0.0) * fall);
+  vec3 lamp = day * 0.4 + uLampColor * (1.3 * max(dot(nn, d / dist), 0.0) * fall);
   return c * mix(day, lamp, uLamp.w);
 }
 `;
@@ -497,7 +497,7 @@ export function createScene(books, dims) {
     raycaster.setFromCamera(ndc, camera);
     const p = raycaster.ray.intersectPlane(lampPlane, _v);
     if (p) common.uLamp.value.set(p.x, p.y, p.z, 1);
-    common.uLampReach.value = span * 0.45;
+    common.uLampReach.value = span * 0.55;
   }
 
   function pickHeld(x, y) {

@@ -56,7 +56,7 @@ function start() {
   let stored = [null, null];
   try { stored = [localStorage.getItem(VIEW_KEY), localStorage.getItem(SORT_KEY)]; } catch (e) {}
   const state = {
-    view: stored[0] === 'covers' ? 'covers' : 'spines',
+    view: stored[0] === 'spines' ? 'spines' : 'covers',
     sort: SORT_NAMES.includes(stored[1]) ? stored[1] : 'rating',
     L: null,
   };
@@ -83,7 +83,8 @@ function start() {
   function metrics() {
     const vw = canvas.clientWidth;
     const k = clamp((vw - 480) / (1024 - 480), 0, 1);
-    const sp = Math.max((9 + 8 * k) * 28, 320 * vw / window.innerHeight);
+    const across = state.view === 'covers' ? (2.6 + 4.4 * k) * 150 : (9 + 8 * k) * 28;
+    const sp = Math.max(across, 320 * vw / window.innerHeight);
     const ppu = vw / sp;
     return { vw, span: sp, ppu, gutter: 16 / ppu, head: (tier.offsetHeight + 24) / ppu + 12 };
   }
@@ -161,7 +162,7 @@ function start() {
       if (Math.abs(y - window.scrollY) > 1) window.scrollTo(0, y);
     }
 
-    if (animate === 'turn' && oldL && !reduce.matches) planSwitch(oldL, L, from, pivots);
+    if (animate === 'turn' && oldL && !reduce.matches) planSwitch(oldL, L, from, pivots, camFrom);
     else if (animate === 'shuffle' && oldL && !reduce.matches) planShuffle(oldL, L, from, camFrom, shelvesFrom);
     else {
       trans = null;
@@ -171,10 +172,14 @@ function start() {
     dirty = true;
   }
 
-  function planSwitch(oldL, L, from, pivots) {
-    const left = cam.cx - cam.span / 2;
+  function planSwitch(oldL, L, from, pivots, camFrom) {
+    const left = camFrom.cx - camFrom.span / 2;
+    const vw = canvas.clientWidth;
+    const vh = canvas.clientHeight;
+    const hvOf = (sp) => sp * vh / vw;
+    const cyFrom = camFrom.yTop - hvOf(camFrom.span) / 2;
     const delay = new Float32Array(n);
-    for (let i = 0; i < n; i++) delay[i] = clamp((from[i * 4] - left) / cam.span, 0, 1) * STAGGER;
+    for (let i = 0; i < n; i++) delay[i] = clamp((from[i * 4] - left) / camFrom.span, 0, 1) * STAGGER;
     const rotTo = rotOf(state.view);
     const plans = L.shelves.map((s, k) => {
       const old = oldL.shelves.find((o) => o.key === s.key);
@@ -187,6 +192,12 @@ function start() {
     shelfPose = L.shelves.map((s) => ({ x: s.x0 + offsetOf(s), y: s.y, length: s.length }));
     const prog = (i, el) => ease(clamp((el - delay[i]) / TURN, 0, 1));
     trans = {
+      camera(now) {
+        const e = easeInOut(clamp((now - t0) / (STAGGER + TURN), 0, 1));
+        const sp = Math.exp(lerp(Math.log(camFrom.span), Math.log(m.span), e));
+        const cy = lerp(cyFrom, scrollTarget() - hvOf(m.span) / 2, e);
+        return { cx: lerp(camFrom.cx, 0, e), yTop: cy + hvOf(sp) / 2, span: sp };
+      },
       step(now) {
         const el = now - t0;
         for (let i = 0; i < n; i++) {
