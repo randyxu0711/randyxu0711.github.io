@@ -234,3 +234,8 @@ def test_run_does_not_write_internal_isbn_field(tmp_path):
     books.run(FIX / "goodreads_export.csv", tmp_path, hide_shelf="hide",
               fetch_page=lambda i: "", fetch_image=lambda u: b"", sleep=lambda s: None)
     assert "_isbn10" not in (tmp_path / "books.json").read_text(encoding="utf-8")
+
+
+def test_extract_cover_ignores_goodreads_logo_placeholder():
+    html = '<meta property="og:image" content="https://s.gr-assets.com/assets/facebook/goodreads_wide-e23f6858b6bf20dcaf8493237a214a0e.png">'
+    assert books.extract_cover(html) is None

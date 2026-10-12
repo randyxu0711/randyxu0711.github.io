@@ -113,7 +113,7 @@ class _OgImage(HTMLParser):
 def extract_cover(html):
     p = _OgImage()
     p.feed(html or "")
-    if not p.image or "nophoto" in p.image or not p.image.startswith("https://"):
+    if not p.image or "nophoto" in p.image or "/assets/facebook/" in p.image or not p.image.startswith("https://"):
         return None
     return p.image
 
