@@ -9,6 +9,11 @@
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1347722724i/10106590.jpg",
   "ratio": 0.66
  },
+ "101778365": {
+  "color": "#95937a",
+  "cover": "https://m.media-amazon.com/images/P/2070361179.01.L.jpg",
+  "ratio": 0.608
+ },
  "103273": {
   "color": "#cfbeb7",
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1348768474i/103273.jpg",
@@ -293,6 +298,11 @@
   "color": "#49392d",
   "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1359410501i/17302874.jpg",
   "ratio": 0.651
+ },
+ "17340766": {
+  "color": "#824731",
+  "cover": "https://m.media-amazon.com/images/P/4041586135.01.L.jpg",
+  "ratio": 0.716
  },
  "17426513": {
   "color": "#b5b1a8",

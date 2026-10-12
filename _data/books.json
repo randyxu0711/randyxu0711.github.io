@@ -3433,10 +3433,10 @@
   "added": "2026-08-12",
   "shelves": [],
   "url": "https://www.goodreads.com/book/show/17340766",
-  "cover": null,
-  "color": null,
-  "ink": null,
-  "ratio": null,
+  "cover": "https://m.media-amazon.com/images/P/4041586135.01.L.jpg",
+  "color": "#824731",
+  "ink": "#f7f3ea",
+  "ratio": 0.716,
   "read_count": 1
  },
  {
@@ -3705,10 +3705,10 @@
   "added": "2025-01-29",
   "shelves": [],
   "url": "https://www.goodreads.com/book/show/101778365",
-  "cover": null,
-  "color": null,
-  "ink": null,
-  "ratio": null,
+  "cover": "https://m.media-amazon.com/images/P/2070361179.01.L.jpg",
+  "color": "#95937a",
+  "ink": "#f7f3ea",
+  "ratio": 0.608,
   "read_count": 1
  },
  {
