@@ -98,6 +98,7 @@ export function createTextures(gl, books, dims, opts) {
   const quadGeo = new THREE.PlaneGeometry(CW, CH);
 
   const coverState = new Array(n).fill(0);
+  const drawn = new Uint8Array(n);
   const queue = [];
   const waiting = [];
   let inFlight = 0;
@@ -226,7 +227,10 @@ export function createTextures(gl, books, dims, opts) {
       mesh.material.uniforms.map.value.dispose();
       mesh.material.dispose();
     });
-    batch.forEach(({ i }) => gl.setState(i, 0, 1));
+    batch.forEach(({ i }) => {
+      drawn[i] = 1;
+      gl.setState(i, 0, 1);
+    });
     return true;
   }
 
@@ -358,6 +362,7 @@ export function createTextures(gl, books, dims, opts) {
       next();
     },
     pump,
+    drawn: (i) => drawn[i] === 1 || coverState[i] === 2,
     fontsChanged() {
       drawSpines();
       redrawFallbacks();

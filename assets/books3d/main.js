@@ -19,8 +19,7 @@ const n = books.length;
 const VIEW_KEY = 'books3d-view';
 const SORT_KEY = 'books3d-sort';
 const SHUFFLE = 1600;
-const INTRO = 700;
-const INTRO_KEY = 'books3d-intro';
+const LIGHT_WAIT = 2000;
 const STAGGER = 400;
 const TURN = 600;
 const SLIDE_OUT = 14;
@@ -45,6 +44,7 @@ async function start() {
   try {
     gl = createScene(books, dims);
   } catch (e) {
+    root.classList.add('fail');
     return;
   }
   const canvas = gl.canvas;
@@ -76,7 +76,6 @@ async function start() {
   let dim = 0;
   let m = null;
   let trans = null;
-  const afterIntro = [];
   let shelfPose = [];
   let dirty = true;
   let drag = null;
@@ -166,66 +165,12 @@ async function start() {
 
     if (animate === 'turn' && oldL && !reduce.matches) planSwitch(oldL, L, from, pivots, camFrom);
     else if (animate === 'shuffle' && oldL && !reduce.matches) planShuffle(oldL, L, from, camFrom, shelvesFrom);
-    else if (trans && trans.intro) {
-      const t0 = trans.t0;
-      planIntro();
-      trans.t0 = t0;
-    } else {
+    else {
       trans = null;
       home();
     }
     buildArrows();
     dirty = true;
-  }
-
-  function wantIntro() {
-    if (reduce.matches) return false;
-    try {
-      if (sessionStorage.getItem(INTRO_KEY)) return false;
-      sessionStorage.setItem(INTRO_KEY, '1');
-    } catch (e) {}
-    return true;
-  }
-
-  function planIntro() {
-    home();
-    const top = cam.yTop;
-    const bottom = top - canvas.clientHeight / m.ppu;
-    const left = -m.span / 2;
-    const order = [];
-    for (let i = 0; i < n; i++) {
-      const y = P[i * 4 + 1];
-      if (y + dims[i].h < bottom || y > top || Math.abs(P[i * 4]) > m.span / 2 + W) continue;
-      order.push(i);
-    }
-    const rows = [...new Set(order.map((i) => P[i * 4 + 1]))].sort((a, b) => b - a);
-    const delay = new Map(order.map((i) => [i, rows.indexOf(P[i * 4 + 1]) * 140 + clamp((P[i * 4] - left) / m.span, 0, 1) * 420]));
-    const end = Math.max(0, ...delay.values()) + INTRO;
-    const base = P.slice();
-    trans = {
-      intro: true,
-      t0: performance.now(),
-      step(now) {
-        const el = now - this.t0;
-        delay.forEach((d, i) => {
-          const e = clamp((el - d) / INTRO, 0, 1);
-          if (e === 0) {
-            P[i * 4 + 1] = top + 1e4;
-            return;
-          }
-          const fall = 1 - e * e * (3 - 2 * e);
-          const bounce = e > 0.7 ? Math.sin((e - 0.7) / 0.3 * Math.PI) * 0.035 : 0;
-          P[i * 4 + 1] = base[i * 4 + 1] + dims[i].h * (1.2 * fall * fall + bounce);
-          P[i * 4 + 2] = base[i * 4 + 2] + 60 * fall;
-        });
-        if (el >= end) {
-          trans = null;
-          home();
-          afterIntro.splice(0).forEach((fn) => fn());
-        }
-      },
-    };
-    trans.step(trans.t0);
   }
 
   function planSwitch(oldL, L, from, pivots, camFrom) {
@@ -554,6 +499,19 @@ async function start() {
   let raf = 0;
   let last = 0;
   let ready = false;
+  let lightCheck = null;
+
+  function visibleBooks() {
+    const top = cam.yTop;
+    const bottom = top - canvas.clientHeight / m.ppu;
+    const out = [];
+    for (let i = 0; i < n; i++) {
+      const y = P[i * 4 + 1];
+      if (y + dims[i].h < bottom || y > top || Math.abs(P[i * 4]) > m.span / 2 + W) continue;
+      out.push(i);
+    }
+    return out;
+  }
   function invalidate() {
     if (!raf && ready) raf = requestAnimationFrame(frame);
   }
@@ -567,6 +525,7 @@ async function start() {
     const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
     last = now;
     let busy = tex ? tex.pump() : false;
+    if (lightCheck && !lightCheck()) lightCheck = null;
     const target = scrollTarget();
     const before = cam.yTop;
     if (trans && trans.camera) {
@@ -983,12 +942,9 @@ async function start() {
   relayout(false);
   applyColors();
   cam.yTop = scrollTarget();
-  const intro = wantIntro();
-  if (intro) planIntro();
   writeBooks();
   dirty = false;
   updateTier(true);
-  bar.hidden = false;
 
   let fontsReady = false;
   tex = createTextures(gl, books, dims, {
@@ -1000,10 +956,6 @@ async function start() {
   const distance = (i) => Math.abs(P[i * 4 + 1] + dims[i].h / 2 - center) * 4 + Math.abs(P[i * 4] - cam.cx);
   tex.start(books.map((b, i) => i).sort((a, b) => distance(a) - distance(b)), invalidate);
   const drawText = () => {
-    if (trans && trans.intro) {
-      afterIntro.push(drawText);
-      return;
-    }
     fontsReady = true;
     tex.fontsChanged();
     invalidate();
@@ -1036,7 +988,17 @@ async function start() {
   watchTheme(applyColors);
   await gl.warm();
   ready = true;
-  if (trans && trans.intro) trans.t0 = performance.now();
+  const seen = visibleBooks();
+  const light = () => {
+    if (root.classList.contains('lit')) return;
+    root.classList.add('lit');
+    bar.hidden = false;
+  };
+  setTimeout(light, Math.max(0, LIGHT_WAIT - performance.now()));
+  lightCheck = () => {
+    if (seen.every((i) => tex.drawn(i))) light();
+    return !root.classList.contains('lit');
+  };
   invalidate();
 }
 
