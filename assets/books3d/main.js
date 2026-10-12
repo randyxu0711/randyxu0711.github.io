@@ -13,7 +13,6 @@ const heldEl = document.getElementById('b3d-held');
 const heldText = document.getElementById('b3d-held-text');
 const grLink = document.getElementById('b3d-gr');
 const list = document.getElementById('b3d-list');
-const LAMP = new URLSearchParams(window.location.search).has('lamp');
 const books = JSON.parse(document.getElementById('b3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
@@ -887,13 +886,12 @@ function start() {
     const tokens = readTokens();
     gl.setColors(tokens);
     const d = tokens.desk;
-    lampOn = LAMP && 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
+    lampOn = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     placeLamp();
     invalidate();
   }
 
   function placeLamp() {
-    if (!LAMP) return;
     if (held && held.phase !== 'down') {
       const h = dims[held.i].h;
       gl.setLampAt(lampOn, heldPose.x, heldPose.y + h * 1.1, heldPose.z + h * 1.3, h * 2.2);
