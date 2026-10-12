@@ -197,12 +197,7 @@ export function createTextures(gl, books, dims, opts) {
   }
 
   const spineCanvas = document.createElement('canvas');
-  const spineTex = new THREE.CanvasTexture(spineCanvas);
-  spineTex.format = THREE.RedFormat;
-  spineTex.flipY = false;
-  spineTex.minFilter = THREE.LinearMipmapLinearFilter;
-  spineTex.magFilter = THREE.LinearFilter;
-  spineTex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+  let spineTex = null;
 
   function packSpines(s) {
     const cellsOut = [];
@@ -299,6 +294,15 @@ export function createTextures(gl, books, dims, opts) {
     const l = lang();
     const font = displayFont();
     pack.cells.forEach((c, i) => drawSpine(g, i, c, l, font));
+    if (!spineTex) {
+      spineTex = new THREE.CanvasTexture(spineCanvas);
+      spineTex.format = THREE.RedFormat;
+      spineTex.flipY = false;
+      spineTex.minFilter = THREE.LinearMipmapLinearFilter;
+      spineTex.magFilter = THREE.LinearFilter;
+      spineTex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+      gl.setTextures(rt.texture, spineTex);
+    }
     spineTex.onUpdate = () => {
       spineCanvas.width = spineCanvas.height = 1;
     };
@@ -312,7 +316,6 @@ export function createTextures(gl, books, dims, opts) {
 
   return {
     covers: rt.texture,
-    spines: spineTex,
     start(order, ready) {
       onReady = ready;
       order.forEach(load);
