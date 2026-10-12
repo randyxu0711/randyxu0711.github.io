@@ -560,6 +560,7 @@ function start() {
       busy = true;
     }
     if (held && stepHeld(now)) busy = true;
+    if (lampOn && held) placeLamp();
     const dimT = held && held.phase !== 'down' ? 0.4 : 0;
     if (dim !== dimT) {
       dim = reduce.matches ? dimT : approach(dim, dimT, dt, 10);
@@ -893,6 +894,11 @@ function start() {
 
   function placeLamp() {
     if (!LAMP) return;
+    if (held && held.phase !== 'down') {
+      const h = dims[held.i].h;
+      gl.setLampAt(lampOn, heldPose.x, heldPose.y + h * 1.1, heldPose.z + h * 1.3, h * 2.2);
+      return;
+    }
     const hover = window.matchMedia('(hover: hover)').matches && pointer.time;
     gl.setLamp(lampOn, hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
   }

@@ -500,6 +500,11 @@ export function createScene(books, dims) {
     common.uLampReach.value = span * 0.55;
   }
 
+  function setLampAt(on, x, y, z, reach) {
+    common.uLamp.value.set(x, y, z, on ? 1 : 0);
+    common.uLampReach.value = reach;
+  }
+
   function pickHeld(x, y) {
     if (!held.visible) return false;
     held.updateMatrixWorld(true);
@@ -513,5 +518,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture, setLamp };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture, setLamp, setLampAt };
 }
