@@ -1,0 +1,48 @@
+---
+layout: default
+modules: [layout.js, colors.js, scene.js]
+---
+{%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
+{%- assign v = site.time | date: '%s' -%}
+<link rel="stylesheet" href="{{ '/assets/books3d/books3d.css' | relative_url }}?v={{ v }}">
+<section class="b3d" id="b3d">
+  <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
+  <div class="b3d-list" id="b3d-list">
+    {%- for r in ratings -%}
+      {%- assign rn = r | plus: 0 -%}
+      {%- assign list = site.data.books | where: "rating", r -%}
+      {%- if list.size == 0 -%}{%- continue -%}{%- endif %}
+    <h2 class="b3d-list-head">
+      {%- if rn == 0 -%}<span class="stars-label" data-i18n="books.unrated">未評分</span>
+      {%- else -%}{% include stars.html n=rn %}{%- endif -%}
+      <span class="n" data-i18n="books.count" data-i18n-n="{{ list.size }}">{% include t.html k="books.count" n=list.size %}</span>
+    </h2>
+    <ol>
+      {%- for b in list -%}
+        {%- assign zh = site.data.books_zh[b.id] %}
+      <li><a href="{{ b.url | escape }}" target="_blank" rel="noopener">{% include book-name.html zh=zh.title en=b.title %}</a> <span class="au">{% include book-name.html zh=zh.author en=b.author %}</span></li>
+      {%- endfor %}
+    </ol>
+    {%- endfor %}
+  </div>
+  <div class="b3d-scene" id="b3d-scene" hidden></div>
+</section>
+{%- capture books_json -%}
+[{%- for b in site.data.books -%}
+  {%- assign zh = site.data.books_zh[b.id] -%}
+  {%- assign t_zh = zh.title | default: b.title -%}
+  {%- unless forloop.first %},{% endunless -%}
+  {"id":{{ b.id | jsonify }},"t":{{ b.title | jsonify }},"tz":{{ zh.title | jsonify }},"a":{{ b.author | jsonify }},"az":{{ zh.author | jsonify }},
+  "r":{{ b.rating | default: 0 }},"p":{{ b.pages | jsonify }},"d":{{ b.read | jsonify }},"n":{{ b.read_count | default: 1 }},
+  "c":{{ b.color | jsonify }},"k":{{ b.ink | jsonify }},"q":{{ b.ratio | default: 0.66 }},"cv":{{ b.cover | jsonify }},"u":{{ b.url | jsonify }},
+  "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }}}
+{%- endfor -%}]
+{%- endcapture %}
+<script type="application/json" id="b3d-data">{{ books_json | replace: "</", "<\/" }}</script>
+<script type="importmap">{"imports": {
+  "three": "{{ '/assets/vendor/three/three.module.min.js' | relative_url }}"
+  {%- for m in layout.modules %},
+  "books3d/{{ m }}": "{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}"
+  {%- endfor %}
+}}</script>
+<script type="module" src="{{ '/assets/books3d/main.js' | relative_url }}?v={{ v }}"></script>

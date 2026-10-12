@@ -1,7 +1,7 @@
-# 書單是空的、或 books 模組關掉時,不產生 /books/
+# 書單是空的、或 books 模組關掉時,不產生 /books/ 與 /books-3d/
 Jekyll::Hooks.register :site, :post_read do |site|
   enabled = (site.config["modules"] || {}).key?("books")
   books = site.data["books"]
   next if enabled && books.is_a?(Array) && !books.empty?
-  site.pages.reject! { |p| p.url == "/books/" }
+  site.pages.reject! { |p| p.url == "/books/" || p.url == "/books-3d/" }
 end
