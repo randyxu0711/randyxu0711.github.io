@@ -40,8 +40,18 @@ const LIGHT = /* glsl */ `
 uniform vec3 uLight;
 uniform float uAmbient;
 uniform float uKey;
+uniform vec4 uLamp;
+uniform vec3 uLampColor;
+uniform float uLampReach;
+varying vec3 vWorld;
 vec3 lit(vec3 c, vec3 n) {
-  return c * (uAmbient + uKey * max(dot(normalize(n), uLight), 0.0));
+  vec3 nn = normalize(n);
+  vec3 day = vec3(uAmbient + uKey * max(dot(nn, uLight), 0.0));
+  vec3 d = uLamp.xyz - vWorld;
+  float dist = length(d);
+  float fall = 1.0 / (1.0 + pow(dist / uLampReach, 2.0));
+  vec3 lamp = uLampColor * (0.06 + 1.6 * max(dot(nn, d / dist), 0.0) * fall);
+  return c * mix(day, lamp, uLamp.w);
 }
 `;
 
@@ -70,12 +80,14 @@ varying vec3 vLocal;
 varying vec3 vSize;
 varying vec2 vUv;
 varying float vFace;
+varying vec3 vWorld;
 void main() {
   mat4 m = modelMatrix;
 #ifdef USE_INSTANCING
   m = m * instanceMatrix;
 #endif
   vec4 w = m * vec4(position, 1.0);
+  vWorld = w.xyz;
   vSize = vec3(length(m[0].xyz), length(m[1].xyz), length(m[2].xyz));
   vN = mat3(m) * normal;
   vLocal = position;
@@ -162,8 +174,10 @@ attribute float face;
 varying vec3 vN;
 varying vec3 vLocal;
 varying float vFace;
+varying vec3 vWorld;
 void main() {
   mat4 m = modelMatrix * instanceMatrix;
+  vWorld = (m * vec4(position, 1.0)).xyz;
   vN = mat3(m) * normal;
   vLocal = position;
   vFace = face;
@@ -228,6 +242,9 @@ export function createScene(books, dims) {
     uLight: { value: new THREE.Vector3(-0.3, 0.55, 0.78).normalize() },
     uAmbient: { value: 0.6 },
     uKey: { value: 0.5 },
+    uLamp: { value: new THREE.Vector4(0, 0, 0, 0) },
+    uLampColor: { value: new THREE.Color(1, 0.85, 0.6) },
+    uLampReach: { value: 500 },
   };
   const colors = {
     uPaper: { value: new THREE.Color() },
@@ -344,6 +361,8 @@ export function createScene(books, dims) {
   held.matrixAutoUpdate = false;
   held.frustumCulled = false;
   held.visible = false;
+  held.renderOrder = 1;
+  held.onBeforeRender = (r) => r.clearDepth();
   scene.add(held);
 
   function holdBook(i, back) {
@@ -434,6 +453,7 @@ export function createScene(books, dims) {
     colors.uEdgeN.value.setRGB(...t['edge-n']);
     colors.uDrop.value.set(...t['drop-near']);
     renderer.setClearColor(new THREE.Color(...t.desk), 1);
+    common.uLampColor.value.setRGB(...t.edge).lerp(new THREE.Color(1, 1, 1), 0.45);
   }
 
   let size = { w: 0, h: 0 };
@@ -469,6 +489,17 @@ export function createScene(books, dims) {
     return hit ? hit.instanceId : -1;
   }
 
+  const lampPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -120);
+  function setLamp(on, x, y, span) {
+    common.uLamp.value.w = on ? 1 : 0;
+    if (!on) return;
+    ndc.set(x / size.w * 2 - 1, 1 - y / size.h * 2);
+    raycaster.setFromCamera(ndc, camera);
+    const p = raycaster.ray.intersectPlane(lampPlane, _v);
+    if (p) common.uLamp.value.set(p.x, p.y, p.z, 1);
+    common.uLampReach.value = span * 0.45;
+  }
+
   function pickHeld(x, y) {
     if (!held.visible) return false;
     held.updateMatrixWorld(true);
@@ -482,5 +513,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, project, view, canvasTexture, imageTexture, setLamp };
 }

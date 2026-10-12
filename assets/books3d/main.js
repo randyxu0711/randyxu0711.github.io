@@ -12,6 +12,8 @@ const arrows = document.getElementById('b3d-arrows');
 const heldEl = document.getElementById('b3d-held');
 const heldText = document.getElementById('b3d-held-text');
 const grLink = document.getElementById('b3d-gr');
+const list = document.getElementById('b3d-list');
+const LAMP = new URLSearchParams(window.location.search).has('lamp');
 const books = JSON.parse(document.getElementById('b3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
@@ -533,6 +535,7 @@ function start() {
     }
 
     gl.frustum(cam);
+    if (lampOn) placeLamp();
     if (pointer.in && !drag && !held && (pointer.moved || camMoved || dirty)) {
       pointer.moved = false;
       const hit = trans ? -1 : gl.pick(pointer.x, pointer.y);
@@ -568,6 +571,63 @@ function start() {
     gl.render(cam);
     if (busy) invalidate();
     else last = 0;
+  }
+
+  function labelText(l) {
+    if (!l) return '';
+    const count = l.count ? ', ' + t('books.count', l.count) : '';
+    if (l.kind === 'stars') return t('books.stars', l.n) + count;
+    if (l.kind === 'unrated') return t('books.unrated') + count;
+    if (l.kind === 'year') return l.year + count;
+    if (l.kind === 'undated') return t('books3d.undated') + count;
+    return '';
+  }
+
+  function buildList() {
+    const L = state.L;
+    const frag = document.createDocumentFragment();
+    const add = (label, items) => {
+      if (label) {
+        const h = document.createElement('h2');
+        h.textContent = label;
+        frag.appendChild(h);
+      }
+      const ol = document.createElement('ol');
+      items.forEach((i) => {
+        const li = document.createElement('li');
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.i = i;
+        b.textContent = titleOf(books[i]) + ', ' + authorOf(books[i]);
+        li.appendChild(b);
+        ol.appendChild(li);
+      });
+      frag.appendChild(ol);
+    };
+    if (L.grouped) L.shelves.forEach((s) => add(labelText(s.label), s.list));
+    else add('', L.shelves.flatMap((s) => s.list));
+    list.textContent = '';
+    list.appendChild(frag);
+  }
+
+  let listTimer = 0;
+  function scheduleList(delay) {
+    clearTimeout(listTimer);
+    listTimer = setTimeout(buildList, delay);
+  }
+
+  function focusBook(i) {
+    focused = i;
+    setHover(hovered);
+    const it = state.L.items[i];
+    const s = state.L.shelves[it.shelf];
+    const x = s.x0 + offsetOf(s) + it.lx;
+    if (Math.abs(x - cam.cx) > m.span / 2 - it.w) slide(s, cam.cx - x);
+    const yc = s.y + dims[i].h / 2;
+    const py = (scrollTarget() - yc) * m.ppu;
+    if (py < window.innerHeight * 0.25 || py > window.innerHeight * 0.75) {
+      window.scrollTo(0, Math.max(0, window.scrollY + py - window.innerHeight / 2));
+    }
   }
 
   function setHover(i) {
@@ -679,6 +739,7 @@ function start() {
     try { localStorage.setItem(SORT_KEY, v); } catch (e) {}
     setHover(-1);
     relayout('shuffle');
+    scheduleList(reduce.matches ? 0 : SHUFFLE + 100);
     tierKey = null;
     invalidate();
   }
@@ -774,6 +835,20 @@ function start() {
     if (s && slide(s, (e.key === 'ArrowLeft' ? 1 : -1) * s.avail * 0.7)) e.preventDefault();
   });
 
+  list.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (b) lift(Number(b.dataset.i), b);
+  });
+  list.addEventListener('focusin', (e) => {
+    const b = e.target.closest('button[data-i]');
+    if (b) focusBook(Number(b.dataset.i));
+  });
+  list.addEventListener('focusout', (e) => {
+    if (e.relatedTarget && list.contains(e.relatedTarget)) return;
+    focused = -1;
+    setHover(hovered);
+  });
+
   heldEl.addEventListener('click', (e) => {
     if (!held || e.target.closest('a')) return;
     if (gl.pickHeld(e.clientX, e.clientY)) flip();
@@ -795,9 +870,20 @@ function start() {
     }, 0);
   });
 
+  let lampOn = false;
   function applyColors() {
-    gl.setColors(readTokens());
+    const tokens = readTokens();
+    gl.setColors(tokens);
+    const d = tokens.desk;
+    lampOn = LAMP && 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
+    placeLamp();
     invalidate();
+  }
+
+  function placeLamp() {
+    if (!LAMP) return;
+    const hover = window.matchMedia('(hover: hover)').matches && pointer.time;
+    gl.setLamp(lampOn, hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
   }
 
   const nav = document.querySelector('.nav');
@@ -851,6 +937,7 @@ function start() {
   });
   document.addEventListener('langchange', () => {
     updateTier(true);
+    scheduleList(0);
     if (held && held.phase !== 'down') {
       const old = held.back;
       held.back = gl.canvasTexture(drawBack(books[held.i], W, dims[held.i].h, t));
@@ -866,6 +953,7 @@ function start() {
     invalidate();
   });
 
+  buildList();
   window.addEventListener('scroll', invalidate, { passive: true });
   watchTheme(applyColors);
 }
