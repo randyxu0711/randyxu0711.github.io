@@ -55,7 +55,7 @@ modules: [layout.js, scene.js, textures.js]
   {%- if dead -%}{%- assign href = p.archive -%}{%- endif -%}
   {%- unless forloop.first %},{% endunless -%}
   {"i":{{ p.issue | default: 0 | jsonify }},"t":{{ p.title | jsonify }},"u":{{ href | jsonify }},"s":{{ p.source | jsonify }},
-  "d":{{ p.date | date: '%Y-%m-%d' | jsonify }},"g":{{ p.tags | jsonify }},"n":{{ p.note | jsonify }},"e":{{ p.description | jsonify }},
+  "d":{{ p.date | date: '%Y-%m-%d' | jsonify }},"g":{%- if p.tags -%}{{ p.tags | jsonify }}{%- else -%}[]{%- endif -%},"n":{{ p.note | jsonify }},"e":{{ p.description | jsonify }},
   "m":{{ p.image | jsonify }},"x":{{ dead }}}
 {%- endfor -%}]
 {%- endcapture %}
