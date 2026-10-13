@@ -1,6 +1,6 @@
 # 分享頁 WebGL 版規格:剪報桌與目錄櫃
 
-狀態:2026-10-13 設計定案,待實作。先在 `/shares-3d/` 做原型,確認後取代首頁(做法同書架)。
+狀態:2026-10-14 實作完成並取代首頁(`index.html` 用 `shares` 版面);開發時的 `/shares-3d/` 已移除。實作計畫在 `docs/superpowers/plans/`。
 示意稿(拋棄式,只看手感):https://claude.ai/artifact/NGzTJE8uGaiA1zVcJ7JWT4
 
 ## 為什麼要改

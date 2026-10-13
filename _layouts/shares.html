@@ -1,6 +1,6 @@
 ---
 layout: default
-shared: [anim.js, colors.js, text.js, glsl.js, geometry.js]
+shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 modules: [layout.js, scene.js, textures.js, held.js, hint.js]
 ---
 {%- assign v = site.time | date: '%s' -%}
@@ -27,6 +27,7 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
 <section class="sh3d s3d" id="sh3d">
   <h1 class="visually-hidden" data-i18n="nav.shares">{% include t.html k="nav.shares" %}</h1>
   <div class="shelf sh3d-list" id="sh3d-list" aria-label="{% include t.html k="shelf.label" %}" data-i18n-attr="aria-label:shelf.label">
+    {% include slot.html name="before-shelf" %}
     {%- if site.posts.size == 0 %}
     <p class="empty" data-i18n="shelf.none">{% include t.html k="shelf.none" %}</p>
     {%- else %}
@@ -36,6 +37,7 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
       {%- endfor %}
     </div>
     {%- endif %}
+    {% include slot.html name="after-shelf" %}
   </div>
   <div class="sh3d-stage" id="sh3d-stage" hidden></div>
   <div class="sh3d-bar" id="sh3d-bar" hidden>

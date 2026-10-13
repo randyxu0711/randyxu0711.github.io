@@ -423,6 +423,23 @@ export function createScene(n) {
   }
 
   const clear = new THREE.Color();
+  const unlitColor = new THREE.Color();
+  const view = { lamp: false, unlit: 0 };
+  function applyClear() {
+    clear.copy(colors.uDesk.value).multiplyScalar(view.lamp ? 0.4 : 1).lerp(unlitColor, view.unlit);
+    renderer.setClearColor(clear, 1);
+  }
+
+  function setIntro(unlit, sketch) {
+    view.unlit = unlit;
+    colors.uUnlit.value.set(unlitColor.r, unlitColor.g, unlitColor.b, unlit);
+    const k = renderer.getPixelRatio();
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    colors.uSketch.value.set((w * k) / 2, (h * k) / 2, (Math.hypot(w, h) * k) / 2, sketch);
+    applyClear();
+  }
+
   function setColors(t) {
     const set = (name, v) => colors[name].value.setRGB(v[0], v[1], v[2]);
     set('uDesk', t.desk);
@@ -444,14 +461,16 @@ export function createScene(n) {
     paint(stickies, stickies.count, tint.sticky);
     paint(tray, tray.count, tint.handle);
     common.uLampColor.value.setRGB(t.edge[0], t.edge[1], t.edge[2]).lerp(new THREE.Color(1, 1, 1), 0.45);
-    renderer.setClearColor(clear.setRGB(t.desk[0], t.desk[1], t.desk[2]), 1);
+    unlitColor.setRGB(t.unlit[0], t.unlit[1], t.unlit[2]);
+    colors.uUnlit.value.set(unlitColor.r, unlitColor.g, unlitColor.b, view.unlit);
+    applyClear();
   }
 
   function setLamp(on, x = 0, y = 0, z = 0, reach = 380) {
     common.uLamp.value.set(x, y, z, on ? 1 : 0);
     common.uLampReach.value = reach;
-    clear.copy(colors.uDesk.value).multiplyScalar(on ? 0.4 : 1);
-    renderer.setClearColor(clear, 1);
+    view.lamp = on;
+    applyClear();
   }
 
   const raycaster = new THREE.Raycaster();
@@ -510,5 +529,5 @@ export function createScene(n) {
     return renderer.compileAsync(scene, camera);
   }
 
-  return { renderer, canvas, setCards, setShadows, setCabinet, setTray, setDrawers, setPileLabels, setTextures, setColors, setLamp, deskPoint, pick, heldPose, aim, resize, render, warm };
+  return { renderer, canvas, setCards, setShadows, setCabinet, setTray, setDrawers, setPileLabels, setTextures, setColors, setLamp, deskPoint, pick, heldPose, aim, setIntro, resize, render, warm };
 }

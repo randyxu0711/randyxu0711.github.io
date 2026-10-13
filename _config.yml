@@ -26,7 +26,7 @@ appearance:
   thickness: 4px   # 一般卡片的厚度(精選 7px、按鍵 2px)
 
 modules:           # 註解掉一行 = 關掉一個功能
-  shelf-filter: { slots: [before-shelf] }
+  # shelf-filter: { slots: [before-shelf] }   分享頁改成 3D 後由場景裡的搜尋取代;保底清單仍留著插槽
   seen:         { slots: [card-meta, footer] }
   archive:      { slots: [card-meta] }
   books:        { slots: [], assets: false }

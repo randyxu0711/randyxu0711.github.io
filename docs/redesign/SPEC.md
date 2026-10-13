@@ -180,7 +180,7 @@ docs/redesign/SPEC.md       本文件
 有 `note` 顯示 note,否則顯示 `description`(3 行截斷)。縮圖 `loading="lazy"`,載入失敗就移除縮圖區。
 來源網域在左、日期在右;tags 用膠囊標籤。卡片連結被 linkcheck 判定失效時,改連 `archive` 並標示「原文已下架,這是封存版」。
 
-**首頁**:最新一則 = 精選卡(橫式,手機變直式);其餘 `auto-fill, minmax(19rem, 1fr)` 格狀。
+**首頁**:2026-10-14 起改成 WebGL 剪報桌與目錄櫃(`docs/shares-webgl.md`);下面這段格狀卡片是沒有 JS 時的保底。最新一則 = 精選卡(橫式,手機變直式);其餘 `auto-fill, minmax(19rem, 1fr)` 格狀。
 首頁的 share 列表不分頁(沒有第 1、2 頁),全部列在首頁上,縮圖捲到才載入。站上的頁面仍是分開的:首頁(分享)、書架、關於。
 
 **shelf-filter 模組**:

@@ -87,10 +87,21 @@ function drawCard(g, it) {
   g.stroke();
   g.textAlign = 'center';
   g.font = `600 ${64 * k}px ${display}`;
-  g.fillText((Array.from(name)[0] || '?').toUpperCase(), 0, 14 * k);
+  g.fillText(it.x ? '封' : (Array.from(name)[0] || '?').toUpperCase(), 0, 14 * k);
   g.font = `400 ${15 * k}px ${code}`;
-  g.fillText(name.slice(0, 10).toUpperCase(), 0, 40 * k);
+  g.fillText(it.x ? 'ARCHIVED' : name.slice(0, 10).toUpperCase(), 0, 40 * k);
   g.restore();
+  if (it.seen) {
+    g.strokeStyle = '#0f0';
+    g.lineWidth = 4 * k;
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    g.beginPath();
+    g.moveTo(596 * k, 132 * k);
+    g.lineTo(606 * k, 144 * k);
+    g.lineTo(624 * k, 112 * k);
+    g.stroke();
+  }
   g.globalCompositeOperation = 'source-over';
 }
 
@@ -138,6 +149,7 @@ export function createAtlas(gl, items, onDrawn) {
   const used = new Float64Array(cap);
   const ready = new Uint8Array(cap);
   const queue = [];
+  const stale = new Set();
   let clock = 0;
   let lastMip = 0;
   let quadReady = false;
@@ -186,7 +198,7 @@ export function createAtlas(gl, items, onDrawn) {
 
   function pump() {
     if (!queue.length || !quadReady) return false;
-    const batch = [...new Set(queue.splice(0, PER_FRAME))].filter((s) => itemOf[s] >= 0 && !ready[s]);
+    const batch = [...new Set(queue.splice(0, PER_FRAME))].filter((s) => itemOf[s] >= 0 && (!ready[s] || stale.has(s)));
     const meshes = batch.map((s, k) => {
       const c = canvases[k];
       drawCard(c.getContext('2d'), items[itemOf[s]]);
@@ -216,7 +228,10 @@ export function createAtlas(gl, items, onDrawn) {
       mesh.material.uniforms.map.value.dispose();
       mesh.material.dispose();
     });
-    batch.forEach((s) => { ready[s] = 1; });
+    batch.forEach((s) => {
+      ready[s] = 1;
+      stale.delete(s);
+    });
     onDrawn();
     return true;
   }
@@ -224,11 +239,21 @@ export function createAtlas(gl, items, onDrawn) {
   function reset() {
     clear();
     ready.fill(0);
+    stale.clear();
     queue.length = 0;
     itemOf.forEach((i, s) => { if (i >= 0) queue.push(s); });
   }
 
-  return { texture: rt.texture, tile, want, pump, reset, pending: () => queue.length > 0 };
+  function refresh(ids) {
+    ids.forEach((i) => {
+      const s = slotOf.get(i);
+      if (s === undefined) return;
+      stale.add(s);
+      queue.push(s);
+    });
+  }
+
+  return { texture: rt.texture, tile, want, pump, reset, refresh, pending: () => queue.length > 0 };
 }
 
 export function createLabels(onTexture) {

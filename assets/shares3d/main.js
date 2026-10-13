@@ -1,8 +1,9 @@
 import { readTokens, rgba, watchTheme } from 'scene3d/colors.js';
 import { ease, clamp, approach } from 'scene3d/anim.js';
+import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, CAB, taipeiToday, pickDesk, groups, arrange, deskPose, pilePose, pileLabelPose, makeCamera, mainName, hueOf, tabSlot,
-  spreadPoses, pileBase, drawerOut, drawerCards, focusPile, focusDrawer, PULL,
+  spreadPoses, pileBase, drawerOut, drawerCards, focusPile, focusDrawer, matches, PULL,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, loadFonts } from 'shares3d/textures.js';
@@ -14,12 +15,17 @@ const stage = document.getElementById('sh3d-stage');
 const bar = document.getElementById('sh3d-bar');
 const peek = document.getElementById('sh3d-peek');
 const hintEl = document.getElementById('sh3d-hint');
+const qEl = document.getElementById('sh3d-q');
+const found = document.getElementById('sh3d-found');
+const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
 const GROUP_KEY = 'shares3d-group';
 const MODES = ['tag', 'source', 'month'];
-const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'rule', 'redline', 'sticky', 'drop-near'];
+const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'rule', 'redline', 'sticky', 'drop-near', 'unlit'];
+const SEEN_KEY = 'seen-links';
+const MISS = 0.6;
 const CABINET_AT = 0.74;
 const SLIDE = 380;
 const STAGGER = 45;
@@ -64,7 +70,7 @@ function start() {
   canvas.className = 'sh3d-canvas s3d-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   root.appendChild(canvas);
-  root.classList.add('on', 'soft');
+  root.classList.add('on');
   try {
     run(gl, canvas);
   } catch (e) {
@@ -112,6 +118,39 @@ function run(gl, canvas) {
   const fronts = drawers.map(() => 0);
   const fades = { desk: 0, cab: 0, drawers: drawers.map(() => 0) };
   let entries = [];
+  let tokens = null;
+  let hits = null;
+  let fontsDone = false;
+  let liveT0 = 0;
+  let litT0 = 0;
+  let lit = false;
+  let quick = null;
+  const veil = getComputedStyle(root, '::before');
+  const darkness = veil.content === 'none' ? 0 : parseFloat(veil.opacity) || 0;
+  let intro = darkness > 0;
+  if (!intro) root.classList.add('soft');
+
+  function loadSeen() {
+    try {
+      const v = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+      return new Set(Array.isArray(v) ? v : []);
+    } catch (e) {
+      return new Set();
+    }
+  }
+  function markSeen() {
+    const seen = loadSeen();
+    const changed = [];
+    items.forEach((it, i) => {
+      const v = !!(it.l && seen.has(it.l));
+      if (v !== !!it.seen) {
+        it.seen = v;
+        changed.push(i);
+      }
+    });
+    return changed;
+  }
+  markSeen();
 
   function tint(kind, key) {
     const id = kind + key;
@@ -209,10 +248,10 @@ function run(gl, canvas) {
     return {
       x: pose.x, y: pose.y, z: pose.z, q: pose.q, s: pose.s,
       tile: face ? atlas.tile(e.i) : null,
-      stamp: tint('stamp', mainName(it.s)).rgb,
+      stamp: it.x && tokens ? tokens.redline.slice(0, 3) : tint('stamp', mainName(it.s)).rgb,
       tab: { x: -CARD.W / 2 + 20 + tabSlot(tag) * 22, color: tint('tab', tag).rgb },
       sticky: !!it.n,
-      fade: fadeOf(e, 0),
+      fade: fadeOf(e, hits && !hits.has(e.i) ? MISS : 0),
       hot: e.where === 'd' && e.slot === 0 ? 1 : 0,
       hidden: held && held.entry.key === e.key && held.phase === 'dom',
     };
@@ -237,13 +276,14 @@ function run(gl, canvas) {
     return drawers.map((d, k) => {
       let dz = 0;
       if (slide !== null) dz = -(CAB.DEPTH - 20) * (1 - ease(clamp((now - slide - k * STAGGER) / SLIDE, 0, 1)));
-      return { x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k] + dz, tile: labels.drawerTile(k), fade: fades.drawers[k] || 0, hot: hover && hover.kind === 'drawer' && hover.k === k && !(focus && focus.kind === 'drawer' && focus.k === k) ? 1 : 0 };
+      const empty = hits && !d.ids.some((i) => hits.has(i));
+      return { x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k] + dz, tile: labels.drawerTile(k), fade: Math.max(fades.drawers[k] || 0, empty ? 0.5 : 0), hot: hover && hover.kind === 'drawer' && hover.k === k && !(focus && focus.kind === 'drawer' && focus.k === k) ? 1 : 0 };
     });
   }
 
   function drawLabels() {
     labels.draw(
-      drawers.map((d) => ({ name: drawerName(d), count: t('shares3d.cards', d.ids.length) })),
+      drawers.map((d) => ({ name: drawerName(d), count: t('shares3d.cards', hits ? `${d.ids.filter((i) => hits.has(i)).length} / ${d.ids.length}` : d.ids.length) })),
       piles.map((p) => `${t('shares3d.week', md(p.week))} · ${p.ids.length}`),
     );
     dirty = true;
@@ -288,7 +328,7 @@ function run(gl, canvas) {
     const here = e.where === 'x' && mode === 'tag' ? drawers[e.k].key : null;
     return {
       t: it.t, s: it.s, d: it.d, g: it.g, n: it.n, e: it.e, m: it.m, u: it.u, x: it.x,
-      stamp: tint('stamp', mainName(it.s)).css, tab: tint('tab', tag).css, slot: tabSlot(tag),
+      stamp: it.x ? 'var(--redline)' : tint('stamp', mainName(it.s)).css, tab: tint('tab', tag).css, slot: tabSlot(tag),
       also: here !== null ? it.g.filter((g) => g !== here) : [],
     };
   }
@@ -313,11 +353,18 @@ function run(gl, canvas) {
     invalidate();
   }
 
+  function nextIndex(list, from, dir) {
+    for (let j = from + dir; j >= 0 && j < list.length; j += dir) {
+      if (list[j] && (!hits || hits.has(list[j].i))) return j;
+    }
+    return -1;
+  }
+
   function step(dir) {
     if (!held || held.phase !== 'dom') return;
     const list = siblings(held.entry);
-    const j = list.indexOf(held.entry) + dir;
-    if (j < 0 || j >= list.length || !list[j]) {
+    const j = nextIndex(list, list.indexOf(held.entry), dir);
+    if (j < 0) {
       card.bump(dir);
       return;
     }
@@ -336,12 +383,21 @@ function run(gl, canvas) {
     const link = items[e.i].l;
     if (!link) return;
     try {
-      const list = JSON.parse(localStorage.getItem('seen-links') || '[]');
-      if (Array.isArray(list) && !list.includes(link)) {
-        list.push(link);
-        localStorage.setItem('seen-links', JSON.stringify(list));
+      const seen = JSON.parse(localStorage.getItem(SEEN_KEY) || '[]');
+      if (Array.isArray(seen) && !seen.includes(link)) {
+        seen.push(link);
+        localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
       }
     } catch (err) {}
+    refreshSeen();
+  }
+
+  function refreshSeen() {
+    const changed = markSeen();
+    if (changed.length) {
+      atlas.refresh(changed);
+      invalidate();
+    }
   }
 
   card.onAction((act) => {
@@ -436,7 +492,7 @@ function run(gl, canvas) {
     const k = reduce.matches ? 1 : 1 - Math.exp(-dt * 10);
     const kf = reduce.matches ? 1 : 1 - Math.exp(-dt * 4);
 
-    if (pointer.moved && !held && !coarse.matches) {
+    if (pointer.moved && !held && !coarse.matches && lit) {
       pointer.moved = false;
       const h = pointer.on ? resolve(gl.pick(pointer.x, pointer.y)) : null;
       const before = hover ? hover.key || `k${hover.k}` : '';
@@ -536,7 +592,8 @@ function run(gl, canvas) {
       for (let q = 0; q < 3; q++) lamp.pos[q] = approach(lamp.pos[q], lt.pos[q], dt, 6);
       if (gap(lamp.pos, lt.pos) > 0.5 && dark) busy = true;
     }
-    gl.setLamp(dark, lamp.pos[0], lamp.pos[1], lamp.pos[2], lt.reach);
+    gl.setLamp(dark && lit, lamp.pos[0], lamp.pos[1], lamp.pos[2], lt.reach);
+    if (intro && liveT0 && stepLight(now)) busy = true;
 
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
     const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
@@ -546,7 +603,12 @@ function run(gl, canvas) {
     hint.set(s, count, coarse.matches);
 
     gl.render(cam);
-    if (!root.classList.contains('live')) root.classList.add('live', 'lit');
+    if (!liveT0) {
+      liveT0 = now;
+      root.classList.add('live');
+      if (intro) busy = true;
+      else switchOn(now);
+    }
     if (busy) invalidate();
     else last = 0;
   }
@@ -555,14 +617,88 @@ function run(gl, canvas) {
     if (!raf && ready) raf = requestAnimationFrame(frame);
   }
 
+  function deskReady() {
+    return fontsDone && [...desk, ...piles.map((p) => p.ids[0])].every((i) => atlas.tile(i));
+  }
+
+  function switchOn(now) {
+    litT0 = now;
+    lit = true;
+    root.classList.add('lit');
+    pointer.moved = true;
+  }
+
+  function applyIntro(el) {
+    const k = introK(el, { reduce: reduce.matches, lampOn: dark, quick });
+    if (k === 0) intro = false;
+    const v = introLevels(k, intro, dark, darkness);
+    gl.setIntro(v.unlit, v.sketch);
+  }
+
+  function stepLight(now) {
+    if (!lit) {
+      const el = now - liveT0;
+      if (quick === null && el >= LIGHT_MIN) quick = deskReady();
+      if (el >= LIGHT_MAX || (el >= LIGHT_MIN && deskReady())) switchOn(now);
+    }
+    applyIntro(lit ? now - litT0 : -1);
+    return intro;
+  }
+
   function applyColors() {
-    const tokens = readTokens(TOKENS);
+    tokens = readTokens(TOKENS);
     gl.setColors(tokens);
     const d = tokens.desk;
     dark = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     tints.clear();
+    if (!liveT0 && !dark) root.classList.add('soft');
+    if (intro) applyIntro(lit ? performance.now() - litT0 : -1);
     dirty = true;
     invalidate();
+  }
+
+  function setQuery(q) {
+    const words = q.trim();
+    hits = words ? new Set(items.map((it, i) => (matches(it, words) ? i : -1)).filter((i) => i >= 0)) : null;
+    found.hidden = !hits;
+    if (hits) found.textContent = t('shares3d.matches', hits.size);
+    if (hits && focus && focus.kind === 'drawer') {
+      const ids = drawers[focus.k].ids;
+      if (!hits.has(ids[focus.cur])) {
+        const j = ids.findIndex((i) => hits.has(i));
+        if (j >= 0) focus.cur = j;
+      }
+    }
+    drawLabels();
+    dirty = true;
+    invalidate();
+  }
+
+  function scrollToStage(p) {
+    const top = stage.getBoundingClientRect().top + window.scrollY;
+    const span = stage.offsetHeight - window.innerHeight;
+    window.scrollTo({ top: top + span * p, behavior: 'instant' });
+  }
+
+  function reveal(i) {
+    release();
+    const d = desk.indexOf(i);
+    if (d >= 0) {
+      if (focus) setFocus(null);
+      scrollToStage(0);
+      return entries.find((e) => e.key === `d${i}`);
+    }
+    const pi = piles.findIndex((pl) => pl.ids.includes(i));
+    if (pi >= 0) {
+      scrollToStage(0.5);
+      setFocus({ kind: 'pile', pi });
+      return entries.find((e) => e.key === `p${i}`);
+    }
+    const k = drawers.findIndex((dr) => dr.ids.includes(i));
+    if (k < 0) return null;
+    scrollToStage(1);
+    setFocus({ kind: 'drawer', k, cur: drawers[k].ids.indexOf(i) });
+    return entries.find((e) => e.where === 'x' && e.k === k && e.i === i);
   }
 
   function pressKeys() {
@@ -597,6 +733,38 @@ function run(gl, canvas) {
   }
 
   bar.querySelectorAll('[data-group-set]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.groupSet)));
+  qEl.addEventListener('input', () => setQuery(qEl.value));
+  qEl.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    qEl.value = '';
+    setQuery('');
+    qEl.blur();
+    e.preventDefault();
+  });
+  const clearBtn = document.getElementById('seen-clear');
+  if (clearBtn) clearBtn.addEventListener('click', () => setTimeout(refreshSeen, 0));
+  window.addEventListener('storage', (e) => { if (e.key === SEEN_KEY) refreshSeen(); });
+  list.addEventListener('focusin', (e) => {
+    const art = e.target.closest && e.target.closest('article.share');
+    if (!art || !lit) return;
+    const i = items.findIndex((it) => it.l === art.getAttribute('data-link'));
+    if (i < 0) return;
+    const en = reveal(i);
+    hover = en && en.where !== 'x' ? { kind: 'card', key: en.key, entry: en } : null;
+    showPeek(en);
+    dirty = true;
+    invalidate();
+  });
+  list.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const art = e.target.closest && e.target.closest('article.share');
+    if (!art || !lit) return;
+    const i = items.findIndex((it) => it.l === art.getAttribute('data-link'));
+    const en = i >= 0 ? reveal(i) : null;
+    if (!en) return;
+    e.preventDefault();
+    hold(en);
+  });
 
   window.addEventListener('pointermove', (e) => {
     if (e.pointerType !== 'mouse') return;
@@ -620,6 +788,11 @@ function run(gl, canvas) {
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || held) return;
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName)) return;
+    if (e.key === '/' && lit) {
+      qEl.focus();
+      e.preventDefault();
+      return;
+    }
     if (e.key === 'Escape' && focus) {
       setFocus(null);
       e.preventDefault();
@@ -629,7 +802,9 @@ function run(gl, canvas) {
     const back = ['ArrowUp', 'ArrowLeft', 'k'].includes(e.key);
     const fwd = ['ArrowDown', 'ArrowRight', 'j'].includes(e.key);
     if (back || fwd) {
-      flipTo(focus.cur + (fwd ? 1 : -1));
+      const ids = drawers[focus.k].ids.map((i) => ({ i }));
+      const j = nextIndex(ids, focus.cur, fwd ? 1 : -1);
+      if (j >= 0) flipTo(j);
       e.preventDefault();
     } else if (e.key === 'Enter') {
       const en = entries.find((x) => x.where === 'x' && x.k === focus.k && x.j === focus.cur);
@@ -671,6 +846,7 @@ function run(gl, canvas) {
   applyColors();
   drawLabels();
   loadFonts(items).then(() => {
+    fontsDone = true;
     drawLabels();
     atlas.want(wanted());
     invalidate();
@@ -678,6 +854,14 @@ function run(gl, canvas) {
   const go = () => {
     ready = true;
     invalidate();
+    const m = /^#tag-(.+)$/.exec(window.location.hash);
+    if (!m) return;
+    const name = decodeURIComponent(m[1]);
+    if (mode !== 'tag') setMode('tag');
+    const k = drawers.findIndex((d) => d.kind === 'tag' && d.key === name);
+    if (k < 0) return;
+    scrollToStage(1);
+    setTimeout(() => setFocus({ kind: 'drawer', k, cur: 0 }), 60);
   };
   gl.warm().then(go, go);
 }

@@ -17,7 +17,7 @@
 - **模組與插槽**:`_config.yml` 的 `modules:` 一行一個模組,註解掉就關掉。版面用 `{% include slot.html name="…" %}`
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
   模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入;模組設 `assets: false` 就不載入)。
-  目前的模組:`shelf-filter`(原地篩選)、`seen`(已開過)、`archive`(失效改連封存版)、`books`(書單頁)。
+  目前的模組:`seen`(已開過)、`archive`(失效改連封存版)、`books`(書單頁);`shelf-filter`(原地篩選)已關掉,分享頁由場景裡的搜尋取代。
 - **字型三種角色**:`--font-display`(宋體,只給內容的名字:姓名、project、書名;小標題用黑體)、`--font-ui`(Inter + 思源黑體)、
   `--font-code`(JetBrains Mono,程式碼與計數)。規則見 `docs/redesign/SLAB.md`〈字型與配色規則〉。
 - **About 頁是捲動敘事**(`_includes/about.html`、`assets/css/about.css`、`assets/js/about.js`):每個 project 左邊是固定的展示台、
@@ -38,9 +38,15 @@
 ## 一則 share = 一個 `_posts/<date>-share-<issue#>.md`
 front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照網址)/ `source`(網域)/
 `description`(og:description)/ `image`(og:image,hotlink 不存 repo)/ `note`(心得,選填)/ `tags` / `issue`。
-- **所有列出 share 的地方都直接開原文、另開分頁**,卡片在 `_includes/share-card.html`。
-  一般卡是固定形狀的磁磚(縮圖 1.91:1 + 固定兩行高的標題 + 一行來源),心得 / 摘要、日期、tag 只在滑鼠停留時從縮圖下緣浮出;
-  精選卡橫放,是唯一直接顯示這些的卡,上面的 tag 點了會篩選。卡片朝游標傾斜、縮圖反向視差(`slab.js` 的 `--px` / `--py`)。
+- **所有列出 share 的地方都直接開原文、另開分頁**。
+- **首頁是 WebGL 剪報桌與目錄櫃**(規格 `docs/shares-webgl.md`,版面 `_layouts/shares.html`,程式 `assets/shares3d/`,共用 `assets/scene3d/`):
+  捲動時鏡頭走過桌上(最近 7 天,4–12 張)、週疊(最近 12 個有轉發的週)、目錄櫃(依 tag / 來源 / 月份分組,超過 60 張拆格)。
+  - 場景裡是**純文字索引卡**(og:image 大多沒有 CORS,不進 WebGL):正面畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色,換主題不重畫;
+    來源印章、tag 色標(色相與位置用 tag 名稱雜湊,程式不列 tag)、心得便利貼、已開過的勾、封存的紅章。
+  - 拿起 = 3D 卡飛到 `held.js` 的 HTML 卡位置後換手,og:image 以 hotlink 剪報貼上;翻面看心得 / 摘要;← → / 左右滑換一張。
+  - 週疊點了攤開;抽屜點了拉出、撥卡(前面的往前倒);主角之外淡出、夜間檯燈跟著主角走;底部提示列(`hint.js`)、`/` 搜尋、`#tag-名稱` 開抽屜。
+  - 純函式在 `layout.js`(桌上 / 週疊 / 分組 / 櫃子 / 鏡頭 / 撥卡 / 搜尋),用 `node:test` 測(`tools/shares3d/`)。窄螢幕(直立)桌面、週疊、櫃子都改 2 欄。
+  - **保底**:`share-card.html` 的格狀清單(縮圖磁磚 + 停留浮出心得)照常輸出,沒有 JS / WebGL 失敗時顯示;有 JS 時視覺隱藏,Tab 到一張 = 場景裡移過去,Enter 拿起。
 - og:title 結尾重複的網站名稱(「 - 網站名」「 | Blog | 網站名」)由 `share.py` 的 `clean_title` 拿掉;issue 填的標題覆蓋不動。
 - **share 不產生內部頁**:`_plugins/no-post-output.rb`(`collections.posts.output: false` 在 Jekyll 無效)。
 - 摘要:有 note 顯示 note,否則 description。縮圖載入失敗就移除。
@@ -107,7 +113,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 `uvx --with pillow --with pyyaml pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。
 解析 issue body、驗證、抽 og、產 md、遷移、strike 規則、CSV 篩選與私人資料不外洩,這些我們的政策都要測;
 GitHub API 與網路本身不測。前端沒有測試框架,靠建置 + htmlproofer + 手動檢查。
-共用場景的純函式用 Node 內建測試:`node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/intro.test.mjs`(CI 也跑)。
+場景的純函式用 Node 內建測試:`node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/*.test.mjs tools/shares3d/*.test.mjs`(CI 也跑,列出每個檔案)。
 
 ## 之後再說
 書的分類維度、同步 Goodreads 心得、IG 舊書搬到 Goodreads、⌘K 快捷面板、專題、相關轉發、閱讀足跡、常讀來源、
