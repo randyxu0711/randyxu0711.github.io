@@ -363,6 +363,7 @@ export function createTextures(gl, books, dims, opts) {
     },
     pump,
     drawn: (i) => drawn[i] === 1 || coverState[i] === 2,
+    loaded: (i) => coverState[i] > 0,
     fontsChanged() {
       drawSpines();
       redrawFallbacks();

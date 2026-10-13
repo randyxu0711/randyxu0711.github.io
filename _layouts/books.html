@@ -16,9 +16,6 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
 {%- for m in layout.modules %}
 <link rel="modulepreload" href="{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}">
 {%- endfor %}
-<script>
-  try { if (sessionStorage.getItem('books3d-intro')) document.documentElement.classList.add('b3d-seen'); } catch (e) {}
-</script>
 <section class="b3d" id="b3d">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
   <div class="b3d-bar" id="b3d-bar" hidden>

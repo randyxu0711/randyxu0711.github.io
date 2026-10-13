@@ -19,10 +19,10 @@ const n = books.length;
 const VIEW_KEY = 'books3d-view';
 const SORT_KEY = 'books3d-sort';
 const SHUFFLE = 1600;
-const INTRO_KEY = 'books3d-intro';
 const LIGHT_MIN = 300;
 const LIGHT_MAX = 1500;
 const DAWN = 1400;
+const DAWN_QUICK = 600;
 const REVEAL_FROM = -0.35;
 const REVEAL_TO = 1.4;
 const FADE = 0.3;
@@ -514,6 +514,7 @@ async function start() {
   let liveT0 = 0;
   let litT0 = 0;
   let lit = false;
+  let quick = null;
   let seen = [];
   const veil = getComputedStyle(root, '::before');
   const darkness = veil.content === 'none' ? 0 : parseFloat(veil.opacity) || 0;
@@ -543,14 +544,14 @@ async function start() {
     litT0 = now;
     lit = true;
     root.classList.add('lit');
-    try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
   }
 
   function introLevels(el) {
     let k = 1;
     if (el >= 0) {
       if (reduce.matches) k = 0;
-      else if (!lampOn) k = 1 - ease(clamp(el / DAWN, 0, 1));
+      else if (!lampOn) k = 1 - ease(clamp(el / (quick ? DAWN_QUICK : DAWN), 0, 1));
+      else if (quick) k = el < 70 ? 1 : 0.7 * (1 - ease(clamp((el - 70) / 300, 0, 1)));
       else if (el < 84) k = 1;
       else if (el < 168) k = 0.3;
       else if (el < 252) k = 0.8;
@@ -564,6 +565,7 @@ async function start() {
   function stepLight(now) {
     if (!lit) {
       const el = now - liveT0;
+      if (quick === null && el >= LIGHT_MIN) quick = seen.every((i) => tex.loaded(i));
       if (el >= LIGHT_MAX || (el >= LIGHT_MIN && seen.every((i) => tex.drawn(i)))) switchOn(now);
     }
     introLevels(lit ? now - litT0 : -1);

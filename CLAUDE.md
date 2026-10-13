@@ -84,7 +84,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
     夜間是暗幕(`--unlit`),場景畫出第一格時(`.live`)交給 shader 的 `uUnlit`(同顏色同濃度,接手看不出來),暗房裡只看得到形體;
     白天幕是桌面色,場景以墨線素描淡入(`uSketch`,`--ink` 線條、面的邊框)。畫面裡的封面貼好(至少 300ms、最多 1.5 秒)就開燈(`.lit`):
     夜間檯燈閃兩下、白天顏色從畫面中央暈開。**開燈前檯燈、停留、撥書、拿起、層板滑動都不反應**,工具列、層標題、箭頭也不出現。
-    封面與書脊字一律淡入。同一個分頁只開一次(`sessionStorage` 的 `books3d-intro`,`books.html` 的行內 script 在繪製前加 `html.b3d-seen`)。
+    封面與書脊字一律淡入。每次載入都開場;封面在 300ms 內就到齊(快取)時播短版(夜間閃一下、白天暈開 0.6 秒)。
   - 封面先載 `._SX150_` 畫進拼貼貼圖,拿起時那本換 `._SX400_`。Amazon CDN 回 `access-control-allow-origin: *`,圖片要 `crossOrigin = 'anonymous'`。
   - 書脊字畫在 2D canvas 再上傳;字級規則同 `_plugins/spine-length.rb`(建置時算好書名長度)。換語言時重畫。
 - **書架效能**(改之前先看):
