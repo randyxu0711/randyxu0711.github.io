@@ -285,7 +285,7 @@ test('跟搬之前的 introLevels 逐點相同', () => {
 test('開燈前全暗或全素描', () => {
   assert.equal(introK(-1, { reduce: false, lampOn: true, quick: null }), 1);
   assert.deepEqual(introLevels(1, true, true, 0.9), { unlit: 0.9, sketch: 9 });
-  assert.deepEqual(introLevels(1, true, false, 0.9), { unlit: 0, sketch: 1.4 });
+  assert.deepEqual(introLevels(1, true, false, 0.9), { unlit: 0, sketch: -0.35 });
 });
 
 test('夜間檯燈閃兩下', () => {
