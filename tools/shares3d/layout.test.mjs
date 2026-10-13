@@ -139,3 +139,59 @@ test('來源主名稱、色相與色標位置是穩定的', () => {
   assert.ok(hueOf('a') >= 0 && hueOf('a') < 360);
   assert.ok([0, 1, 2, 3, 4].includes(tabSlot('Security')));
 });
+
+test('空與單則:桌上、週疊、分組都不出錯', () => {
+  assert.deepEqual(pickDesk([], '2026-10-13'), { desk: [], piles: [] });
+  assert.deepEqual(pickDesk([share('2026-10-13')], '2026-10-13'), { desk: [0], piles: [] });
+  for (const mode of ['tag', 'source', 'month']) assert.deepEqual(groups([], mode), []);
+});
+
+test('全部過期:桌上放最新 4 張,其餘各進自己那一週的疊', () => {
+  const items = ['2026-09-22', '2026-09-15', '2026-09-08', '2026-09-01', '2026-08-25', '2026-08-18'].map((d) => share(d));
+  const { desk, piles } = pickDesk(items, '2026-10-13');
+  assert.deepEqual(desk, [0, 1, 2, 3]);
+  assert.deepEqual(piles, [{ week: '2026-08-24', ids: [4] }, { week: '2026-08-17', ids: [5] }]);
+});
+
+test('同日的張數維持輸入順序,桌上與週疊都是', () => {
+  const same = Array.from({ length: 14 }, () => share('2026-10-13'));
+  const { desk, piles } = pickDesk(same, '2026-10-13');
+  assert.deepEqual(desk, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]);
+  assert.deepEqual(piles, [{ week: '2026-10-12', ids: [12, 13] }]);
+  const mixed = [...same, ...Array.from({ length: 3 }, () => share('2026-09-01'))];
+  assert.deepEqual(pickDesk(mixed, '2026-10-13').piles, [{ week: '2026-10-12', ids: [12, 13] }, { week: '2026-08-31', ids: [14, 15, 16] }]);
+});
+
+test('跨週溢出:今天是週一,超出 12 張的進上一週的疊', () => {
+  const items = [...Array.from({ length: 6 }, () => share('2026-10-12')), ...Array.from({ length: 6 }, () => share('2026-10-10')), share('2026-10-06')];
+  const { desk, piles } = pickDesk(items, '2026-10-12');
+  assert.equal(desk.length, DESK.MAX);
+  assert.deepEqual(piles, [{ week: '2026-10-05', ids: [12] }]);
+});
+
+test('空檔:中間沒有轉發的週不佔疊,只計有轉發的週', () => {
+  const items = [share('2026-10-13'), share('2026-10-12'), share('2026-10-11'), share('2026-10-10'), share('2026-05-26'), share('2026-05-19')];
+  const { desk, piles } = pickDesk(items, '2026-10-13');
+  assert.deepEqual(desk, [0, 1, 2, 3]);
+  assert.deepEqual(piles, [{ week: '2026-05-25', ids: [4] }, { week: '2026-05-18', ids: [5] }]);
+});
+
+test('分組:剛好 60 張不拆', () => {
+  const items = Array.from({ length: SPLIT }, () => share('2026-10-01', { g: ['AI/LLM'] }));
+  assert.deepEqual(groups(items, 'tag').map((d) => [d.part, d.parts, d.ids.length]), [[0, 1, SPLIT]]);
+});
+
+test('分組:tag 與其他來源各 61 張都拆成兩格', () => {
+  const tagged = Array.from({ length: SPLIT + 1 }, () => share('2026-10-01', { g: ['AI/LLM'] }));
+  assert.deepEqual(groups(tagged, 'tag').map((d) => [d.part, d.parts, d.ids.length]), [[1, 2, SPLIT], [2, 2, 1]]);
+  const singles = Array.from({ length: SPLIT + 1 }, (_, i) => share('2026-10-01', { s: `site${i}.com` }));
+  assert.deepEqual(groups(singles, 'source').map((d) => [d.key, d.kind, d.part, d.parts, d.ids.length]), [['', 'other', 1, 2, SPLIT], ['', 'other', 2, 2, 1]]);
+});
+
+test('分組拆開時,第一格是較新的 60 張', () => {
+  const items = days('2026-10-13', SPLIT + 1).map((d) => share(d, { g: ['AI/LLM'] }));
+  const [first, second] = groups(items, 'tag');
+  const p1 = first.ids.map((i) => items[i].d);
+  const p2 = second.ids.map((i) => items[i].d);
+  assert.ok(p1.every((d) => p2.every((e) => d >= e)));
+});

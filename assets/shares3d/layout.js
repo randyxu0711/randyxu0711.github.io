@@ -89,7 +89,7 @@ export function groups(items, mode) {
   }
   const last = (d) => (d.kind === 'other' || d.kind === 'untagged' ? 1 : 0);
   if (mode === 'month') list.sort((a, b) => (a.key < b.key ? 1 : -1));
-  else list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || a.key.localeCompare(b.key));
+  else list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   return list.flatMap((d) => {
     if (d.ids.length <= SPLIT) return [{ ...d, part: 0, parts: 1 }];
     const parts = Math.ceil(d.ids.length / SPLIT);
