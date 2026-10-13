@@ -87,7 +87,7 @@ function drawCard(g, it) {
   g.stroke();
   g.textAlign = 'center';
   g.font = `600 ${64 * k}px ${display}`;
-  g.fillText(Array.from(name)[0].toUpperCase(), 0, 14 * k);
+  g.fillText((Array.from(name)[0] || '?').toUpperCase(), 0, 14 * k);
   g.font = `400 ${15 * k}px ${code}`;
   g.fillText(name.slice(0, 10).toUpperCase(), 0, 40 * k);
   g.restore();
@@ -107,10 +107,16 @@ export function createAtlas(gl, items, onDrawn) {
     magFilter: THREE.LinearFilter,
   });
 
+  const black = new THREE.Color(0, 0, 0);
+  const saved = new THREE.Color();
   function clear() {
+    renderer.getClearColor(saved);
+    const alpha = renderer.getClearAlpha();
+    renderer.setClearColor(black, 1);
     renderer.setRenderTarget(rt);
     renderer.clear();
     renderer.setRenderTarget(null);
+    renderer.setClearColor(saved, alpha);
   }
   clear();
   rt.texture.generateMipmaps = false;
@@ -137,12 +143,13 @@ export function createAtlas(gl, items, onDrawn) {
 
   const probe = new THREE.Mesh(quadGeo, quadMat());
   quadScene.add(probe);
-  renderer.compileAsync(quadScene, quadCam).then(() => {
+  const warmed = () => {
     quadScene.remove(probe);
     probe.material.dispose();
     quadReady = true;
     onDrawn();
-  });
+  };
+  renderer.compileAsync(quadScene, quadCam).then(warmed, warmed);
 
   function cell(s) {
     return { x: (s % cols) * PITCH_X + PAD, y: Math.floor(s / cols) * PITCH_Y + PAD };
@@ -259,7 +266,7 @@ export function createLabels(onTexture) {
       g.fillText(name, x + LW / 2, y + 44);
       g.fillStyle = '#0f0';
       g.font = `400 20px ${code}`;
-      g.fillText(count, x + LW / 2, y + 96);
+      g.fillText(count, x + LW / 2, y + 88);
     });
     piles.forEach((text, k) => {
       const x = (k % PCOLS) * PW;

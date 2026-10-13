@@ -4,8 +4,8 @@ import { box } from 'scene3d/geometry.js';
 import { CARD, DRAWER, FOV } from 'shares3d/layout.js';
 
 const TAB = { W: 28, H: 9 };
-const STICKY = 30;
-const HANDLE = { W: 32, H: 6, D: 6, DROP: 22 };
+const STICKY = 18;
+const HANDLE = { W: 32, H: 6, D: 6, DROP: 29 };
 const LABEL = { W: 140, H: 17.5 };
 const SHADOW = 9;
 
@@ -62,7 +62,7 @@ float hairline(float d, float w, float aa) {
 void main() {
   int f = int(vFace + 0.5);
   float ty = (1.0 - vUv.y) * ${CARD.H.toFixed(2)};
-  float aa = fwidth(ty);
+  float aa = max(fwidth(ty), 1e-4);
   vec3 m = texture2D(uCards, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
   float rule = hairline(abs(mod(ty - 30.88 + 3.76, 7.52) - 3.76), 0.18, aa) * step(29.0, ty) * step(ty, 74.5);
   float red = hairline(abs(ty - 15.83), 0.3, aa);
@@ -276,7 +276,7 @@ export function createScene(n) {
       tabs.setMatrixAt(k, _a.premultiply(_m));
       tabColor.setXYZ(k, c.tab.color[0], c.tab.color[1], c.tab.color[2]);
       if (c.sticky) {
-        _a.makeRotationZ(0.12).setPosition(CARD.W / 2 - 18, -CARD.H / 2 + 18, CARD.T / 2 + 0.05);
+        _a.makeRotationZ(0.12).setPosition(CARD.W / 2 - 12, -CARD.H / 2 + 11, CARD.T / 2 + 0.05);
         stickies.setMatrixAt(ns++, _a.premultiply(_m));
       }
     });
