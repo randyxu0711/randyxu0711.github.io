@@ -72,4 +72,10 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
 {%- endfor -%}]
 {%- endcapture %}
 <script type="application/json" id="b3d-data">{{ books_json | replace: "</", "<\/" }}</script>
+<script>
+addEventListener('error', (e) => {
+  const root = document.getElementById('b3d');
+  if (/\/assets\/(books3d|vendor\/three)\//.test(e.target.src || e.filename || '') && !root.classList.contains('on')) root.classList.add('fail');
+}, true);
+</script>
 <script type="module" src="{{ '/assets/books3d/main.js' | relative_url }}?v={{ v }}"></script>
