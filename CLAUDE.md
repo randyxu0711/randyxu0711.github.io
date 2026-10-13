@@ -80,7 +80,10 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
     陳列時鏡頭比直立遠。換排法 / 排序以畫面中央那本書為錨點。**靜止時不重畫**(`invalidate()` 才排下一格)。
   - **純 HTML 書單**:有 JS 時從首次繪製就藏起來,WebGL 啟動後改成視覺隱藏、給螢幕閱讀器與鍵盤(Tab 到一本 = 場景裡高亮);
     WebGL 開不起來(`.fail`)或 4 秒內沒啟動就顯示。
-  - **開燈**:有 JS 時書架區一開始蓋著暗幕(`.b3d::before`,`--unlit`),畫面裡的封面都貼好(最多等到 2 秒)才加 `.lit` 拿掉。
+  - **開燈**:有 JS 時書架區一開始蓋著暗幕(`.b3d::before`,`--unlit`);場景畫出第一格時(`.live`)暗幕交給 shader 的 `uUnlit`
+    (同一個顏色與濃度,接手看不出來),暗房裡看得到書的形體。畫面裡的封面貼好(至少 300ms、最多 1.5 秒)就開燈(`.lit`),
+    工具列、層標題、箭頭這時才出現。封面與書脊字一律淡入。同一個分頁只開一次(`sessionStorage` 的 `books3d-intro`,
+    `books.html` 的行內 script 在繪製前加 `html.b3d-seen`,之後直接亮著,canvas 淡入)。
   - 封面先載 `._SX150_` 畫進拼貼貼圖,拿起時那本換 `._SX400_`。Amazon CDN 回 `access-control-allow-origin: *`,圖片要 `crossOrigin = 'anonymous'`。
   - 書脊字畫在 2D canvas 再上傳;字級規則同 `_plugins/spine-length.rb`(建置時算好書名長度)。換語言時重畫。
 - **書架效能**(改之前先看):

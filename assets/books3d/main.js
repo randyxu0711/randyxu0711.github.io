@@ -19,7 +19,11 @@ const n = books.length;
 const VIEW_KEY = 'books3d-view';
 const SORT_KEY = 'books3d-sort';
 const SHUFFLE = 1600;
-const LIGHT_WAIT = 2000;
+const INTRO_KEY = 'books3d-intro';
+const LIGHT_MIN = 300;
+const LIGHT_MAX = 1500;
+const DAWN = 900;
+const FADE = 0.3;
 const STAGGER = 400;
 const TURN = 600;
 const SLIDE_OUT = 14;
@@ -505,7 +509,57 @@ async function start() {
   let raf = 0;
   let last = 0;
   let ready = false;
-  let lightCheck = null;
+  let liveT0 = 0;
+  let litT0 = 0;
+  let seen = [];
+  const veil = getComputedStyle(root, '::before');
+  const darkness = veil.content === 'none' ? 0 : parseFloat(veil.opacity) || 0;
+  let unlit = darkness;
+  if (!darkness) root.classList.add('soft');
+  const shownV = new Float32Array(n * 4);
+  const fading = new Set();
+
+  function show(i, k) {
+    const j = i * 4 + k;
+    if (shownV[j] === 1 || fading.has(j)) return;
+    if (reduce.matches) {
+      shownV[j] = 1;
+      gl.setState(i, k, 1);
+    } else fading.add(j);
+  }
+
+  function stepFades(dt) {
+    fading.forEach((j) => {
+      shownV[j] = Math.min(1, shownV[j] + dt / FADE);
+      gl.setState(j >> 2, j & 3, ease(shownV[j]));
+      if (shownV[j] === 1) fading.delete(j);
+    });
+  }
+
+  function switchOn(now) {
+    litT0 = now;
+    root.classList.add('lit');
+    try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
+  }
+
+  function stepLight(now) {
+    if (!litT0) {
+      const el = now - liveT0;
+      if (el >= LIGHT_MAX || (el >= LIGHT_MIN && seen.every((i) => tex.drawn(i)))) switchOn(now);
+      return true;
+    }
+    const el = now - litT0;
+    let k;
+    if (reduce.matches) k = 0;
+    else if (!lampOn) k = 1 - ease(clamp(el / DAWN, 0, 1));
+    else if (el < 84) k = 1;
+    else if (el < 168) k = 0.3;
+    else if (el < 252) k = 0.8;
+    else k = 0.8 * (1 - ease(clamp((el - 252) / 400, 0, 1)));
+    unlit = darkness * k;
+    gl.setUnlit(unlit);
+    return unlit > 0;
+  }
 
   function visibleBooks() {
     const top = cam.yTop;
@@ -531,7 +585,11 @@ async function start() {
     const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
     last = now;
     let busy = tex ? tex.pump() : false;
-    if (lightCheck && !lightCheck()) lightCheck = null;
+    if (unlit > 0 && liveT0 && stepLight(now)) busy = true;
+    if (fading.size) {
+      stepFades(dt);
+      busy = true;
+    }
     const target = scrollTarget();
     const before = cam.yTop;
     if (trans && trans.camera) {
@@ -603,6 +661,13 @@ async function start() {
     }
     if (camMoved || moved) updateTier();
     gl.render(cam);
+    if (!liveT0) {
+      liveT0 = now;
+      root.classList.add('live');
+      bar.hidden = false;
+      if (unlit > 0) busy = true;
+      else root.classList.add('lit');
+    }
     if (busy) invalidate();
     else last = 0;
   }
@@ -911,6 +976,7 @@ async function start() {
     const d = tokens.desk;
     lampOn = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     placeLamp();
+    gl.setUnlit(unlit);
     invalidate();
   }
 
@@ -957,6 +1023,7 @@ async function start() {
     tex = createTextures(gl, books, dims, {
       density: m.ppu * Math.min(window.devicePixelRatio || 1, 2),
       fontsReady: () => fontsReady,
+      show,
     });
     gl.setTextures(tex.covers, null);
     const center = cam.yTop - canvas.clientHeight / m.ppu / 2;
@@ -970,6 +1037,8 @@ async function start() {
       gl.setState(i, 0, 0);
       gl.setState(i, 3, 0);
     }
+    shownV.fill(0);
+    fading.clear();
     loadTextures();
     applyColors();
     dirty = true;
@@ -1008,17 +1077,7 @@ async function start() {
   watchTheme(applyColors);
   await gl.warm();
   ready = true;
-  const seen = visibleBooks();
-  const light = () => {
-    if (root.classList.contains('lit')) return;
-    root.classList.add('lit');
-    bar.hidden = false;
-  };
-  setTimeout(light, Math.max(0, LIGHT_WAIT - performance.now()));
-  lightCheck = () => {
-    if (seen.every((i) => tex.drawn(i))) light();
-    return !root.classList.contains('lit');
-  };
+  seen = visibleBooks();
   invalidate();
 }
 
