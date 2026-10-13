@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { isCJK, wrap } from 'scene3d/text.js';
 
 const CW = 150;
 const CH = 225;
@@ -31,32 +32,6 @@ export function titleOf(b, l = lang()) {
 
 export function authorOf(b, l = lang()) {
   return l === 'en' ? b.a : (b.az || b.a);
-}
-
-const isCJK = (ch) => ch.codePointAt(0) >= 0x2e80;
-
-export function wrap(ctx, text, maxW) {
-  const lines = [];
-  let line = '';
-  let lastSpace = -1;
-  Array.from(text).forEach((ch) => {
-    const next = line + ch;
-    if (line && ctx.measureText(next).width > maxW) {
-      if (!isCJK(ch) && lastSpace > 0) {
-        lines.push(line.slice(0, lastSpace));
-        line = line.slice(lastSpace + 1) + ch;
-      } else {
-        lines.push(line);
-        line = ch === ' ' ? '' : ch;
-      }
-      lastSpace = line.lastIndexOf(' ');
-    } else {
-      line = next;
-      if (ch === ' ') lastSpace = line.length - 1;
-    }
-  });
-  if (line) lines.push(line);
-  return lines;
 }
 
 const QUAD_VERT = /* glsl */ `

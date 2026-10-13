@@ -16,4 +16,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/intro.test.mjs
+      - run: node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/intro.test.mjs tools/scene3d/text.test.mjs
