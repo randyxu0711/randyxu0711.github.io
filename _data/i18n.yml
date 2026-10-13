@@ -56,4 +56,13 @@ books3d.sort_pages:  { zh: "頁數", en: "Pages" }
 books3d.undated: { zh: "沒有日期", en: "Undated" }
 books3d.nopages: { zh: "沒有頁數", en: "No page count" }
 
+shares3d.group:     { zh: "分組", en: "Group by" }
+shares3d.by_tag:    { zh: "依 tag", en: "By tag" }
+shares3d.by_source: { zh: "依來源", en: "By source" }
+shares3d.by_month:  { zh: "依月份", en: "By month" }
+shares3d.other:     { zh: "其他來源", en: "Other sources" }
+shares3d.untagged:  { zh: "未分類", en: "Untagged" }
+shares3d.cards:     { zh: "{n} 張", en: "{n} cards", en_one: "{n} card" }
+shares3d.week:      { zh: "{n} 那週", en: "Week of {n}" }
+
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

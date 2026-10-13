@@ -1,0 +1,10 @@
+.sh3d-canvas { position: fixed; top: 0; left: 0; right: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; display: block; }
+.sh3d.on .sh3d-list { position: fixed; inset: 0; overflow: hidden; clip-path: inset(50%); pointer-events: none; white-space: nowrap; }
+html.js .sh3d:not(.on):not(.fail) .sh3d-list { visibility: hidden; }
+.sh3d-stage { height: 340vh; height: 340lvh; }
+.main:has(> .sh3d.on) { padding-bottom: 0; }
+.sh3d-bar { position: fixed; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem); z-index: 20;
+  display: flex; justify-content: center; pointer-events: none; transition: opacity 250ms, visibility 250ms; }
+.sh3d-bar.away, .sh3d.on:not(.lit) .sh3d-bar { opacity: 0; visibility: hidden; }
+.sh3d-keys { display: flex; gap: 0.4rem; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .sh3d-bar { transition: none; } }

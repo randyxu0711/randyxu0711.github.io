@@ -1,0 +1,69 @@
+---
+layout: default
+shared: [anim.js, colors.js, text.js, glsl.js, geometry.js]
+modules: [layout.js, scene.js, textures.js]
+---
+{%- assign v = site.time | date: '%s' -%}
+<link rel="stylesheet" href="{{ '/assets/scene3d/scene3d.css' | relative_url }}?v={{ v }}">
+<link rel="stylesheet" href="{{ '/assets/shares3d/shares3d.css' | relative_url }}?v={{ v }}">
+<script type="importmap">{"imports": {
+  "three": "{{ '/assets/vendor/three/three.module.min.js' | relative_url }}"
+  {%- for m in layout.shared %},
+  "scene3d/{{ m }}": "{{ '/assets/scene3d/' | append: m | relative_url }}?v={{ v }}"
+  {%- endfor %}
+  {%- for m in layout.modules %},
+  "shares3d/{{ m }}": "{{ '/assets/shares3d/' | append: m | relative_url }}?v={{ v }}"
+  {%- endfor %}
+}}</script>
+<link rel="modulepreload" href="{{ '/assets/vendor/three/three.module.min.js' | relative_url }}">
+<link rel="modulepreload" href="{{ '/assets/shares3d/main.js' | relative_url }}?v={{ v }}">
+{%- for m in layout.shared %}
+<link rel="modulepreload" href="{{ '/assets/scene3d/' | append: m | relative_url }}?v={{ v }}">
+{%- endfor %}
+{%- for m in layout.modules %}
+<link rel="modulepreload" href="{{ '/assets/shares3d/' | append: m | relative_url }}?v={{ v }}">
+{%- endfor %}
+<section class="sh3d s3d" id="sh3d">
+  <h1 class="visually-hidden" data-i18n="nav.shares">{% include t.html k="nav.shares" %}</h1>
+  <div class="shelf sh3d-list" id="sh3d-list" aria-label="分享的文章" data-i18n-attr="aria-label:shelf.label">
+    {%- if site.posts.size == 0 %}
+    <p class="empty" data-i18n="shelf.none">{% include t.html k="shelf.none" %}</p>
+    {%- else %}
+    <div class="grid">
+      {%- for p in site.posts %}
+      {% include share-card.html post=p %}
+      {%- endfor %}
+    </div>
+    {%- endif %}
+  </div>
+  <div class="sh3d-stage" id="sh3d-stage" hidden></div>
+  <div class="sh3d-bar away" id="sh3d-bar" hidden>
+    <div class="sh3d-keys" role="group" aria-label="分組" data-i18n-attr="aria-label:shares3d.group">
+      <button type="button" class="key" data-group-set="tag" aria-pressed="false" data-i18n="shares3d.by_tag">{% include t.html k="shares3d.by_tag" %}</button>
+      <button type="button" class="key" data-group-set="source" aria-pressed="false" data-i18n="shares3d.by_source">{% include t.html k="shares3d.by_source" %}</button>
+      <button type="button" class="key" data-group-set="month" aria-pressed="false" data-i18n="shares3d.by_month">{% include t.html k="shares3d.by_month" %}</button>
+    </div>
+  </div>
+</section>
+{%- capture shares_json -%}
+[{%- for p in site.posts -%}
+  {%- capture lc_key -%}{{ p.issue }}{%- endcapture -%}
+  {%- assign lc = site.data.linkcheck[lc_key] -%}
+  {%- assign dead = false -%}
+  {%- if site.modules.archive and lc.dead and p.archive -%}{%- assign dead = true -%}{%- endif -%}
+  {%- assign href = p.link -%}
+  {%- if dead -%}{%- assign href = p.archive -%}{%- endif -%}
+  {%- unless forloop.first %},{% endunless -%}
+  {"i":{{ p.issue | default: 0 | jsonify }},"t":{{ p.title | jsonify }},"u":{{ href | jsonify }},"s":{{ p.source | jsonify }},
+  "d":{{ p.date | date: '%Y-%m-%d' | jsonify }},"g":{{ p.tags | jsonify }},"n":{{ p.note | jsonify }},"e":{{ p.description | jsonify }},
+  "m":{{ p.image | jsonify }},"x":{{ dead }}}
+{%- endfor -%}]
+{%- endcapture %}
+<script type="application/json" id="sh3d-data">{{ shares_json | replace: "</", "<\/" }}</script>
+<script>
+addEventListener('error', (e) => {
+  const root = document.getElementById('sh3d');
+  if (/\/assets\/(shares3d|scene3d|vendor\/three)\//.test(e.target.src || e.filename || '') && !root.classList.contains('on')) root.classList.add('fail');
+}, true);
+</script>
+<script type="module" src="{{ '/assets/shares3d/main.js' | relative_url }}?v={{ v }}"></script>

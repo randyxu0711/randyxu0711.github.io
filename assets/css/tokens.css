@@ -43,6 +43,9 @@
   --drop-near:    oklch(0.25 0.03 var(--desk-h) / 0.24);
   --drop-far:     oklch(0.25 0.03 var(--desk-h) / 0.22);
   --unlit:        oklch(0.14 0.012 var(--desk-h));
+  --rule:         oklch(0.86 0.035 240);
+  --redline:      oklch(0.68 0.13 25);
+  --sticky:       oklch(0.94 0.075 100);
   color-scheme: light;
 }
 
@@ -59,6 +62,7 @@
     --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
     --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
     --drop-near: oklch(0 0 0 / 0.55); --drop-far: oklch(0 0 0 / 0.6); --unlit: oklch(0.05 0.004 var(--desk-h));
+    --rule: oklch(0.33 0.025 240); --redline: oklch(0.55 0.12 25); --sticky: oklch(0.72 0.08 100);
     color-scheme: dark;
   }
 }
@@ -73,11 +77,13 @@
   --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
   --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
   --drop-near: oklch(0 0 0 / 0.55); --drop-far: oklch(0 0 0 / 0.6); --unlit: oklch(0.05 0.004 var(--desk-h));
+  --rule: oklch(0.33 0.025 240); --redline: oklch(0.55 0.12 25); --sticky: oklch(0.72 0.08 100);
   color-scheme: dark;
 }
 
 @supports not (color: oklch(0.5 0.1 70)) {
   :root { --desk: #e6e9ee; --face: #fbfaf8; --face-amber: #f6ead2; --edge: #d9a24a; --edge-deep: #a8742c;
     --edge-n: #d8d2c8; --edge-n-deep: #b8afa2; --shelf: #d6d0c9; --paper: #f2ebdc; --paper-deep: #d6ccb8;
-    --ink: #0e0a07; --ink-2: #2a2520; --ink-3: #47413c; --accent: #874900; --unlit: #16181c; }
+    --ink: #0e0a07; --ink-2: #2a2520; --ink-3: #47413c; --accent: #874900; --unlit: #16181c;
+    --rule: #c9d6ea; --redline: #d9534f; --sticky: #f6eaa0; }
 }
