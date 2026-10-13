@@ -171,7 +171,10 @@ test('排法:桌機維持原本的數字', () => {
   const c17 = arrange(12, 12, 17, false).cab;
   assert.deepEqual([c17.cols, c17.width, c17.slots[16]], [5, 806, { x: -156, y: 67.5 }]);
   assert.deepEqual(arrange(4, 2, 3, false).cab.slots[2], { x: 156, y: 67.5 });
-  assert.deepEqual(cameraAt(0, 1.6, a), { look: [0, 0, 135], pos: [0, 460, 575] });
+  assert.deepEqual(cameraAt(0, 1.78, a), { look: [0, 0, 135], pos: [0, 460, 575] });
+  const start = cameraAt(0, 1.6, a);
+  assert.deepEqual(start.look, [0, 0, 135]);
+  assert.ok(start.pos[1] > 460 && Math.abs(start.pos[1] / (start.pos[2] - 135) - 460 / 440) < 1e-9);
   const end = cameraAt(1, 1.6, a);
   assert.deepEqual(end.look, [0, 172.01999999999998, -480]);
   [0, 393.6847429839164, 258.8824766130548].forEach((v, k) => assert.ok(Math.abs(end.pos[k] - v) < 1e-9));
@@ -203,8 +206,7 @@ for (const aspect of [0.46, 0.75, 1.33, 1.6]) {
     const a = arrange(12, 12, 13, aspect < 1);
     const desk = Array.from({ length: 12 }, (_, s) => corners(deskPose(s, s * 3 + 1, a))).flat();
     const piles = Array.from({ length: 12 }, (_, pi) => corners(pilePose(pi, 4, pi * 5 + 2, a))).flat();
-    if (a.narrow) assert.ok(inView(cameraAt(0, aspect, a), aspect, desk));
-    else assert.ok(desk.every((pt) => Math.abs(project(cameraAt(0, aspect, a), aspect, pt)[1]) <= 0.95));
+    assert.ok(inView(cameraAt(0, aspect, a), aspect, desk));
     assert.ok(inView(cameraAt(0.5, aspect, a), aspect, piles));
   });
 }

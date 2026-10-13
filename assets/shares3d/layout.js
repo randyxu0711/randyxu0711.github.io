@@ -164,7 +164,7 @@ export function pileLabelPose(pi, a = BASE) {
 
 const smooth = (x) => x * x * (3 - 2 * x);
 const TAN = Math.tan((FOV / 2) * Math.PI / 180);
-const FIT = { X: 0.96, Y: 0.94, STACK: 16 };
+const FIT = { X: 1, Y: 0.94, STACK: 16 };
 const reach = (ry, jx, jz) => ({
   x: (CARD.W / 2) * Math.cos(ry) + (CARD.H / 2) * Math.sin(ry) + jx,
   z: (CARD.H / 2) * Math.cos(ry) + (CARD.W / 2) * Math.sin(ry) + jz,
@@ -183,9 +183,9 @@ function ndc(pos, look, aspect, pt) {
   return [dot(right) / depth / (TAN * aspect), dot(up) / depth / TAN];
 }
 
-function fit(look, off, s0, aspect, hx, z0, z1) {
+function fit(look, off, s0, aspect, hx, z0, z1, top) {
   const pts = [];
-  for (const x of [-hx, hx]) for (const y of [0, FIT.STACK]) for (const z of [z0, z1]) pts.push([x, y, z]);
+  for (const x of [-hx, hx]) for (const y of [0, top]) for (const z of [z0, z1]) pts.push([x, y, z]);
   const ok = (s) => pts.every((pt) => {
     const [x, y] = ndc(look.map((v, k) => v + off[k] * s), look, aspect, pt);
     return Math.abs(x) <= FIT.X && Math.abs(y) <= FIT.Y;
@@ -220,8 +220,8 @@ export function cameraAt(p, aspect, a) {
   const tall = (cab.height / 2 + 30) / TAN * 1.05;
   const dist = a.narrow ? wide : Math.max(wide, tall);
   const keys = [
-    { look: deskLook, off: a.narrow ? fit(deskLook, [0, 460, 440], 1, aspect, deskX, a.front + d.z, deskBack - d.z) : [0, 460 * f, 440 * f] },
-    { look: pileLook, off: fit(pileLook, [0, 500, 420], a.narrow ? 1 : f, aspect, pileX, a.pileBack + Math.max(q0.z, PILES.LABEL + LABEL.H / 2), pileEnd - q0.z) },
+    { look: deskLook, off: fit(deskLook, [0, 460, 440], a.narrow ? 1 : f, aspect, deskX, a.front + d.z, deskBack - d.z, CARD.T + 0.1) },
+    { look: pileLook, off: fit(pileLook, [0, 500, 420], a.narrow ? 1 : f, aspect, pileX, a.pileBack + Math.max(q0.z, PILES.LABEL + LABEL.H / 2), pileEnd - q0.z, FIT.STACK) },
   ];
   const off = [0, dist * 0.3, dist];
   let marks = [0, 0.5, 1];
