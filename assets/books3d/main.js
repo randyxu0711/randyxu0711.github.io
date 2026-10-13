@@ -3,6 +3,7 @@ import { readTokens, hexRgb, watchTheme } from 'scene3d/colors.js';
 import { createScene } from 'books3d/scene.js';
 import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf } from 'books3d/textures.js';
 import { ease, easeInOut, lerp, clamp, approach } from 'scene3d/anim.js';
+import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 
 const root = document.getElementById('b3d');
 const stage = document.getElementById('b3d-scene');
@@ -20,12 +21,6 @@ const VIEW_KEY = 'books3d-view';
 const SORT_KEY = 'books3d-sort';
 const TOKENS = ['desk', 'shelf', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near', 'unlit', 'ink'];
 const SHUFFLE = 1600;
-const LIGHT_MIN = 300;
-const LIGHT_MAX = 1500;
-const DAWN = 1400;
-const DAWN_QUICK = 600;
-const REVEAL_FROM = -0.35;
-const REVEAL_TO = 1.4;
 const FADE = 0.3;
 const STAGGER = 400;
 const TURN = 600;
@@ -547,20 +542,12 @@ async function start() {
     root.classList.add('lit');
   }
 
-  function introLevels(el) {
-    let k = 1;
-    if (el >= 0) {
-      if (reduce.matches) k = 0;
-      else if (!lampOn) k = 1 - ease(clamp(el / (quick ? DAWN_QUICK : DAWN), 0, 1));
-      else if (quick) k = el < 70 ? 1 : 0.7 * (1 - ease(clamp((el - 70) / 300, 0, 1)));
-      else if (el < 84) k = 1;
-      else if (el < 168) k = 0.3;
-      else if (el < 252) k = 0.8;
-      else k = 0.8 * (1 - ease(clamp((el - 252) / 400, 0, 1)));
-    }
+  function applyIntro(el) {
+    const k = introK(el, { reduce: reduce.matches, lampOn, quick });
     if (k === 0) intro = false;
-    gl.setUnlit(intro && lampOn ? darkness * k : 0);
-    gl.setSketch(intro && !lampOn ? lerp(REVEAL_TO, REVEAL_FROM, k) : 9);
+    const v = introLevels(k, intro, lampOn, darkness);
+    gl.setUnlit(v.unlit);
+    gl.setSketch(v.sketch);
   }
 
   function stepLight(now) {
@@ -569,7 +556,7 @@ async function start() {
       if (quick === null && el >= LIGHT_MIN) quick = seen.every((i) => tex.loaded(i));
       if (el >= LIGHT_MAX || (el >= LIGHT_MIN && seen.every((i) => tex.drawn(i)))) switchOn(now);
     }
-    introLevels(lit ? now - litT0 : -1);
+    applyIntro(lit ? now - litT0 : -1);
     return intro;
   }
 
@@ -992,7 +979,7 @@ async function start() {
     lampOn = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     placeLamp();
     if (!liveT0 && !lampOn) root.classList.add('soft');
-    if (intro) introLevels(lit ? performance.now() - litT0 : -1);
+    if (intro) applyIntro(lit ? performance.now() - litT0 : -1);
     invalidate();
   }
 
