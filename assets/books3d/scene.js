@@ -1,82 +1,13 @@
 import * as THREE from 'three';
 import { W, LIP } from 'books3d/layout.js';
+import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
+import { box } from 'scene3d/geometry.js';
 
 export const SHELF_FRONT = 10;
 export const SHELF_DEPTH = W + 30;
 const SHADOW = 30;
 const DIST = 1.5;
 const EYE = 0.25;
-
-function box(x0, x1, y0, y1, z0, z1) {
-  const faces = [
-    [[1, 0, 0], [x1, (y0 + y1) / 2, (z0 + z1) / 2], [0, 0, -(z1 - z0)], [0, y1 - y0, 0]],
-    [[-1, 0, 0], [x0, (y0 + y1) / 2, (z0 + z1) / 2], [0, 0, z1 - z0], [0, y1 - y0, 0]],
-    [[0, 1, 0], [(x0 + x1) / 2, y1, (z0 + z1) / 2], [x1 - x0, 0, 0], [0, 0, -(z1 - z0)]],
-    [[0, -1, 0], [(x0 + x1) / 2, y0, (z0 + z1) / 2], [x1 - x0, 0, 0], [0, 0, z1 - z0]],
-    [[0, 0, 1], [(x0 + x1) / 2, (y0 + y1) / 2, z1], [x1 - x0, 0, 0], [0, y1 - y0, 0]],
-    [[0, 0, -1], [(x0 + x1) / 2, (y0 + y1) / 2, z0], [-(x1 - x0), 0, 0], [0, y1 - y0, 0]],
-  ];
-  const pos = [], nor = [], uv = [], face = [], index = [];
-  faces.forEach(([n, c, u, v], f) => {
-    const base = pos.length / 3;
-    [[0, 0], [1, 0], [1, 1], [0, 1]].forEach(([a, b]) => {
-      for (let k = 0; k < 3; k++) pos.push(c[k] + (a - 0.5) * u[k] + (b - 0.5) * v[k]);
-      nor.push(...n);
-      uv.push(a, b);
-      face.push(f);
-    });
-    index.push(base, base + 1, base + 2, base, base + 2, base + 3);
-  });
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-  g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3));
-  g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
-  g.setAttribute('face', new THREE.Float32BufferAttribute(face, 1));
-  g.setIndex(index);
-  return g;
-}
-
-const LIGHT = /* glsl */ `
-uniform vec3 uLight;
-uniform float uAmbient;
-uniform float uKey;
-uniform vec4 uLamp;
-uniform vec3 uLampColor;
-uniform float uLampReach;
-varying vec3 vWorld;
-vec3 lit(vec3 c, vec3 n) {
-  vec3 nn = normalize(n);
-  vec3 day = vec3(uAmbient + uKey * max(dot(nn, uLight), 0.0));
-  vec3 d = uLamp.xyz - vWorld;
-  float dist = length(d);
-  float fall = 1.0 / (1.0 + pow(dist / uLampReach, 2.0));
-  vec3 lamp = day * 0.4 + uLampColor * (1.3 * max(dot(nn, d / dist), 0.0) * fall);
-  return c * mix(day, lamp, uLamp.w);
-}
-`;
-
-const REVEAL = /* glsl */ `
-uniform vec4 uSketch;
-float sketchAmount() {
-  if (uSketch.w > 2.0) return 0.0;
-  vec2 p = (gl_FragCoord.xy - uSketch.xy) / uSketch.z;
-  float d = length(p) + 0.05 * sin(p.x * 9.0 + p.y * 5.0) + 0.04 * sin(p.y * 13.0 - p.x * 7.0);
-  return smoothstep(uSketch.w - 0.3, uSketch.w, d);
-}
-`;
-
-const SKETCH = /* glsl */ `
-${REVEAL}
-uniform vec3 uInk;
-vec3 sketch(vec3 col, vec3 n, vec2 uv) {
-  vec2 px = min(uv, 1.0 - uv) / max(fwidth(uv), vec2(1e-5));
-  float s = sketchAmount();
-  if (s <= 0.0) return col;
-  float line = 1.0 - smoothstep(0.5, 1.5, min(px.x, px.y));
-  vec3 paper = mix(uDesk, uInk, 0.06 * (1.0 - max(dot(normalize(n), uLight), 0.0)));
-  return mix(col, mix(paper, uInk, line * 0.75), s);
-}
-`;
 
 const BOOK_VERT = /* glsl */ `
 attribute float face;
