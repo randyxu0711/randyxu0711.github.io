@@ -136,10 +136,13 @@ og:image 不進 WebGL:實測現在 11 張裡大多沒有 `access-control-allow-o
 
 抽出 `assets/scene3d/`,書架與分享頁都從這裡 import:
 
-- `colors.js`、`anim.js`(從 `assets/books3d/` 搬過來)。
-- shader 片段:`lit`(打光)、`uDim` / `uDesk`(淡出)、`uUnlit`(暗房)、`uSketch`(素描)、`uDrop`(假陰影)。
-- 開場控制(蓋幕 → 第一格 → 開燈的時序、短版判斷)與檯燈(跟游標、移到主角、夜間自動)。
-- `invalidate()`(靜止不重畫)、WebGL context 遺失後的恢復、`compileAsync` 預熱。
+- `colors.js`(`readTokens(names)`)、`anim.js`(從 `assets/books3d/` 搬過來)。
+- `intro.js`:開場亮度曲線(夜間閃燈、白天暈開、快取短版)的純函式與開燈時間常數。
+- `glsl.js`:shader 片段 `LIGHT`(`lit()` 打光與檯燈)、`REVEAL` / `SKETCH`(素描);`geometry.js`:`box()`。
+- `scene3d.css`:開場幕(`.s3d::before`)與 `.soft` 淡入。
+- **留在書架、分享頁照同樣寫法自己實作**(PR 1 決定;兩邊真的長得一樣再合併):開場的狀態機(蓋幕 → 第一格 → 開燈)、
+  檯燈落點、`uDim` / `uUnlit` / `uDrop` 的 uniform 與最後一行混色、`invalidate()`、context 遺失後的恢復、`compileAsync` 預熱。
+  它們跟書架的單位(px / ppu)和狀態綁在一起。
 
 **搬的時候書架的行為不能變**(同一個 PR 只搬不改,手動比對夜間開場、白天開場、檯燈、拿起)。
 
