@@ -51,6 +51,9 @@ export function createHeld(t) {
   let busy = false;
   let clip = null;
   let current = null;
+  let backLabel = null;
+  let backAlso = null;
+  let opener = null;
   const act = (a) => listener(a);
 
   function applyLabels() {
@@ -60,6 +63,8 @@ export function createHeld(t) {
     openLink.textContent = `${t('shares3d.open')} ↗`;
     closeBtn.textContent = t('shares3d.put_back');
     if (current) arch.textContent = t('shares3d.archived');
+    if (current && backLabel) backLabel.textContent = current.n ? t('shares3d.note') : t('shares3d.summary');
+    if (current && backAlso) backAlso.textContent = t('shares3d.also_in', current.also.join('、'));
   }
 
   function fill(item) {
@@ -101,14 +106,12 @@ export function createHeld(t) {
       clip = fig;
     }
 
-    back.replaceChildren(
-      el('div', 'h-label', item.n ? t('shares3d.note') : t('shares3d.summary')),
-      el('p', 'h-text', item.n || item.e || ''),
-      el('div', 'h-btags', item.g.join(' · '))
-    );
+    backLabel = el('div', 'h-label', item.n ? t('shares3d.note') : t('shares3d.summary'));
+    back.replaceChildren(backLabel, el('p', 'h-text', item.n || item.e || ''), el('div', 'h-btags', item.g.join(' · ')));
+    backAlso = null;
     if (item.also && item.also.length) {
-      const names = item.also.join('、');
-      back.append(el('div', 'h-also', t('shares3d.also_in', names)));
+      backAlso = el('div', 'h-also', t('shares3d.also_in', item.also.join('、')));
+      back.append(backAlso);
     }
 
     openLink.href = item.u;
@@ -131,7 +134,13 @@ export function createHeld(t) {
     setFlip(force === undefined ? !flipped : !!force);
   }
 
+  function recolor(stampCss, tabCss) {
+    card.style.setProperty('--stamp', stampCss);
+    card.style.setProperty('--tab', tabCss);
+  }
+
   function show() {
+    opener = document.activeElement;
     shown = true;
     applyLabels();
     root.setAttribute('aria-hidden', 'false');
@@ -156,7 +165,13 @@ export function createHeld(t) {
   }
 
   function hide() {
+    const inside = root.contains(document.activeElement);
     shown = false;
+    if (inside) {
+      if (opener && opener.isConnected && opener !== document.body) opener.focus({ preventScroll: true });
+      else document.activeElement.blur();
+    }
+    opener = null;
     root.classList.remove('on');
     root.setAttribute('aria-hidden', 'true');
     flipper.classList.add('snap');
@@ -240,6 +255,14 @@ export function createHeld(t) {
   });
 
   document.addEventListener('keydown', (e) => {
+    if (shown && e.key === 'Tab') {
+      const stops = [card, ...bar.querySelectorAll('button, a')].filter((n) => !n.hidden);
+      const i = stops.indexOf(document.activeElement);
+      const next = e.shiftKey ? (i <= 0 ? stops.length - 1 : i - 1) : (i < 0 || i === stops.length - 1 ? 0 : i + 1);
+      stops[next].focus({ preventScroll: true });
+      e.preventDefault();
+      return;
+    }
     if (!shown || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
     if (e.key === 'ArrowLeft') act('prev');
     else if (e.key === 'ArrowRight') act('next');
@@ -260,5 +283,5 @@ export function createHeld(t) {
   document.addEventListener('langchange', applyLabels);
   applyLabels();
 
-  return { el: root, fill, target, show, paste, hide, flip, step, bump, onAction: (cb) => { listener = cb; } };
+  return { el: root, fill, target, show, paste, hide, flip, step, bump, recolor, busy: () => busy, onAction: (cb) => { listener = cb; } };
 }

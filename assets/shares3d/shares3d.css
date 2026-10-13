@@ -4,6 +4,7 @@ html.js .sh3d:not(.on):not(.fail) .sh3d-list { visibility: hidden; }
 .sh3d-stage { height: 340vh; height: 340lvh; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 @media (max-aspect-ratio: 1/1) { .sh3d-stage { height: 520vh; height: 520lvh; } }
 .main:has(> .sh3d.on) { padding-bottom: 0; }
+body:has(.sh3d.on) .footer-inner { padding-bottom: calc(var(--sh3d-bar-h, 7.5rem) + 1rem); }
 
 .sh3d-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; pointer-events: none;

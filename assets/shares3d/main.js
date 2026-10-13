@@ -195,6 +195,10 @@ function run(gl, canvas) {
     return closing ? closing.k : -1;
   }
 
+  function relink() {
+    if (held) held.entry = entries.find((e) => e.key === held.entry.key) || held.entry;
+  }
+
   function buildEntries() {
     const out = [];
     desk.forEach((i, slot) => out.push({ key: `d${i}`, i, where: 'd', slot }));
@@ -202,8 +206,8 @@ function run(gl, canvas) {
       const stack = p.ids.slice().reverse();
       stack.forEach((i, k) => out.push({ key: `p${i}`, i, where: 'p', pi, k, top: k === stack.length - 1, order: p.ids.indexOf(i) }));
     });
-    const k = openDrawerIndex();
-    if (k >= 0) drawers[k].ids.forEach((i, j) => out.push({ key: `x${k}:${i}`, i, where: 'x', k, j }));
+    const open = [...new Set([focus && focus.kind === 'drawer' ? focus.k : -1, closing ? closing.k : -1])].filter((k) => k >= 0);
+    open.forEach((k) => drawers[k].ids.forEach((i, j) => out.push({ key: `x${k}:${i}`, i, where: 'x', k, j })));
     return out;
   }
 
@@ -361,7 +365,7 @@ function run(gl, canvas) {
   }
 
   function step(dir) {
-    if (!held || held.phase !== 'dom') return;
+    if (!held || held.phase !== 'dom' || card.busy()) return;
     const list = siblings(held.entry);
     const j = nextIndex(list, list.indexOf(held.entry), dir);
     if (j < 0) {
@@ -389,6 +393,8 @@ function run(gl, canvas) {
         localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
       }
     } catch (err) {}
+    const clear = document.getElementById('seen-clear');
+    if (clear) clear.hidden = false;
     refreshSeen();
   }
 
@@ -409,6 +415,8 @@ function run(gl, canvas) {
 
   function setFocus(f) {
     if (focus && focus.kind === 'drawer' && (!f || f.kind !== 'drawer' || f.k !== focus.k)) closing = { k: focus.k };
+    if (!f) peek.hidden = true;
+    pointer.moved = true;
     focus = f ? Object.assign({ at: window.scrollY }, f) : null;
     if (focus && focus.kind === 'pile') {
       focus.poses = spreadPoses(piles[focus.pi].ids.length, pileBase(focus.pi, a), a);
@@ -416,10 +424,11 @@ function run(gl, canvas) {
       const zs = focus.poses.map((q) => q.z);
       focus.look = [(Math.min(...xs) + Math.max(...xs)) / 2, 0, (Math.min(...zs) + Math.max(...zs)) / 2];
     }
-    if (focus && focus.kind === 'drawer') closing = null;
+    if (focus && focus.kind === 'drawer' && closing && closing.k === focus.k) closing = null;
     hover = null;
     atlas.want(wanted());
     entries = buildEntries();
+    relink();
     dirty = true;
     invalidate();
   }
@@ -497,7 +506,7 @@ function run(gl, canvas) {
       const h = pointer.on ? resolve(gl.pick(pointer.x, pointer.y)) : null;
       const before = hover ? hover.key || `k${hover.k}` : '';
       hover = h && (h.kind === 'drawer' || h.entry.where !== 'x') ? h : null;
-      if (h && h.kind === 'card' && h.entry.where === 'x' && focus && focus.kind === 'drawer' && h.entry.k === focus.k) flipTo(h.entry.j);
+      if (h && h.kind === 'card' && h.entry.where === 'x' && focus && focus.kind === 'drawer' && h.entry.k === focus.k && (!hits || hits.has(h.entry.i))) flipTo(h.entry.j);
       const after = hover ? hover.key || `k${hover.k}` : '';
       if (before !== after) dirty = true;
       stage.style.cursor = h ? 'pointer' : '';
@@ -531,6 +540,7 @@ function run(gl, canvas) {
     if (closing && fronts[closing.k] < 1) {
       closing = null;
       entries = buildEntries();
+      relink();
       dirty = true;
     }
 
@@ -651,6 +661,10 @@ function run(gl, canvas) {
     const d = tokens.desk;
     dark = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     tints.clear();
+    if (held) {
+      const it = itemFor(held.entry);
+      card.recolor(it.stamp, it.tab);
+    }
     if (!liveT0 && !dark) root.classList.add('soft');
     if (intro) applyIntro(lit ? performance.now() - litT0 : -1);
     dirty = true;
@@ -705,10 +719,12 @@ function run(gl, canvas) {
     bar.querySelectorAll('[data-group-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.groupSet === mode)));
   }
 
-  function setMode(m) {
+  function setMode(m, keep = true) {
     if (m === mode || !MODES.includes(m)) return;
     mode = m;
-    try { localStorage.setItem(GROUP_KEY, m); } catch (e) {}
+    if (keep) {
+      try { localStorage.setItem(GROUP_KEY, m); } catch (e) {}
+    }
     pressKeys();
     release();
     if (focus) setFocus(null);
@@ -728,6 +744,7 @@ function run(gl, canvas) {
     fades.drawers = drawers.map(() => fades.cab);
     if (focus && focus.kind === 'pile') setFocus({ kind: 'pile', pi: focus.pi });
     entries = buildEntries();
+    relink();
     drawLabels();
     dirty = true;
   }
@@ -781,12 +798,19 @@ function run(gl, canvas) {
     invalidate();
   });
   stage.addEventListener('click', (e) => {
-    if (!root.classList.contains('lit')) return;
+    if (!root.classList.contains('lit') || e.detail > 1 || (held && held.phase !== 'dom')) return;
     const r = canvas.getBoundingClientRect();
     interact(resolve(gl.pick(e.clientX - r.left, e.clientY - r.top)));
   });
   document.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || held) return;
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (held) {
+      if (e.key === 'Escape' && held.phase !== 'dom') {
+        release();
+        e.preventDefault();
+      }
+      return;
+    }
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName)) return;
     if (e.key === '/' && lit) {
       qEl.focus();
@@ -808,15 +832,19 @@ function run(gl, canvas) {
       e.preventDefault();
     } else if (e.key === 'Enter') {
       const en = entries.find((x) => x.where === 'x' && x.k === focus.k && x.j === focus.cur);
-      if (en) hold(en);
+      if (en && (!hits || hits.has(en.i))) hold(en);
       e.preventDefault();
     }
   });
   window.addEventListener('scroll', () => {
     if (held) release();
+    pointer.moved = true;
     if (focus && Math.abs(window.scrollY - focus.at) > RELEASE) setFocus(null);
     invalidate();
   }, { passive: true });
+  new ResizeObserver(() => {
+    document.documentElement.style.setProperty('--sh3d-bar-h', `${bar.offsetHeight}px`);
+  }).observe(bar);
   new ResizeObserver(() => {
     gl.resize(canvas.clientWidth, canvas.clientHeight);
     camFn = null;
@@ -856,8 +884,13 @@ function run(gl, canvas) {
     invalidate();
     const m = /^#tag-(.+)$/.exec(window.location.hash);
     if (!m) return;
-    const name = decodeURIComponent(m[1]);
-    if (mode !== 'tag') setMode('tag');
+    let name;
+    try {
+      name = decodeURIComponent(m[1]);
+    } catch (e) {
+      return;
+    }
+    if (mode !== 'tag') setMode('tag', false);
     const k = drawers.findIndex((d) => d.kind === 'tag' && d.key === name);
     if (k < 0) return;
     scrollToStage(1);
