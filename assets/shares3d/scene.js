@@ -1,12 +1,11 @@
 import * as THREE from 'three';
 import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
 import { box } from 'scene3d/geometry.js';
-import { CARD, DRAWER, FOV } from 'shares3d/layout.js';
+import { CARD, DRAWER, FOV, LABEL } from 'shares3d/layout.js';
 
 const TAB = { W: 28, H: 9 };
 const STICKY = 18;
 const HANDLE = { W: 32, H: 6, D: 6, DROP: 29 };
-const LABEL = { W: 140, H: 17.5 };
 const SHADOW = 9;
 
 const FINISH = 'gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);';
@@ -231,7 +230,7 @@ export function createScene(n) {
   const labels = instanced(flatGeo(LABEL.W, LABEL.H), material(FLAT_VERT, LABEL_FRAG, { transparent: true, depthWrite: false }), 12, { iTile: 4, iInner: 2 });
   const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(INST_VERT, CARD_FRAG), n, solidAttrs);
   const solidMat = material(INST_VERT, SOLID_FRAG);
-  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, -1, TAB.H, -CARD.T / 2, CARD.T / 2), solidMat, n, solidAttrs);
+  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), solidMat, n, solidAttrs);
   const stickies = instanced(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), solidMat, n, solidAttrs);
   const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 1, solidAttrs);
   const fronts = instanced(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), material(INST_VERT, DRAWER_FRAG), maxDrawers, solidAttrs);
@@ -366,6 +365,8 @@ export function createScene(n) {
   function setLamp(on, x = 0, y = 0, z = 0, reach = 380) {
     common.uLamp.value.set(x, y, z, on ? 1 : 0);
     common.uLampReach.value = reach;
+    clear.copy(colors.uDesk.value).multiplyScalar(on ? 0.4 : 1);
+    renderer.setClearColor(clear, 1);
   }
 
   const raycaster = new THREE.Raycaster();

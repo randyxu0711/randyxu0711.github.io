@@ -1,6 +1,6 @@
 import { readTokens, rgba, watchTheme } from 'scene3d/colors.js';
 import { ease, clamp, approach } from 'scene3d/anim.js';
-import { CARD, CAB, taipeiToday, pickDesk, groups, cabinet, deskPose, pilePose, pileLabelPose, cameraAt, mainName, hueOf, tabSlot } from 'shares3d/layout.js';
+import { CARD, CAB, taipeiToday, pickDesk, groups, arrange, deskPose, pilePose, pileLabelPose, cameraAt, mainName, hueOf, tabSlot } from 'shares3d/layout.js';
 import { createScene } from 'shares3d/scene.js';
 import { createAtlas, createLabels, loadFonts } from 'shares3d/textures.js';
 
@@ -49,6 +49,18 @@ function start() {
   canvas.setAttribute('aria-hidden', 'true');
   root.appendChild(canvas);
   root.classList.add('on', 'soft');
+  try {
+    run(gl, canvas);
+  } catch (e) {
+    root.classList.remove('on');
+    root.classList.add('fail');
+    canvas.remove();
+    stage.hidden = true;
+    bar.hidden = true;
+  }
+}
+
+function run(gl, canvas) {
   stage.hidden = false;
   bar.hidden = false;
 
@@ -59,7 +71,10 @@ function start() {
   } catch (e) {}
   const { desk, piles } = pickDesk(items, taipeiToday(Date.now()));
   let drawers = groups(items, mode);
-  let cab = cabinet(drawers.length);
+  const isNarrow = () => canvas.clientWidth / Math.max(1, canvas.clientHeight) < 1;
+  let narrow = isNarrow();
+  let a = arrange(desk.length, piles.length, drawers.length, narrow);
+  let cab = a.cab;
   let slide = null;
   let dark = false;
   let raf = 0;
@@ -101,21 +116,21 @@ function start() {
         sticky: !!it.n,
       });
     };
-    desk.forEach((i, slot) => push(i, deskPose(slot, items[i].i), true));
+    desk.forEach((i, slot) => push(i, deskPose(slot, items[i].i, a), true));
     piles.forEach((p, pi) => {
       const stack = p.ids.slice().reverse();
-      stack.forEach((i, k) => push(i, pilePose(pi, k, items[i].i), k === stack.length - 1));
+      stack.forEach((i, k) => push(i, pilePose(pi, k, items[i].i, a), k === stack.length - 1));
     });
     return out;
   }
 
   function shadowList() {
     const out = desk.map((i, slot) => {
-      const p = deskPose(slot, items[i].i);
+      const p = deskPose(slot, items[i].i, a);
       return { x: p.x, z: p.z, ry: p.ry, w: CARD.W, h: CARD.H };
     });
     piles.forEach((p, pi) => {
-      const b = pilePose(pi, 0, items[p.ids[p.ids.length - 1]].i);
+      const b = pilePose(pi, 0, items[p.ids[p.ids.length - 1]].i, a);
       out.push({ x: b.x, z: b.z, ry: b.ry, w: CARD.W, h: CARD.H });
     });
     out.push({ x: 0, z: cab.z - cab.depth / 2 + 12, ry: 0, w: cab.width, h: cab.depth + 24 });
@@ -136,7 +151,7 @@ function start() {
       piles.map((p) => `${t('shares3d.week', md(p.week))} · ${p.ids.length}`),
     );
     gl.setDrawers(drawerList(performance.now()));
-    gl.setPileLabels(piles.map((p, pi) => Object.assign(pileLabelPose(pi), { tile: labels.pileTile(pi) })));
+    gl.setPileLabels(piles.map((p, pi) => Object.assign(pileLabelPose(pi, a), { tile: labels.pileTile(pi) })));
   }
 
   function progress() {
@@ -165,7 +180,7 @@ function start() {
     last = now;
     let busy = atlas.pump() || atlas.pending();
     const p = progress();
-    const target = cameraAt(p, canvas.clientWidth / Math.max(1, canvas.clientHeight), cab);
+    const target = cameraAt(p, canvas.clientWidth / Math.max(1, canvas.clientHeight), a);
     if (!cam.pos || reduce.matches) {
       cam.pos = target.pos.slice();
       cam.look = target.look.slice();
@@ -213,12 +228,18 @@ function start() {
     try { localStorage.setItem(GROUP_KEY, m); } catch (e) {}
     pressKeys();
     drawers = groups(items, mode);
-    cab = cabinet(drawers.length);
     slide = reduce.matches ? null : performance.now();
+    rearrange();
+    invalidate();
+  }
+
+  function rearrange() {
+    a = arrange(desk.length, piles.length, drawers.length, narrow);
+    cab = a.cab;
     gl.setCabinet(cab);
     gl.setShadows(shadowList());
+    gl.setCards(cardList());
     drawLabels();
-    invalidate();
   }
 
   bar.querySelectorAll('[data-group-set]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.groupSet)));
@@ -237,6 +258,10 @@ function start() {
   window.addEventListener('scroll', invalidate, { passive: true });
   new ResizeObserver(() => {
     gl.resize(canvas.clientWidth, canvas.clientHeight);
+    if (isNarrow() !== narrow) {
+      narrow = !narrow;
+      rearrange();
+    }
     invalidate();
   }).observe(canvas);
   canvas.addEventListener('webglcontextrestored', () => {
@@ -262,10 +287,11 @@ function start() {
     atlas.want(faces());
     invalidate();
   });
-  gl.warm().then(() => {
+  const go = () => {
     ready = true;
     invalidate();
-  });
+  };
+  gl.warm().then(go, go);
 }
 
 start();

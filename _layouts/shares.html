@@ -25,7 +25,7 @@ modules: [layout.js, scene.js, textures.js]
 {%- endfor %}
 <section class="sh3d s3d" id="sh3d">
   <h1 class="visually-hidden" data-i18n="nav.shares">{% include t.html k="nav.shares" %}</h1>
-  <div class="shelf sh3d-list" id="sh3d-list" aria-label="分享的文章" data-i18n-attr="aria-label:shelf.label">
+  <div class="shelf sh3d-list" id="sh3d-list" aria-label="{% include t.html k="shelf.label" %}" data-i18n-attr="aria-label:shelf.label">
     {%- if site.posts.size == 0 %}
     <p class="empty" data-i18n="shelf.none">{% include t.html k="shelf.none" %}</p>
     {%- else %}
@@ -38,7 +38,7 @@ modules: [layout.js, scene.js, textures.js]
   </div>
   <div class="sh3d-stage" id="sh3d-stage" hidden></div>
   <div class="sh3d-bar away" id="sh3d-bar" hidden>
-    <div class="sh3d-keys" role="group" aria-label="分組" data-i18n-attr="aria-label:shares3d.group">
+    <div class="sh3d-keys" role="group" aria-label="{% include t.html k="shares3d.group" %}" data-i18n-attr="aria-label:shares3d.group">
       <button type="button" class="key" data-group-set="tag" aria-pressed="false" data-i18n="shares3d.by_tag">{% include t.html k="shares3d.by_tag" %}</button>
       <button type="button" class="key" data-group-set="source" aria-pressed="false" data-i18n="shares3d.by_source">{% include t.html k="shares3d.by_source" %}</button>
       <button type="button" class="key" data-group-set="month" aria-pressed="false" data-i18n="shares3d.by_month">{% include t.html k="shares3d.by_month" %}</button>
