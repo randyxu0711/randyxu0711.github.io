@@ -229,7 +229,7 @@ export function createTextures(gl, books, dims, opts) {
     });
     batch.forEach(({ i }) => {
       drawn[i] = 1;
-      gl.setState(i, 0, 1);
+      opts.show(i, 0);
     });
     return true;
   }
@@ -347,7 +347,7 @@ export function createTextures(gl, books, dims, opts) {
       spineCanvas.width = spineCanvas.height = 1;
     };
     spineTex.needsUpdate = true;
-    for (let i = 0; i < n; i++) gl.setState(i, 3, 1);
+    for (let i = 0; i < n; i++) opts.show(i, 3);
   }
 
   function redrawFallbacks() {
@@ -363,6 +363,7 @@ export function createTextures(gl, books, dims, opts) {
     },
     pump,
     drawn: (i) => drawn[i] === 1 || coverState[i] === 2,
+    loaded: (i) => coverState[i] > 0,
     fontsChanged() {
       drawSpines();
       redrawFallbacks();

@@ -35,20 +35,17 @@
 html.js .b3d:not(.on):not(.fail) .b3d-list { visibility: hidden; animation: b3d-give-up 0s 4s forwards; }
 @keyframes b3d-give-up { to { visibility: visible; } }
 html.js .b3d::before { content: ""; position: fixed; inset: 0; z-index: 15; pointer-events: none;
-  background: var(--unlit); opacity: 0.86; transition: opacity 900ms cubic-bezier(.3,.7,.2,1); }
-html.js .b3d:not(.lit)::before { animation: b3d-dark-give-up 0s 4s forwards; }
+  background: var(--desk); opacity: 1; animation: b3d-dark-give-up 0s 4s forwards; }
 @keyframes b3d-dark-give-up { to { opacity: 0; } }
-html.js .b3d.fail::before, html.js .b3d.lit::before { opacity: 0; }
+html.js .b3d:is(.live, .fail)::before { opacity: 0; animation: none; }
 @media (prefers-color-scheme: dark) {
-  html.js:not([data-theme="light"]) .b3d::before { opacity: 0.8; }
-  html.js:not([data-theme="light"]) .b3d.lit::before { opacity: 0; animation: b3d-lamp 420ms steps(1, end) forwards; }
+  html.js:not([data-theme="light"]) .b3d:not(.live)::before { background: var(--unlit); opacity: 0.9; }
 }
-html.js[data-theme="dark"] .b3d::before { opacity: 0.8; }
-html.js[data-theme="dark"] .b3d.lit::before { opacity: 0; animation: b3d-lamp 420ms steps(1, end) forwards; }
-@keyframes b3d-lamp { 0% { opacity: 0.8; } 20% { opacity: 0.25; } 40% { opacity: 0.65; } 60%, 100% { opacity: 0; } }
-@media (prefers-reduced-motion: reduce) {
-  html.js .b3d::before { transition: none; }
-  html.js .b3d.lit::before { animation: none !important; }
-}
+html.js[data-theme="dark"] .b3d:not(.live)::before { background: var(--unlit); opacity: 0.9; }
+.b3d.soft .b3d-canvas { opacity: 0; transition: opacity 450ms cubic-bezier(.3,.7,.2,1); }
+.b3d.soft.live .b3d-canvas { opacity: 1; }
+.b3d.on:not(.lit) :is(.b3d-bar, .b3d-tier, .b3d-arrows) { opacity: 0; visibility: hidden; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .b3d.soft .b3d-canvas { transition: none; } }
+
 .b3d-bar, .b3d-tier, .b3d-arrows { transition: opacity 200ms, visibility 200ms; }
 .b3d.holding :is(.b3d-bar, .b3d-tier, .b3d-arrows) { opacity: 0; visibility: hidden; pointer-events: none; }

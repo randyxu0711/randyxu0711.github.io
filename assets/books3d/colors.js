@@ -1,4 +1,4 @@
-const TOKENS = ['desk', 'shelf', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near'];
+const TOKENS = ['desk', 'shelf', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near', 'unlit', 'ink'];
 
 let ctx = null;
 
