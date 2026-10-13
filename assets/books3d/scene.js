@@ -55,6 +55,29 @@ vec3 lit(vec3 c, vec3 n) {
 }
 `;
 
+const REVEAL = /* glsl */ `
+uniform vec4 uSketch;
+float sketchAmount() {
+  if (uSketch.w > 2.0) return 0.0;
+  vec2 p = (gl_FragCoord.xy - uSketch.xy) / uSketch.z;
+  float d = length(p) + 0.05 * sin(p.x * 9.0 + p.y * 5.0) + 0.04 * sin(p.y * 13.0 - p.x * 7.0);
+  return smoothstep(uSketch.w - 0.3, uSketch.w, d);
+}
+`;
+
+const SKETCH = /* glsl */ `
+${REVEAL}
+uniform vec3 uInk;
+vec3 sketch(vec3 col, vec3 n, vec2 uv) {
+  float s = sketchAmount();
+  if (s <= 0.0) return col;
+  vec2 px = min(uv, 1.0 - uv) / max(fwidth(uv), vec2(1e-5));
+  float line = 1.0 - smoothstep(0.5, 1.5, min(px.x, px.y));
+  vec3 paper = mix(uDesk, uInk, 0.06 * (1.0 - max(dot(normalize(n), uLight), 0.0)));
+  return mix(col, mix(paper, uInk, line * 0.75), s);
+}
+`;
+
 const BOOK_VERT = /* glsl */ `
 attribute float face;
 #ifdef HELD
@@ -125,6 +148,7 @@ varying vec3 vSize;
 varying vec2 vUv;
 varying float vFace;
 ${LIGHT}
+${SKETCH}
 float stripes(float x) {
   float s = x / 3.0;
   float aa = clamp(fwidth(s) * 1.5, 0.0, 1.0);
@@ -166,7 +190,7 @@ void main() {
   }
   if (f == 0 || f == 4) c = mix(c, uEdge, vState.y * (1.0 - smoothstep(2.6, 3.6, ly)));
   if (f != 2 && f != 3) c *= mix(1.0, mix(0.8, 1.0, smoothstep(0.0, 14.0, ly)), vState.z);
-  gl_FragColor = vec4(mix(mix(lit(c, vN), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);
+  gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);
 }
 `;
 
@@ -175,9 +199,11 @@ attribute float face;
 varying vec3 vN;
 varying vec3 vLocal;
 varying float vFace;
+varying vec2 vUv;
 varying vec3 vWorld;
 void main() {
   mat4 m = modelMatrix * instanceMatrix;
+  vUv = uv;
   vWorld = (m * vec4(position, 1.0)).xyz;
   vN = mat3(m) * normal;
   vLocal = position;
@@ -195,7 +221,9 @@ uniform vec4 uUnlit;
 varying vec3 vN;
 varying vec3 vLocal;
 varying float vFace;
+varying vec2 vUv;
 ${LIGHT}
+${SKETCH}
 void main() {
   int f = int(vFace + 0.5);
   vec3 c = uShelf;
@@ -208,7 +236,7 @@ void main() {
   } else {
     c = uEdgeN;
   }
-  gl_FragColor = vec4(mix(mix(lit(c, vN), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);
+  gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);
 }
 `;
 
@@ -225,8 +253,9 @@ uniform vec4 uDrop;
 uniform float uDim;
 uniform vec4 uUnlit;
 varying float vT;
+${REVEAL}
 void main() {
-  gl_FragColor = vec4(mix(uDrop.rgb, uUnlit.rgb, uUnlit.a), uDrop.a * vT * vT * (1.0 - uDim));
+  gl_FragColor = vec4(mix(uDrop.rgb, uUnlit.rgb, uUnlit.a), uDrop.a * vT * vT * (1.0 - uDim) * (1.0 - sketchAmount()));
 }
 `;
 
@@ -261,6 +290,8 @@ export function createScene(books, dims) {
     uSpines: { value: null },
     uDim: { value: 0 },
     uUnlit: { value: new THREE.Vector4() },
+    uSketch: { value: new THREE.Vector4(0, 0, 1, 9) },
+    uInk: { value: new THREE.Color() },
   };
 
   const n = books.length;
@@ -305,7 +336,7 @@ export function createScene(books, dims) {
   const shadowGeo = new THREE.PlaneGeometry(1, SHADOW);
   shadowGeo.translate(0.5, -LIP - SHADOW / 2, SHELF_FRONT - 1);
   const shadowMat = new THREE.ShaderMaterial({
-    uniforms: { uDrop: colors.uDrop, uDim: colors.uDim, uUnlit: colors.uUnlit },
+    uniforms: { uDrop: colors.uDrop, uDim: colors.uDim, uUnlit: colors.uUnlit, uSketch: colors.uSketch, uInk: colors.uInk },
     vertexShader: SHADOW_VERT,
     fragmentShader: SHADOW_FRAG,
     transparent: true,
@@ -464,10 +495,16 @@ export function createScene(books, dims) {
     colors.uDesk.value.setRGB(...t.desk);
     colors.uEdgeN.value.setRGB(...t['edge-n']);
     colors.uDrop.value.set(...t['drop-near']);
+    colors.uInk.value.setRGB(...t.ink);
     desk.setRGB(...t.desk);
     unlit.setRGB(...t.unlit);
     setUnlit(colors.uUnlit.value.w);
     common.uLampColor.value.setRGB(...t.edge).lerp(new THREE.Color(1, 1, 1), 0.45);
+  }
+
+  function setSketch(r) {
+    const k = renderer.getPixelRatio();
+    colors.uSketch.value.set(size.w * k / 2, size.h * k / 2, Math.hypot(size.w, size.h) * k / 2, r);
   }
 
   let size = { w: 0, h: 0 };
@@ -536,5 +573,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, project, view, canvasTexture, imageTexture, setLamp, setLampAt, warm };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, setLampAt, warm };
 }

@@ -22,7 +22,9 @@ const SHUFFLE = 1600;
 const INTRO_KEY = 'books3d-intro';
 const LIGHT_MIN = 300;
 const LIGHT_MAX = 1500;
-const DAWN = 900;
+const DAWN = 1400;
+const REVEAL_FROM = -0.35;
+const REVEAL_TO = 1.4;
 const FADE = 0.3;
 const STAGGER = 400;
 const TURN = 600;
@@ -511,11 +513,12 @@ async function start() {
   let ready = false;
   let liveT0 = 0;
   let litT0 = 0;
+  let lit = false;
   let seen = [];
   const veil = getComputedStyle(root, '::before');
   const darkness = veil.content === 'none' ? 0 : parseFloat(veil.opacity) || 0;
-  let unlit = darkness;
-  if (!darkness) root.classList.add('soft');
+  let intro = darkness > 0;
+  if (!intro) root.classList.add('soft');
   const shownV = new Float32Array(n * 4);
   const fading = new Set();
 
@@ -538,27 +541,33 @@ async function start() {
 
   function switchOn(now) {
     litT0 = now;
+    lit = true;
     root.classList.add('lit');
     try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) {}
   }
 
+  function introLevels(el) {
+    let k = 1;
+    if (el >= 0) {
+      if (reduce.matches) k = 0;
+      else if (!lampOn) k = 1 - ease(clamp(el / DAWN, 0, 1));
+      else if (el < 84) k = 1;
+      else if (el < 168) k = 0.3;
+      else if (el < 252) k = 0.8;
+      else k = 0.8 * (1 - ease(clamp((el - 252) / 400, 0, 1)));
+    }
+    if (k === 0) intro = false;
+    gl.setUnlit(intro && lampOn ? darkness * k : 0);
+    gl.setSketch(intro && !lampOn ? lerp(REVEAL_TO, REVEAL_FROM, k) : 9);
+  }
+
   function stepLight(now) {
-    if (!litT0) {
+    if (!lit) {
       const el = now - liveT0;
       if (el >= LIGHT_MAX || (el >= LIGHT_MIN && seen.every((i) => tex.drawn(i)))) switchOn(now);
-      return true;
     }
-    const el = now - litT0;
-    let k;
-    if (reduce.matches) k = 0;
-    else if (!lampOn) k = 1 - ease(clamp(el / DAWN, 0, 1));
-    else if (el < 84) k = 1;
-    else if (el < 168) k = 0.3;
-    else if (el < 252) k = 0.8;
-    else k = 0.8 * (1 - ease(clamp((el - 252) / 400, 0, 1)));
-    unlit = darkness * k;
-    gl.setUnlit(unlit);
-    return unlit > 0;
+    introLevels(lit ? now - litT0 : -1);
+    return intro;
   }
 
   function visibleBooks() {
@@ -585,7 +594,7 @@ async function start() {
     const dt = last ? Math.min(0.05, (now - last) / 1000) : 1 / 60;
     last = now;
     let busy = tex ? tex.pump() : false;
-    if (unlit > 0 && liveT0 && stepLight(now)) busy = true;
+    if (intro && liveT0 && stepLight(now)) busy = true;
     if (fading.size) {
       stepFades(dt);
       busy = true;
@@ -627,7 +636,7 @@ async function start() {
 
     gl.frustum(cam);
     if (lampOn) placeLamp();
-    if (pointer.in && !drag && !held && (pointer.moved || camMoved || dirty)) {
+    if (lit && pointer.in && !drag && !held && (pointer.moved || camMoved || dirty)) {
       pointer.moved = false;
       const hit = trans ? -1 : gl.pick(pointer.x, pointer.y);
       if (hit !== hovered) {
@@ -665,8 +674,11 @@ async function start() {
       liveT0 = now;
       root.classList.add('live');
       bar.hidden = false;
-      if (unlit > 0) busy = true;
-      else root.classList.add('lit');
+      if (intro) busy = true;
+      else {
+        lit = true;
+        root.classList.add('lit');
+      }
     }
     if (busy) invalidate();
     else last = 0;
@@ -854,7 +866,7 @@ async function start() {
   const isScene = (el) => el === stage || el === canvas || el === document.body || el === document.documentElement || el === root || el.id === 'main';
 
   window.addEventListener('pointerdown', (e) => {
-    if (e.button !== 0 || !isScene(e.target) || trans) return;
+    if (e.button !== 0 || !isScene(e.target) || trans || !lit) return;
     drag = { id: e.pointerId, x0: e.clientX, y0: e.clientY, x: e.clientX, time: e.timeStamp, v: 0, s: shelfAt(e.clientY), mode: null };
   });
   window.addEventListener('pointermove', (e) => {
@@ -918,7 +930,7 @@ async function start() {
   });
 
   window.addEventListener('wheel', (e) => {
-    if (!isScene(e.target) || trans || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
+    if (!isScene(e.target) || trans || !lit || Math.abs(e.deltaX) <= Math.abs(e.deltaY)) return;
     const s = shelfAt(e.clientY);
     if (!s || s.minOffset === 0) return;
     e.preventDefault();
@@ -927,7 +939,7 @@ async function start() {
   }, { passive: false });
 
   document.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || trans) return;
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || trans || !lit) return;
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
     const s = shelfAt(window.innerHeight / 2);
@@ -976,18 +988,19 @@ async function start() {
     const d = tokens.desk;
     lampOn = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     placeLamp();
-    gl.setUnlit(unlit);
+    if (!liveT0 && !lampOn) root.classList.add('soft');
+    if (intro) introLevels(lit ? performance.now() - litT0 : -1);
     invalidate();
   }
 
   function placeLamp() {
     if (held && held.phase !== 'down') {
       const h = dims[held.i].h;
-      gl.setLampAt(lampOn, heldPose.x, heldPose.y + h * 1.1, heldPose.z + h * 1.3, h * 2.2);
+      gl.setLampAt(lampOn && lit, heldPose.x, heldPose.y + h * 1.1, heldPose.z + h * 1.3, h * 2.2);
       return;
     }
     const hover = window.matchMedia('(hover: hover)').matches && pointer.time;
-    gl.setLamp(lampOn, hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
+    gl.setLamp(lampOn && lit, hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
   }
 
   const nav = document.querySelector('.nav');
