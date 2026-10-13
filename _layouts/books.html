@@ -1,18 +1,25 @@
 ---
 layout: default
-modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
+modules: [layout.js, scene.js, textures.js]
+shared: [anim.js, colors.js]
 ---
 {%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
 {%- assign v = site.time | date: '%s' -%}
 <link rel="stylesheet" href="{{ '/assets/books3d/books3d.css' | relative_url }}?v={{ v }}">
 <script type="importmap">{"imports": {
   "three": "{{ '/assets/vendor/three/three.module.min.js' | relative_url }}"
+  {%- for m in layout.shared %},
+  "scene3d/{{ m }}": "{{ '/assets/scene3d/' | append: m | relative_url }}?v={{ v }}"
+  {%- endfor %}
   {%- for m in layout.modules %},
   "books3d/{{ m }}": "{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}"
   {%- endfor %}
 }}</script>
 <link rel="modulepreload" href="{{ '/assets/vendor/three/three.module.min.js' | relative_url }}">
 <link rel="modulepreload" href="{{ '/assets/books3d/main.js' | relative_url }}?v={{ v }}">
+{%- for m in layout.shared %}
+<link rel="modulepreload" href="{{ '/assets/scene3d/' | append: m | relative_url }}?v={{ v }}">
+{%- endfor %}
 {%- for m in layout.modules %}
 <link rel="modulepreload" href="{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}">
 {%- endfor %}
@@ -75,7 +82,7 @@ modules: [layout.js, colors.js, scene.js, textures.js, anim.js]
 <script>
 addEventListener('error', (e) => {
   const root = document.getElementById('b3d');
-  if (/\/assets\/(books3d|vendor\/three)\//.test(e.target.src || e.filename || '') && !root.classList.contains('on')) root.classList.add('fail');
+  if (/\/assets\/(books3d|scene3d|vendor\/three)\//.test(e.target.src || e.filename || '') && !root.classList.contains('on')) root.classList.add('fail');
 }, true);
 </script>
 <script type="module" src="{{ '/assets/books3d/main.js' | relative_url }}?v={{ v }}"></script>

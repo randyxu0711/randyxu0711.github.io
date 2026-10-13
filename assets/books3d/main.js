@@ -1,8 +1,8 @@
 import { layout, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
-import { readTokens, hexRgb, watchTheme } from 'books3d/colors.js';
+import { readTokens, hexRgb, watchTheme } from 'scene3d/colors.js';
 import { createScene } from 'books3d/scene.js';
 import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf } from 'books3d/textures.js';
-import { ease, easeInOut, lerp, clamp, approach } from 'books3d/anim.js';
+import { ease, easeInOut, lerp, clamp, approach } from 'scene3d/anim.js';
 
 const root = document.getElementById('b3d');
 const stage = document.getElementById('b3d-scene');
@@ -18,6 +18,7 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
 const VIEW_KEY = 'books3d-view';
 const SORT_KEY = 'books3d-sort';
+const TOKENS = ['desk', 'shelf', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near', 'unlit', 'ink'];
 const SHUFFLE = 1600;
 const LIGHT_MIN = 300;
 const LIGHT_MAX = 1500;
@@ -985,7 +986,7 @@ async function start() {
 
   let lampOn = false;
   function applyColors() {
-    const tokens = readTokens();
+    const tokens = readTokens(TOKENS);
     gl.setColors(tokens);
     const d = tokens.desk;
     lampOn = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;

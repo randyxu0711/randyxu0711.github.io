@@ -1,5 +1,3 @@
-const TOKENS = ['desk', 'shelf', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near', 'unlit', 'ink'];
-
 let ctx = null;
 
 function probe() {
@@ -21,10 +19,10 @@ export function rgba(css) {
   return [d[0] / 255, d[1] / 255, d[2] / 255, d[3] / 255];
 }
 
-export function readTokens() {
+export function readTokens(names) {
   const cs = getComputedStyle(document.documentElement);
   const out = {};
-  TOKENS.forEach((name) => { out[name] = rgba(cs.getPropertyValue('--' + name).trim() || '#808080'); });
+  names.forEach((name) => { out[name] = rgba(cs.getPropertyValue('--' + name).trim() || '#808080'); });
   return out;
 }
 
