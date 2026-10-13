@@ -69,9 +69,9 @@ const SKETCH = /* glsl */ `
 ${REVEAL}
 uniform vec3 uInk;
 vec3 sketch(vec3 col, vec3 n, vec2 uv) {
+  vec2 px = min(uv, 1.0 - uv) / max(fwidth(uv), vec2(1e-5));
   float s = sketchAmount();
   if (s <= 0.0) return col;
-  vec2 px = min(uv, 1.0 - uv) / max(fwidth(uv), vec2(1e-5));
   float line = 1.0 - smoothstep(0.5, 1.5, min(px.x, px.y));
   vec3 paper = mix(uDesk, uInk, 0.06 * (1.0 - max(dot(normalize(n), uLight), 0.0)));
   return mix(col, mix(paper, uInk, line * 0.75), s);
@@ -408,7 +408,7 @@ export function createScene(books, dims) {
     const u = heldUniforms;
     u.iColor.value.setRGB(...dims[i].color);
     u.iInk.value.setRGB(...dims[i].ink);
-    u.iState.value.set(iState.getX(i), 0, 0, iState.getW(i));
+    u.iState.value.set(iState.getX(i) > 0 ? 1 : 0, 0, 0, iState.getW(i) > 0 ? 1 : 0);
     u.iCover.value.fromBufferAttribute(attrs.iCover, i);
     u.iSpine.value.fromBufferAttribute(attrs.iSpine, i);
     u.uCovers.value = colors.uCovers.value;
