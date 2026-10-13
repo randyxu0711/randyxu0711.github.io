@@ -164,7 +164,7 @@ export function pileLabelPose(pi, a = BASE) {
 
 const smooth = (x) => x * x * (3 - 2 * x);
 const TAN = Math.tan((FOV / 2) * Math.PI / 180);
-const FIT = { X: 1, Y: 0.94, STACK: 16 };
+const FIT = { X: 1, NARROW: 0.96, Y: 0.94, STACK: 16 };
 const reach = (ry, jx, jz) => ({
   x: (CARD.W / 2) * Math.cos(ry) + (CARD.H / 2) * Math.sin(ry) + jx,
   z: (CARD.H / 2) * Math.cos(ry) + (CARD.W / 2) * Math.sin(ry) + jz,
@@ -183,12 +183,12 @@ function ndc(pos, look, aspect, pt) {
   return [dot(right) / depth / (TAN * aspect), dot(up) / depth / TAN];
 }
 
-function fit(look, off, s0, aspect, hx, z0, z1, top) {
+function fit(look, off, s0, aspect, hx, z0, z1, top, mx = FIT.X) {
   const pts = [];
   for (const x of [-hx, hx]) for (const y of [0, top]) for (const z of [z0, z1]) pts.push([x, y, z]);
   const ok = (s) => pts.every((pt) => {
     const [x, y] = ndc(look.map((v, k) => v + off[k] * s), look, aspect, pt);
-    return Math.abs(x) <= FIT.X && Math.abs(y) <= FIT.Y;
+    return Math.abs(x) <= mx && Math.abs(y) <= FIT.Y;
   });
   if (ok(s0)) return off.map((v) => v * s0);
   let lo = s0;
@@ -205,7 +205,7 @@ function fit(look, off, s0, aspect, hx, z0, z1, top) {
   return off.map((v) => v * hi);
 }
 
-export function cameraAt(p, aspect, a) {
+export function makeCamera(aspect, a) {
   const f = aspect < 1.3 ? clamp(1.3 / aspect, 1, 2.3) : 1;
   const cab = a.cab;
   const deskBack = a.front - (a.deskRows - 1) * DESK.PITCH_Z;
@@ -220,8 +220,8 @@ export function cameraAt(p, aspect, a) {
   const tall = (cab.height / 2 + 30) / TAN * 1.05;
   const dist = a.narrow ? wide : Math.max(wide, tall);
   const keys = [
-    { look: deskLook, off: fit(deskLook, [0, 460, 440], a.narrow ? 1 : f, aspect, deskX, a.front + d.z, deskBack - d.z, CARD.T + 0.1) },
-    { look: pileLook, off: fit(pileLook, [0, 500, 420], a.narrow ? 1 : f, aspect, pileX, a.pileBack + Math.max(q0.z, PILES.LABEL + LABEL.H / 2), pileEnd - q0.z, FIT.STACK) },
+    { look: deskLook, off: fit(deskLook, [0, 460, 440], a.narrow ? 1 : f, aspect, deskX, a.front + d.z, deskBack - d.z, CARD.T + 0.1, a.narrow ? FIT.NARROW : FIT.X) },
+    { look: pileLook, off: fit(pileLook, [0, 500, 420], a.narrow ? 1 : f, aspect, pileX, a.pileBack + Math.max(q0.z, PILES.LABEL + LABEL.H / 2), pileEnd - q0.z, FIT.STACK, a.narrow ? FIT.NARROW : FIT.X) },
   ];
   const off = [0, dist * 0.3, dist];
   let marks = [0, 0.5, 1];
@@ -234,13 +234,110 @@ export function cameraAt(p, aspect, a) {
   } else {
     keys.push({ look: [0, cab.height * 0.47, cab.z], off });
   }
-  const q = clamp(p, 0, 1);
-  let seg = 0;
-  while (seg < marks.length - 2 && q >= marks[seg + 1]) seg++;
-  const u = smooth((q - marks[seg]) / (marks[seg + 1] - marks[seg]));
-  const ka = keys[seg];
-  const kb = keys[seg + 1];
-  const look = ka.look.map((v, k) => lerp(v, kb.look[k], u));
-  const o = ka.off.map((v, k) => lerp(v, kb.off[k], u));
-  return { look, pos: look.map((v, k) => v + o[k]) };
+  return (p) => {
+    const q = clamp(p, 0, 1);
+    let seg = 0;
+    while (seg < marks.length - 2 && q >= marks[seg + 1]) seg++;
+    const u = smooth((q - marks[seg]) / (marks[seg + 1] - marks[seg]));
+    const ka = keys[seg];
+    const kb = keys[seg + 1];
+    const look = ka.look.map((v, k) => lerp(v, kb.look[k], u));
+    const o = ka.off.map((v, k) => lerp(v, kb.off[k], u));
+    return { look, pos: look.map((v, k) => v + o[k]) };
+  };
+}
+
+export function cameraAt(p, aspect, a) {
+  return makeCamera(aspect, a)(p);
+}
+
+export const SPREAD = { Y: 18, PITCH_X: 140, PITCH_Z: 92, GAP: 70 };
+export const PULL = CAB.DEPTH - 60;
+export const LEAN = { FORWARD: 0.62, BACK: -0.35, FRONT: 55, FLOOR: 6 };
+
+export function spreadPoses(n, base, a = BASE) {
+  const per = a.narrow ? 2 : 4;
+  const span = ((Math.min(per, n) - 1) / 2) * SPREAD.PITCH_X;
+  const limit = Math.max(0, ((a.cols - 1) / 2) * DESK.PITCH_X - span);
+  const cx = clamp(base.x, -limit, limit);
+  return Array.from({ length: n }, (_, k) => {
+    const row = Math.floor(k / per);
+    const col = k % per;
+    const inRow = Math.min(per, n - row * per);
+    return {
+      x: cx + (col - (inRow - 1) / 2) * SPREAD.PITCH_X,
+      y: SPREAD.Y + k * 0.2,
+      z: base.z + SPREAD.GAP + row * SPREAD.PITCH_Z,
+      ry: 0,
+    };
+  });
+}
+
+export function drawerOut(cab, k) {
+  const s = cab.slots[k];
+  return { x: s.x, y: s.y, z: cab.z + PULL };
+}
+
+export function drawerCards(n, cur) {
+  const room = CAB.DEPTH - 20 - LEAN.FRONT - Math.sin(-LEAN.BACK) * CARD.H - 4;
+  const step = n > 1 ? Math.min(4, room / (n - 1)) : 0;
+  const floor = -DRAWER.H / 2 + LEAN.FLOOR;
+  return Array.from({ length: n }, (_, k) => {
+    const r = k < cur ? LEAN.FORWARD : LEAN.BACK;
+    return {
+      y: floor + Math.cos(r) * (CARD.H / 2),
+      z: -LEAN.FRONT - k * step + Math.sin(r) * (CARD.H / 2),
+      rx: r,
+    };
+  });
+}
+
+function fitBox(look, off, aspect, box, mx) {
+  const pts = [];
+  for (const x of [box.x0, box.x1]) for (const y of [box.y0, box.y1]) for (const z of [box.z0, box.z1]) pts.push([x, y, z]);
+  const ok = (s) => pts.every((pt) => {
+    const [x, y] = ndc(look.map((v, k) => v + off[k] * s), look, aspect, pt);
+    return Math.abs(x) <= mx && Math.abs(y) <= FIT.Y;
+  });
+  let lo = 0.2;
+  let hi = 1;
+  for (let k = 0; k < 24 && !ok(hi); k++) {
+    lo = hi;
+    hi *= 1.25;
+  }
+  for (let k = 0; k < 20; k++) {
+    const mid = (lo + hi) / 2;
+    if (ok(mid)) hi = mid;
+    else lo = mid;
+  }
+  return look.map((v, k) => v + off[k] * hi);
+}
+
+export function focusPile(poses, aspect, a = BASE) {
+  const xs = poses.map((p) => p.x);
+  const zs = poses.map((p) => p.z);
+  const box = {
+    x0: Math.min(...xs) - CARD.W / 2 - 6, x1: Math.max(...xs) + CARD.W / 2 + 6,
+    y0: 0, y1: SPREAD.Y + 2,
+    z0: Math.min(...zs) - CARD.H / 2 - 6, z1: Math.max(...zs) + CARD.H / 2 + 6,
+  };
+  const look = [(box.x0 + box.x1) / 2, SPREAD.Y, (box.z0 + box.z1) / 2];
+  return { look, pos: fitBox(look, [0, 430, 260], aspect, box, a.narrow ? FIT.NARROW : FIT.X) };
+}
+
+export function focusDrawer(out, aspect, a = BASE) {
+  const box = {
+    x0: out.x - DRAWER.W / 2 - 10, x1: out.x + DRAWER.W / 2 + 10,
+    y0: out.y - DRAWER.H / 2, y1: out.y + CARD.H,
+    z0: out.z - CAB.DEPTH + 30, z1: out.z + DRAWER.D,
+  };
+  const look = [out.x, out.y - 22, out.z - 95];
+  return { look, pos: fitBox(look, [0, 330, 270], aspect, box, a.narrow ? FIT.NARROW : FIT.X) };
+}
+
+export function matches(item, q) {
+  const words = String(q || '').toLowerCase().split(/\s+/).filter(Boolean);
+  if (!words.length) return true;
+  const text = [item.t, item.s, item.n, item.e, ...(item.g || [])].filter(Boolean).join(' ').toLowerCase();
+  return words.every((w) => text.includes(w));
 }

@@ -1,27 +1,34 @@
 import * as THREE from 'three';
 import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
 import { box } from 'scene3d/geometry.js';
-import { CARD, DRAWER, FOV, LABEL } from 'shares3d/layout.js';
+import { CARD, DRAWER, CAB, FOV, LABEL, SPLIT } from 'shares3d/layout.js';
 
 const TAB = { W: 28, H: 9 };
 const STICKY = 18;
 const HANDLE = { W: 32, H: 6, D: 6, DROP: 29 };
 const SHADOW = 9;
+const TRAY = { T: 3, SIDE: 34 };
 
-const FINISH = 'gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);';
+const FINISH = 'gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, max(uDim, vFade)), uUnlit.rgb, uUnlit.a), 1.0);';
 
 const INST_VERT = /* glsl */ `
 attribute float face;
 attribute vec4 iTile;
 attribute vec3 iColor;
+attribute float iFade;
+attribute float iHot;
 varying vec4 vTile;
 varying vec3 vColor;
 varying vec3 vN;
 varying vec2 vUv;
 varying float vFace;
+varying float vFade;
+varying float vHot;
 varying vec3 vWorld;
 void main() {
   mat4 m = modelMatrix * instanceMatrix;
+  vFade = iFade;
+  vHot = iHot;
   vec4 w = m * vec4(position, 1.0);
   vWorld = w.xyz;
   vN = mat3(m) * normal;
@@ -42,6 +49,8 @@ varying vec3 vColor;
 varying vec3 vN;
 varying vec2 vUv;
 varying float vFace;
+varying float vFade;
+varying float vHot;
 ${LIGHT}
 ${SKETCH}
 `;
@@ -54,6 +63,7 @@ uniform vec3 uPaperDeep;
 uniform vec3 uInk3;
 uniform vec3 uRule;
 uniform vec3 uRedline;
+uniform vec3 uEdge;
 ${INST_HEAD}
 float hairline(float d, float w, float aa) {
   return 1.0 - smoothstep(w, w + aa, d);
@@ -65,7 +75,7 @@ void main() {
   vec3 m = texture2D(uCards, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
   float rule = hairline(abs(mod(ty - 30.88 + 3.76, 7.52) - 3.76), 0.18, aa) * step(29.0, ty) * step(ty, 74.5);
   float red = hairline(abs(ty - 15.83), 0.3, aa);
-  vec3 c = uPaperDeep;
+  vec3 c = mix(uPaperDeep, uEdge, vHot);
   if (f == 4) {
     c = mix(uFace, uRule, rule);
     c = mix(c, uRedline, red);
@@ -92,14 +102,15 @@ uniform sampler2D uLabels;
 uniform vec3 uFace;
 uniform vec3 uInk3;
 uniform vec3 uEdgeNDeep;
+uniform vec3 uEdge;
 ${INST_HEAD}
 void main() {
   int f = int(vFace + 0.5);
   vec3 m = texture2D(uLabels, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
-  vec3 c = uEdgeNDeep;
+  vec3 c = mix(uEdgeNDeep, uEdge, vHot);
   if (f == 4) {
     c = mix(uFace, uInk, m.r);
-    c = mix(c, uInk3, m.g);
+    c = mix(c, mix(uInk3, uEdge, vHot), m.g);
   }
   ${FINISH}
 }
@@ -129,11 +140,14 @@ void main() {
 const FLAT_VERT = /* glsl */ `
 attribute vec4 iTile;
 attribute vec2 iInner;
+attribute float iFade;
 varying vec4 vTile;
 varying vec2 vInner;
 varying vec2 vUv;
+varying float vFade;
 varying vec3 vWorld;
 void main() {
+  vFade = iFade;
   vec4 w = modelMatrix * instanceMatrix * vec4(position, 1.0);
   vWorld = w.xyz;
   vUv = uv;
@@ -149,11 +163,12 @@ uniform float uDim;
 uniform vec4 uUnlit;
 varying vec2 vInner;
 varying vec2 vUv;
+varying float vFade;
 ${REVEAL}
 void main() {
   vec2 q = max(abs(vUv * 2.0 - 1.0) - vInner, 0.0) / max(1.0 - vInner, vec2(0.001));
   float a = 1.0 - smoothstep(0.0, 1.0, length(q));
-  gl_FragColor = vec4(mix(uDrop.rgb, uUnlit.rgb, uUnlit.a), uDrop.a * a * a * (1.0 - uDim) * (1.0 - sketchAmount()));
+  gl_FragColor = vec4(mix(uDrop.rgb, uUnlit.rgb, uUnlit.a), uDrop.a * a * a * (1.0 - max(uDim, vFade)) * (1.0 - sketchAmount()));
 }
 `;
 
@@ -163,14 +178,30 @@ uniform vec3 uInk3;
 uniform vec4 uUnlit;
 varying vec4 vTile;
 varying vec2 vUv;
+varying float vFade;
 ${LIGHT}
 ${REVEAL}
 void main() {
   float a = texture2D(uLabels, vTile.xy + vUv * vTile.zw).r;
   vec3 c = lit(uInk3, vec3(0.0, 1.0, 0.0));
-  gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), a * 0.9 * (1.0 - sketchAmount()));
+  gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), a * 0.9 * (1.0 - vFade) * (1.0 - sketchAmount()));
 }
 `;
+
+const _qe = new THREE.Quaternion();
+const _ee = new THREE.Euler();
+export function quat(rx, ry) {
+  _qe.setFromEuler(_ee.set(rx, ry, 0, 'YXZ'));
+  return [_qe.x, _qe.y, _qe.z, _qe.w];
+}
+
+export function blend(a, b, t) {
+  _qe.set(a.q[0], a.q[1], a.q[2], a.q[3]).slerp(_qb.set(b.q[0], b.q[1], b.q[2], b.q[3]), t);
+  const sa = a.s === undefined ? 1 : a.s;
+  const sb = b.s === undefined ? 1 : b.s;
+  return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t, q: [_qe.x, _qe.y, _qe.z, _qe.w], s: sa + (sb - sa) * t };
+}
+const _qb = new THREE.Quaternion();
 
 export function createScene(n) {
   THREE.ColorManagement.enabled = false;
@@ -199,6 +230,7 @@ export function createScene(n) {
     uRule: { value: new THREE.Color() },
     uRedline: { value: new THREE.Color() },
     uEdgeNDeep: { value: new THREE.Color() },
+    uEdge: { value: new THREE.Color() },
     uDrop: { value: new THREE.Vector4() },
     uDim: { value: 0 },
     uUnlit: { value: new THREE.Vector4(0, 0, 0, 0) },
@@ -218,7 +250,8 @@ export function createScene(n) {
     scene.add(mesh);
     return mesh;
   }
-  const solidAttrs = { iTile: 4, iColor: 3 };
+  const solidAttrs = { iTile: 4, iColor: 3, iFade: 1, iHot: 1 };
+  const flatAttrs = { iTile: 4, iInner: 2, iFade: 1 };
   const flatGeo = (w, h) => new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
 
   const desk = new THREE.Mesh(flatGeo(8000, 8000), material(DESK_VERT, DESK_FRAG));
@@ -226,12 +259,14 @@ export function createScene(n) {
   scene.add(desk);
 
   const maxDrawers = n + 32;
-  const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, { iTile: 4, iInner: 2 });
-  const labels = instanced(flatGeo(LABEL.W, LABEL.H), material(FLAT_VERT, LABEL_FRAG, { transparent: true, depthWrite: false }), 12, { iTile: 4, iInner: 2 });
-  const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(INST_VERT, CARD_FRAG), n, solidAttrs);
+  const maxCards = n + SPLIT;
+  const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, flatAttrs);
+  const labels = instanced(flatGeo(LABEL.W, LABEL.H), material(FLAT_VERT, LABEL_FRAG, { transparent: true, depthWrite: false }), 12, flatAttrs);
+  const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(INST_VERT, CARD_FRAG), maxCards, solidAttrs);
   const solidMat = material(INST_VERT, SOLID_FRAG);
-  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), solidMat, n, solidAttrs);
-  const stickies = instanced(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), solidMat, n, solidAttrs);
+  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), solidMat, maxCards, solidAttrs);
+  const stickies = instanced(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), solidMat, maxCards, solidAttrs);
+  const tray = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 4, solidAttrs);
   const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 1, solidAttrs);
   const fronts = instanced(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), material(INST_VERT, DRAWER_FRAG), maxDrawers, solidAttrs);
   const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), solidMat, maxDrawers, solidAttrs);
@@ -242,7 +277,7 @@ export function createScene(n) {
   const _e = new THREE.Euler();
   const _p = new THREE.Vector3();
   const _s = new THREE.Vector3(1, 1, 1);
-  const tint = { sticky: [1, 1, 0.6], body: [0.5, 0.5, 0.5], handle: [0.4, 0.4, 0.4] };
+  const tint = { sticky: [1, 1, 0.6], body: [0.5, 0.5, 0.5], handle: [0.4, 0.4, 0.4], edge: [0.8, 0.6, 0.3] };
 
   function pose(m, x, y, z, rx, ry, sx = 1, sy = 1, sz = 1) {
     _e.set(rx, ry, 0, 'YXZ');
@@ -251,6 +286,7 @@ export function createScene(n) {
   }
   function touch(mesh, ...names) {
     mesh.instanceMatrix.needsUpdate = true;
+    mesh.boundingSphere = null;
     names.forEach((k) => { mesh.geometry.attributes[k].needsUpdate = true; });
   }
   function paint(mesh, count, rgb) {
@@ -259,31 +295,46 @@ export function createScene(n) {
     a.needsUpdate = true;
   }
 
+  function place(m, c) {
+    _q.set(c.q[0], c.q[1], c.q[2], c.q[3]);
+    const k = c.s === undefined ? 1 : c.s;
+    return m.compose(_p.set(c.x, c.y, c.z), _q, _s.set(k, k, k));
+  }
+
   function setCards(list) {
     const tile = cards.geometry.attributes.iTile;
     const stamp = cards.geometry.attributes.iColor;
     const tabColor = tabs.geometry.attributes.iColor;
+    const fades = [cards, tabs, stickies].map((mesh) => mesh.geometry.attributes.iFade);
+    const hot = cards.geometry.attributes.iHot;
     let ns = 0;
-    cards.count = tabs.count = list.length;
-    list.forEach((c, k) => {
-      pose(_m, c.x, c.y, c.z, c.rx, c.ry);
+    cards.count = tabs.count = Math.min(list.length, maxCards);
+    for (let k = 0; k < cards.count; k++) {
+      const c = list[k];
+      place(_m, c);
+      if (c.hidden) _m.makeScale(0, 0, 0);
       cards.setMatrixAt(k, _m);
       const t = c.tile || [0, 0, 0, 0];
       tile.setXYZW(k, t[0], t[1], t[2], t[3]);
       stamp.setXYZ(k, c.stamp[0], c.stamp[1], c.stamp[2]);
+      fades[0].setX(k, c.fade || 0);
+      hot.setX(k, c.hot || 0);
       _a.makeTranslation(c.tab.x, CARD.H / 2, 0);
       tabs.setMatrixAt(k, _a.premultiply(_m));
       tabColor.setXYZ(k, c.tab.color[0], c.tab.color[1], c.tab.color[2]);
+      fades[1].setX(k, c.fade || 0);
       if (c.sticky) {
         _a.makeRotationZ(0.12).setPosition(CARD.W / 2 - 12, -CARD.H / 2 + 11, CARD.T / 2 + 0.05);
-        stickies.setMatrixAt(ns++, _a.premultiply(_m));
+        stickies.setMatrixAt(ns, _a.premultiply(_m));
+        fades[2].setX(ns, c.fade || 0);
+        ns++;
       }
-    });
+    }
     stickies.count = ns;
     paint(stickies, ns, tint.sticky);
-    touch(cards, 'iTile', 'iColor');
-    touch(tabs, 'iColor');
-    touch(stickies);
+    touch(cards, 'iTile', 'iColor', 'iFade', 'iHot');
+    touch(tabs, 'iColor', 'iFade');
+    touch(stickies, 'iFade');
   }
 
   function setShadows(list) {
@@ -294,16 +345,42 @@ export function createScene(n) {
       pose(_m, s.x, 0.06, s.z + 2, 0, s.ry, s.w + 2 * SHADOW, 1, s.h + 2 * SHADOW);
       shadows.setMatrixAt(k, _m);
       inner.setXY(k, (s.w - 6) / (s.w + 2 * SHADOW), (s.h - 6) / (s.h + 2 * SHADOW));
+      shadows.geometry.attributes.iFade.setX(k, s.fade || 0);
     }
-    touch(shadows, 'iInner');
+    touch(shadows, 'iInner', 'iFade');
   }
 
-  function setCabinet(cab) {
+  function setCabinet(cab, fade = 0) {
     pose(_m, 0, 0, cab.z - cab.depth / 2, 0, 0, cab.width, cab.height, cab.depth);
     body.setMatrixAt(0, _m);
     body.count = 1;
+    body.geometry.attributes.iFade.setX(0, fade);
     paint(body, 1, tint.body);
-    touch(body);
+    touch(body, 'iFade');
+  }
+
+  function setTray(t) {
+    if (!t) {
+      tray.count = 0;
+      return;
+    }
+    const w = DRAWER.W - 8;
+    const d = CAB.DEPTH - 20;
+    const y0 = t.y - DRAWER.H / 2 + 2;
+    const parts = [
+      [t.x, y0, t.z - d / 2, w, TRAY.T, d],
+      [t.x - w / 2 + TRAY.T / 2, y0, t.z - d / 2, TRAY.T, TRAY.SIDE, d],
+      [t.x + w / 2 - TRAY.T / 2, y0, t.z - d / 2, TRAY.T, TRAY.SIDE, d],
+      [t.x, y0, t.z - d + TRAY.T / 2, w, TRAY.SIDE + 10, TRAY.T],
+    ];
+    tray.count = parts.length;
+    parts.forEach(([x, y, z, sx, sy, sz], k) => {
+      pose(_m, x, y, z, 0, 0, sx, sy, sz);
+      tray.setMatrixAt(k, _m);
+      tray.geometry.attributes.iFade.setX(k, t.fade || 0);
+    });
+    paint(tray, tray.count, tint.handle);
+    touch(tray, 'iFade');
   }
 
   function setDrawers(list) {
@@ -314,12 +391,17 @@ export function createScene(n) {
       pose(_m, d.x, d.y, d.z, 0, 0);
       fronts.setMatrixAt(k, _m);
       tile.setXYZW(k, d.tile[0], d.tile[1], d.tile[2], d.tile[3]);
+      fronts.geometry.attributes.iFade.setX(k, d.fade || 0);
+      fronts.geometry.attributes.iHot.setX(k, d.hot || 0);
       pose(_m, d.x, d.y - HANDLE.DROP, d.z + DRAWER.D, 0, 0);
       handles.setMatrixAt(k, _m);
+      handles.geometry.attributes.iFade.setX(k, d.fade || 0);
+      const c = d.hot ? tint.edge : tint.handle;
+      handles.geometry.attributes.iColor.setXYZ(k, c[0], c[1], c[2]);
     }
-    paint(handles, handles.count, tint.handle);
-    touch(fronts, 'iTile');
-    touch(handles);
+    handles.geometry.attributes.iColor.needsUpdate = true;
+    touch(fronts, 'iTile', 'iFade', 'iHot');
+    touch(handles, 'iFade');
   }
 
   function setPileLabels(list) {
@@ -330,8 +412,9 @@ export function createScene(n) {
       pose(_m, l.x, 0.07, l.z, 0, 0);
       labels.setMatrixAt(k, _m);
       tile.setXYZW(k, l.tile[0], l.tile[1], l.tile[2], l.tile[3]);
+      labels.geometry.attributes.iFade.setX(k, l.fade || 0);
     }
-    touch(labels, 'iTile');
+    touch(labels, 'iTile', 'iFade');
   }
 
   function setTextures(cardsTex, labelsTex) {
@@ -351,13 +434,15 @@ export function createScene(n) {
     set('uRule', t.rule);
     set('uRedline', t.redline);
     set('uEdgeNDeep', t['edge-n-deep']);
+    set('uEdge', t.edge);
+    tint.edge = t.edge.slice(0, 3);
     colors.uDrop.value.set(t['drop-near'][0], t['drop-near'][1], t['drop-near'][2], t['drop-near'][3]);
     tint.sticky = t.sticky.slice(0, 3);
     tint.body = t['edge-n'].slice(0, 3);
     tint.handle = t['edge-n-deep'].slice(0, 3);
     paint(body, body.count, tint.body);
-    paint(handles, handles.count, tint.handle);
     paint(stickies, stickies.count, tint.sticky);
+    paint(tray, tray.count, tint.handle);
     common.uLampColor.value.setRGB(t.edge[0], t.edge[1], t.edge[2]).lerp(new THREE.Color(1, 1, 1), 0.45);
     renderer.setClearColor(clear.setRGB(t.desk[0], t.desk[1], t.desk[2]), 1);
   }
@@ -379,16 +464,45 @@ export function createScene(n) {
     return raycaster.ray.intersectPlane(floor, hit) ? [hit.x, hit.y, hit.z] : null;
   }
 
+  const pickable = [cards, fronts, handles, body];
+  function pick(x, y) {
+    ndc.set((x / canvas.clientWidth) * 2 - 1, 1 - (y / canvas.clientHeight) * 2);
+    raycaster.setFromCamera(ndc, camera);
+    let best = null;
+    pickable.forEach((mesh) => {
+      if (!mesh.count) return;
+      const h = raycaster.intersectObject(mesh, false)[0];
+      if (h && (!best || h.distance < best.distance)) best = { mesh, distance: h.distance, id: h.instanceId };
+    });
+    if (!best || best.mesh === body) return null;
+    return best.mesh === cards ? { kind: 'card', index: best.id } : { kind: 'drawer', index: best.id };
+  }
+
+  const _v = new THREE.Vector3();
+  function heldPose(rect, dist) {
+    const vh = 2 * dist * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    const vw = vh * camera.aspect;
+    const cx = ((rect.left + rect.width / 2) / canvas.clientWidth) * 2 - 1;
+    const cy = 1 - ((rect.top + rect.height / 2) / canvas.clientHeight) * 2;
+    _v.set((cx * vw) / 2, (cy * vh) / 2, -dist).applyMatrix4(camera.matrixWorld);
+    const q = camera.quaternion;
+    return { x: _v.x, y: _v.y, z: _v.z, q: [q.x, q.y, q.z, q.w], s: ((rect.width / canvas.clientWidth) * vw) / CARD.W };
+  }
+
   function resize(w, h) {
     renderer.setSize(w, h, false);
     camera.aspect = w / Math.max(1, h);
     camera.updateProjectionMatrix();
   }
 
-  function render(cam) {
+  function aim(cam) {
     camera.position.set(cam.pos[0], cam.pos[1], cam.pos[2]);
     camera.lookAt(cam.look[0], cam.look[1], cam.look[2]);
     camera.updateMatrixWorld();
+  }
+
+  function render(cam) {
+    aim(cam);
     renderer.render(scene, camera);
   }
 
@@ -396,5 +510,5 @@ export function createScene(n) {
     return renderer.compileAsync(scene, camera);
   }
 
-  return { renderer, canvas, setCards, setShadows, setCabinet, setDrawers, setPileLabels, setTextures, setColors, setLamp, deskPoint, resize, render, warm };
+  return { renderer, canvas, setCards, setShadows, setCabinet, setTray, setDrawers, setPileLabels, setTextures, setColors, setLamp, deskPoint, pick, heldPose, aim, resize, render, warm };
 }

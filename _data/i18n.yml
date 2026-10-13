@@ -64,5 +64,36 @@ shares3d.other:     { zh: "其他來源", en: "Other sources" }
 shares3d.untagged:  { zh: "未分類", en: "Untagged" }
 shares3d.cards:     { zh: "{n} 張", en: "{n} cards", en_one: "{n} card" }
 shares3d.week:      { zh: "{n} 那週", en: "Week of {n}" }
+shares3d.note:      { zh: "心得", en: "Note" }
+shares3d.summary:   { zh: "摘要", en: "Summary" }
+shares3d.also_in:   { zh: "也收在:{n}", en: "Also in: {n}" }
+shares3d.archived:  { zh: "原文已下架,這是封存版", en: "Original removed; opens the archived copy" }
+shares3d.prev:      { zh: "上一張", en: "Previous card" }
+shares3d.next:      { zh: "下一張", en: "Next card" }
+shares3d.flip:      { zh: "翻面", en: "Flip" }
+shares3d.open:      { zh: "開原文", en: "Open original" }
+shares3d.put_back:  { zh: "放回去", en: "Put back" }
+shares3d.search:    { zh: "搜尋分享", en: "Search shares" }
+shares3d.search_ph: { zh: "搜尋標題、來源、心得", en: "Search titles, sources, notes" }
+shares3d.matches:   { zh: "{n} 張符合", en: "{n} matching", en_one: "{n} match" }
+shares3d.hint.pick:         { zh: "點卡片拿起來", en: "Click a card to pick it up" }
+shares3d.hint.scroll:       { zh: "往下捲是更早的轉發", en: "Scroll for older shares" }
+shares3d.hint.search:       { zh: "搜尋", en: "Search" }
+shares3d.hint.pile_close:   { zh: "收回這一疊", en: "Put the pile back" }
+shares3d.hint.drawer:       { zh: "點抽屜拉開", en: "Click a drawer to open it" }
+shares3d.hint.flip_cards:   { zh: "撥卡", en: "Flip through" }
+shares3d.hint.pick_up:      { zh: "拿起來", en: "Pick up" }
+shares3d.hint.close_drawer: { zh: "關上抽屜", en: "Close the drawer" }
+shares3d.hint.next:         { zh: "換一張", en: "Next card" }
+shares3d.hint.flip:         { zh: "點卡片翻面", en: "Click the card to flip it" }
+shares3d.hint.put_back:     { zh: "放回去", en: "Put back" }
+shares3d.hint.tap:          { zh: "點卡片拿起來", en: "Tap a card to pick it up" }
+shares3d.hint.scroll_close: { zh: "捲動就收回", en: "Scroll to put it back" }
+shares3d.hint.tap_drawer:   { zh: "點抽屜拉開", en: "Tap a drawer to open it" }
+shares3d.hint.tap_flip:     { zh: "點一張撥到那張", en: "Tap a card to flip to it" }
+shares3d.hint.tap_pick:     { zh: "再點一次拿起來", en: "Tap again to pick it up" }
+shares3d.hint.swipe:        { zh: "左右滑換一張", en: "Swipe for the next card" }
+shares3d.hint.tap_card:     { zh: "點卡片翻面", en: "Tap the card to flip it" }
+shares3d.hint.tap_out:      { zh: "點外面放回去", en: "Tap outside to put it back" }
 
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

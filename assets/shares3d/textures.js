@@ -105,6 +105,7 @@ export function createAtlas(gl, items, onDrawn) {
     generateMipmaps: true,
     minFilter: THREE.LinearMipmapLinearFilter,
     magFilter: THREE.LinearFilter,
+    anisotropy: Math.min(8, renderer.capabilities.getMaxAnisotropy()),
   });
 
   const black = new THREE.Color(0, 0, 0);
@@ -120,7 +121,6 @@ export function createAtlas(gl, items, onDrawn) {
   }
   clear();
   rt.texture.generateMipmaps = false;
-  rt.texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
 
   const quadScene = new THREE.Scene();
   const quadCam = new THREE.OrthographicCamera(0, rt.width, rt.height, 0, -1, 1);
