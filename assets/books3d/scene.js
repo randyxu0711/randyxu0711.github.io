@@ -289,7 +289,7 @@ export function createScene(books, dims) {
     uCovers: { value: null },
     uSpines: { value: null },
     uDim: { value: 0 },
-    uUnlit: { value: new THREE.Vector4() },
+    uUnlit: { value: new THREE.Vector4(0, 0, 0, 0) },
     uSketch: { value: new THREE.Vector4(0, 0, 1, 9) },
     uInk: { value: new THREE.Color() },
   };
