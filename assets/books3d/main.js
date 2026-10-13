@@ -50,7 +50,7 @@ async function start() {
     return;
   }
   const canvas = gl.canvas;
-  canvas.className = 'b3d-canvas';
+  canvas.className = 'b3d-canvas s3d-canvas';
   canvas.setAttribute('aria-hidden', 'true');
   root.appendChild(canvas);
   root.classList.add('on');

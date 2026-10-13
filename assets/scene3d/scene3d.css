@@ -1,0 +1,10 @@
+html.js .s3d::before { content: ""; position: fixed; inset: 0; z-index: 15; pointer-events: none;
+  background: var(--desk); opacity: 1; }
+html.js .s3d:is(.live, .fail)::before { opacity: 0; }
+@media (prefers-color-scheme: dark) {
+  html.js:not([data-theme="light"]) .s3d:not(.live, .fail)::before { background: var(--unlit); opacity: 0.9; }
+}
+html.js[data-theme="dark"] .s3d:not(.live, .fail)::before { background: var(--unlit); opacity: 0.9; }
+.s3d.soft .s3d-canvas { opacity: 0; transition: opacity 450ms cubic-bezier(.3,.7,.2,1); }
+.s3d.soft.live .s3d-canvas { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .s3d.soft .s3d-canvas { transition: none; } }
