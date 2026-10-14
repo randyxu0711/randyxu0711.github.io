@@ -2,8 +2,7 @@ const LINE = {
   desk: ['shares3d.hint.desk', 'shares3d.hint.desk_touch'],
   cab: ['shares3d.hint.cab', 'shares3d.hint.cab_touch'],
   drawer: ['shares3d.hint.drawer', 'shares3d.hint.drawer_touch'],
-  held: ['shares3d.hint.flip', 'shares3d.hint.tap_card'],
-  trail: ['shares3d.hint.trail', 'shares3d.hint.trail_touch'],
+  held: ['shares3d.hint.held', 'shares3d.hint.tap_card'],
 };
 
 const KEYS = {
@@ -11,7 +10,6 @@ const KEYS = {
   cab: [['↓', 'shares3d.hint.look_down'], ['/', 'shares3d.hint.search']],
   drawer: [['← →', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.close_drawer']],
   held: [['← →', 'shares3d.hint.next'], ['Esc', 'shares3d.hint.put_back']],
-  trail: [['← →', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.put_away']],
 };
 
 export function hintFor(stage, coarse) {

@@ -81,9 +81,7 @@ shares3d.hint.cab:          { zh: "點抽屜拉開,往下滾回桌面", en: "Cli
 shares3d.hint.cab_touch:    { zh: "點抽屜拉開,往上滑回桌面", en: "Tap a drawer to open it · swipe up for the desk" }
 shares3d.hint.drawer:       { zh: "滾輪撥卡,點外面關上", en: "Scroll to flip · click outside to close" }
 shares3d.hint.drawer_touch: { zh: "左右滑撥卡,點外面關上", en: "Swipe to flip · tap outside to close" }
-shares3d.hint.trail:        { zh: "滾輪撥卡,點外面收回", en: "Scroll to flip · click outside to put them away" }
-shares3d.hint.trail_touch:  { zh: "左右滑撥卡,點外面收回", en: "Swipe to flip · tap outside to put them away" }
-shares3d.hint.flip:         { zh: "點卡片翻面", en: "Click the card to flip it" }
+shares3d.hint.held:         { zh: "滾輪換下一張,點卡片翻面", en: "Scroll for the next card · click to flip it" }
 shares3d.hint.tap_card:     { zh: "點卡片翻面", en: "Tap the card to flip it" }
 shares3d.hint.next:         { zh: "換一張", en: "Next card" }
 shares3d.hint.pick_up:      { zh: "拿起來", en: "Pick up" }
@@ -92,7 +90,6 @@ shares3d.hint.look_down:    { zh: "低頭回剪報桌", en: "Back to the desk" }
 shares3d.hint.flip_cards:   { zh: "撥卡", en: "Flip through" }
 shares3d.hint.close_drawer: { zh: "關上抽屜", en: "Close the drawer" }
 shares3d.hint.put_back:     { zh: "放回去", en: "Put back" }
-shares3d.hint.put_away:     { zh: "收回", en: "Put them away" }
 shares3d.hint.search:       { zh: "搜尋", en: "Search" }
 shares3d.keys:              { zh: "鍵盤操作", en: "Keyboard shortcuts" }
 shares3d.to_cab:   { zh: "目錄櫃", en: "Catalog" }

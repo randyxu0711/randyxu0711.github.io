@@ -43,7 +43,7 @@ const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
-const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 0.92 }, cab: { desk: 0.85, held: 0.35, trail: 0.5 }, other: 0.5 };
+const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 1 }, cab: { desk: 0.85, held: 0.35, trail: 0.5 }, other: 0.5 };
 
 const t = (k, n) => (window.siteI18n ? window.siteI18n.t(k, n) : k);
 const lang = () => (document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh');
@@ -204,7 +204,7 @@ function run(gl, canvas) {
   }
 
   function stageName() {
-    return held ? 'held' : trail ? 'trail' : view;
+    return held ? 'held' : view;
   }
 
   function openDrawerIndex() {
@@ -398,6 +398,12 @@ function run(gl, canvas) {
     held = null;
     settle = { x: pointer.x, y: pointer.y };
     bar.classList.remove('holding');
+    if (trail) {
+      leave(trail.ids);
+      trail = null;
+      entries = buildEntries();
+      pointer.moved = true;
+    }
     dirty = true;
     invalidate();
   }
@@ -639,27 +645,6 @@ function run(gl, canvas) {
     invalidate();
   }
 
-  function closeTrail() {
-    if (!trail) return;
-    release();
-    leave(trail.ids);
-    trail = null;
-    peek.hidden = true;
-    entries = buildEntries();
-    relink();
-    pointer.moved = true;
-    dirty = true;
-    invalidate();
-  }
-
-  function trailTo(j) {
-    const next = trailDepth(j, 0, trail.ids.length);
-    if (next === trail.at) return;
-    trail.at = next;
-    peek.hidden = true;
-    dirty = true;
-    invalidate();
-  }
 
   function setCur(k) {
     const n = desk.length;
@@ -735,13 +720,12 @@ function run(gl, canvas) {
 
   function interact(hit, mouse) {
     if (held) {
-      const other = hit && hit.kind === 'card' && hit.entry.key !== held.entry.key;
+      const other = hit && hit.kind === 'card' && hit.entry.key !== held.entry.key && hit.entry.where !== 't';
       release();
       if (!other) return;
     }
     if (!hit) {
-      if (trail) closeTrail();
-      else if (view !== 'desk') back();
+      if (view !== 'desk') back();
       return;
     }
     if (hit.kind === 'body') return;
@@ -755,21 +739,13 @@ function run(gl, canvas) {
       return;
     }
     const e = hit.entry;
-    if (hit.tab !== undefined && (e.where === 'd' || e.where === 't')) {
+    if (hit.tab !== undefined && e.where === 'd') {
       const tag = items[e.i].g[hit.tab];
-      if (tag && !(trail && trail.tag === tag)) {
-        if (e.where === 'd') cur = e.slot;
+      if (tag) {
+        cur = e.slot;
         openTrail(e.i, tag);
         return;
       }
-    }
-    if (e.where === 't') {
-      if (e.j !== trail.at) {
-        trailTo(e.j);
-        if (!mouse) return;
-      }
-      hold(e);
-      return;
     }
     if (e.where === 'd') {
       if (view === 'cab') {
@@ -845,8 +821,8 @@ function run(gl, canvas) {
       pointer.moved = true;
     }
 
-    const wantDesk = FADE.desk[s] || 0;
-    const wantCab = FADE.cab[s] || 0;
+    const wantDesk = (trail ? FADE.desk.trail : FADE.desk[s]) || 0;
+    const wantCab = (trail ? FADE.cab.trail : FADE.cab[s]) || 0;
     if (Math.abs(fades.desk - wantDesk) > 0.002) { fades.desk += (wantDesk - fades.desk) * kf; busy = true; dirty = true; }
     if (Math.abs(fades.cab - wantCab) > 0.002) { fades.cab += (wantCab - fades.cab) * kf; busy = true; dirty = true; }
     drawers.forEach((d, i) => {
@@ -934,7 +910,7 @@ function run(gl, canvas) {
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
-    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'trail' ? `${trail.at + 1} / ${trail.ids.length} · ${trail.tag}` : s === 'held' ? (() => {
+    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
       return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
     })() : '';
@@ -1167,24 +1143,25 @@ function run(gl, canvas) {
     }
     if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     swiped = true;
-    if (trail) trailTo(trail.at + (dx < 0 ? 1 : -1));
-    else if (view === 'drawer') flipBy(dx < 0 ? 1 : -1);
+    if (view === 'drawer') flipBy(dx < 0 ? 1 : -1);
   });
   const wheel = { acc: 0, t: 0, lock: 0 };
-  stage.addEventListener('wheel', (e) => {
+  function onWheel(e) {
     if (e.ctrlKey) return;
     e.preventDefault();
-    if (!lit || held || deck || hits) return;
+    if (!lit || (hits && !deck)) return;
     const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? canvas.clientHeight : 1);
     const t0 = performance.now();
     const quiet = t0 - wheel.t > WHEEL.QUIET;
     wheel.t = t0;
     if (quiet) wheel.acc = 0;
-    if (view === 'drawer' || trail) {
+    if (held || deck || view === 'drawer') {
       wheel.acc += dy;
       if (Math.abs(wheel.acc) < WHEEL.STEP) return;
-      if (trail) trailTo(trail.at + (wheel.acc > 0 ? 1 : -1));
-      else flipBy(wheel.acc > 0 ? 1 : -1);
+      const dir = wheel.acc > 0 ? 1 : -1;
+      if (deck) deckStep(dir);
+      else if (held) step(dir);
+      else flipBy(dir);
       settle = { x: pointer.x, y: pointer.y };
       wheel.acc = 0;
       return;
@@ -1199,7 +1176,9 @@ function run(gl, canvas) {
     else if (wheel.acc > 0 && view === 'cab') back();
     wheel.acc = 0;
     wheel.lock = t0 + WHEEL.QUIET;
-  }, { passive: false });
+  }
+  stage.addEventListener('wheel', onWheel, { passive: false });
+  card.el.addEventListener('wheel', onWheel, { passive: false });
   stage.addEventListener('click', (e) => {
     if (swiped) {
       swiped = false;
@@ -1248,15 +1227,7 @@ function run(gl, canvas) {
       return;
     }
     const key = e.key;
-    if (trail) {
-      if (key === 'ArrowLeft' || key === 'ArrowRight') trailTo(trail.at + (key === 'ArrowRight' ? 1 : -1));
-      else if (key === 'Escape' || key === 'ArrowDown') closeTrail();
-      else if (key === 'ArrowUp') enter('cab');
-      else if (key === 'Enter') {
-        const en = entries.find((x) => x.where === 't' && x.j === trail.at);
-        if (en) hold(en);
-      } else return;
-    } else if (view === 'desk') {
+    if (view === 'desk') {
       if (key === 'ArrowLeft' || key === 'ArrowRight') stepDesk(key === 'ArrowRight' ? 1 : -1);
       else if (key === 'ArrowUp') enter('cab');
       else if (key === 'Enter' && keyed && document.activeElement === document.body) {

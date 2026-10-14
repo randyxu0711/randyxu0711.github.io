@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { hintFor, keysFor } from 'shares3d/hint.js';
 
-const STAGES = ['desk', 'cab', 'drawer', 'held', 'trail'];
+const STAGES = ['desk', 'cab', 'drawer', 'held'];
 const yaml = readFileSync(new URL('../../_data/i18n.yml', import.meta.url), 'utf8');
 
 test('每個狀態在滑鼠與觸控都只有一句提示', () => {
