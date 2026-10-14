@@ -43,7 +43,7 @@ const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
-const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 0.92 }, cab: { desk: 0.5, wide: 0.85, held: 0.35, trail: 0.5 }, other: 0.5, rest: 0.16 };
+const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 0.92 }, cab: { desk: 0.85, held: 0.35, trail: 0.5 }, other: 0.5 };
 
 const t = (k, n) => (window.siteI18n ? window.siteI18n.t(k, n) : k);
 const lang = () => (document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh');
@@ -110,7 +110,7 @@ function run(gl, canvas) {
   let cab = a.cab;
   let view = 'desk';
   let cur = 0;
-  let wide = false;
+  let keyed = false;
   let trail = null;
   let trailOut = null;
   let settle = null;
@@ -229,10 +229,6 @@ function run(gl, canvas) {
     return { x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k] };
   }
 
-  function lifted(e) {
-    return view === 'desk' && !wide && !trail && e.where === 'd' && e.slot === cur;
-  }
-
   function cabPose() {
     return { x: 0, y: cab.height * 0.6, z: cab.z + 10, q: quat(0, 0) };
   }
@@ -249,12 +245,8 @@ function run(gl, canvas) {
       return { x: p.x, y: p.y, z: p.z, q: quat(p.rx, p.ry) };
     }
     if (e.where === 'd') {
-      if (lifted(e)) {
-        const p = liftPose(e.slot, it.i, a);
-        return { x: p.x, y: p.y, z: p.z, q: quat(p.rx, p.ry) };
-      }
       const p = deskPose(e.slot, it.i, a);
-      const lift = hover && hover.key === e.key ? LIFT : 0;
+      const lift = (hover && hover.key === e.key) || (keyed && view === 'desk' && e.slot === cur) ? LIFT : 0;
       return { x: p.x, y: p.y + lift, z: p.z, q: quat(FLAT, p.ry) };
     }
     const f = frontPose(e.k);
@@ -274,7 +266,6 @@ function run(gl, canvas) {
       return Math.max(d === 0 ? 0 : d > 0 ? Math.min(0.1 * d, 0.4) : 0.25, matchFade);
     }
     let base = e.where === 'x' ? fades.drawers[e.k] || 0 : fades.desk;
-    if (e.where === 'd' && view === 'desk' && !wide && !held && e.slot !== cur) base = Math.max(base, FADE.rest);
     return Math.max(base, matchFade);
   }
 
@@ -288,7 +279,7 @@ function run(gl, canvas) {
   }
 
   function heroOf(e) {
-    if (!(lifted(e) || (e.where === 't' && e.j === trail.at)) || !fontsDone) return 0;
+    if (!(e.where === 't' && e.j === trail.at) || !fontsDone) return 0;
     const img = atlas.image(e.i);
     if (heroStale || hero.item() !== e.i || (img && !hero.hasPhoto())) {
       hero.draw(e.i, items[e.i], img);
@@ -319,7 +310,7 @@ function run(gl, canvas) {
     const out = desk.map((i, slot) => {
       const p = deskPose(slot, items[i].i, a);
       const gone = held && held.entry.key === `d${i}`;
-      return { x: p.x, z: p.z, ry: p.ry, w: CARD.W, h: CARD.H, fade: gone ? 1 : Math.max(fades.desk, view === 'desk' && !wide && slot === cur ? 0.45 : 0) };
+      return { x: p.x, z: p.z, ry: p.ry, w: CARD.W, h: CARD.H, fade: gone ? 1 : fades.desk };
     });
     out.push({ x: 0, z: cab.z - cab.depth / 2 + 12, ry: 0, w: cab.width, h: cab.depth + 24, fade: fades.cab });
     return out;
@@ -353,8 +344,8 @@ function run(gl, canvas) {
   function camTarget(aspect) {
     if (focus) return focusDrawer(drawerOut(cab, focus.k), aspect, a);
     if (view === 'cab') return cabCam(aspect, a);
-    if (wide) return deskAll(desk.map((i, slot) => deskPose(slot, items[i].i, a)), aspect, a, bottom, top);
-    return deskCam(liftPose(cur, items[desk[cur]].i, a), aspect, a, bottom, top);
+    if (trail) return deskCam(heroCard(), aspect, a, bottom, top);
+    return deskAll(desk.map((i, slot) => deskPose(slot, items[i].i, a)), aspect, a, bottom, top);
   }
 
   function lampTarget(s) {
@@ -367,8 +358,8 @@ function run(gl, canvas) {
       return { pos: [f.x, f.y + 170, f.z + 40], reach: 300 };
     }
     if (view === 'cab') return { pos: [0, cab.height + 120, cab.z + 260], reach: 520 };
-    if (wide) return { pos: [0, 320, a.front + 60 - (a.rows - 1) * 70], reach: 560 };
-    const p = liftPose(cur, items[desk[cur]].i, a);
+    if (!trail) return { pos: [0, 320, a.front + 60 - (a.rows - 1) * 70], reach: 560 };
+    const p = heroCard();
     return { pos: [p.x, p.y + 220, p.z + 130], reach: 360 };
   }
 
@@ -556,7 +547,6 @@ function run(gl, canvas) {
     if (v === 'drawer') setFocus({ k, cur: clamp(at, 0, drawers[k].ids.length - 1) });
     else if (focus) setFocus(null);
     view = v;
-    wide = false;
     if (trail) {
       leave(trail.ids);
       trail = null;
@@ -626,7 +616,7 @@ function run(gl, canvas) {
       show('desk');
       remember('desk', -1, false);
     }
-    wide = false;
+    keyed = false;
     if (trail) leave(trail.ids, ids);
     else trailOut = null;
     ids.forEach((id) => {
@@ -667,28 +657,23 @@ function run(gl, canvas) {
     invalidate();
   }
 
-  function setWide(v) {
-    if (wide === v) return;
-    wide = v;
-    peek.hidden = true;
-    pointer.moved = true;
-    dirty = true;
-    invalidate();
-  }
-
   function setCur(k) {
     const n = desk.length;
     const next = ((k % n) + n) % n;
     if (next === cur) return;
     cur = next;
-    peek.hidden = true;
+    showPeek(entries.find((x) => x.key === `d${desk[cur]}`));
     dirty = true;
     invalidate();
   }
 
   function stepDesk(dir) {
-    if (wide) {
-      setWide(false);
+    hover = null;
+    if (!keyed) {
+      keyed = true;
+      showPeek(entries.find((x) => x.key === `d${desk[cur]}`));
+      dirty = true;
+      invalidate();
       return;
     }
     for (let k = 1; k <= desk.length; k++) {
@@ -751,8 +736,7 @@ function run(gl, canvas) {
     }
     if (!hit) {
       if (trail) closeTrail();
-      else if (view === 'desk') setWide(true);
-      else back();
+      else if (view !== 'desk') back();
       return;
     }
     if (hit.kind === 'body') return;
@@ -787,11 +771,8 @@ function run(gl, canvas) {
         cur = e.slot;
         back();
       } else if (view === 'desk') {
-        if (mouse || (!wide && e.slot === cur)) {
-          setCur(e.slot);
-          hold(e);
-        } else setCur(e.slot);
-        setWide(false);
+        cur = e.slot;
+        hold(e);
       }
       return;
     }
@@ -824,7 +805,8 @@ function run(gl, canvas) {
       const r = pointer.on ? resolve(gl.pick(pointer.x, pointer.y)) : null;
       const h = r && r.kind !== 'body' ? r : null;
       const before = hover ? hover.key || `k${hover.k}` : '';
-      hover = h && (h.kind === 'drawer' || h.entry.where !== 'x') && !(h.kind === 'card' && lifted(h.entry)) ? h : null;
+      hover = h && (h.kind === 'drawer' || h.entry.where !== 'x') ? h : null;
+      if (hover) keyed = false;
       const behind = h && h.kind === 'card' && h.entry.where === 'x' && focus && h.entry.k === focus.k && h.entry.j !== focus.cur && (!hits || hits.has(h.entry.i));
       if (behind && !settle) flipTo(h.entry.j);
       const after = hover ? hover.key || `k${hover.k}` : '';
@@ -858,7 +840,7 @@ function run(gl, canvas) {
     }
 
     const wantDesk = FADE.desk[s] || 0;
-    const wantCab = (s === 'desk' && wide ? FADE.cab.wide : FADE.cab[s]) || 0;
+    const wantCab = FADE.cab[s] || 0;
     if (Math.abs(fades.desk - wantDesk) > 0.002) { fades.desk += (wantDesk - fades.desk) * kf; busy = true; dirty = true; }
     if (Math.abs(fades.cab - wantCab) > 0.002) { fades.cab += (wantCab - fades.cab) * kf; busy = true; dirty = true; }
     drawers.forEach((d, i) => {
@@ -946,7 +928,7 @@ function run(gl, canvas) {
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
-    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'trail' ? `${trail.at + 1} / ${trail.ids.length} · ${trail.tag}` : s === 'desk' && !wide ? `${cur + 1} / ${desk.length}` : s === 'held' ? (() => {
+    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'trail' ? `${trail.at + 1} / ${trail.ids.length} · ${trail.tag}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
       return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}`;
     })() : '';
@@ -1126,7 +1108,7 @@ function run(gl, canvas) {
     const i = items.findIndex((it) => it.l === art.getAttribute('data-link'));
     if (i < 0) return;
     const en = reveal(i);
-    hover = en && en.where !== 'x' && !lifted(en) ? { kind: 'card', key: en.key, entry: en } : null;
+    hover = en && en.where !== 'x' ? { kind: 'card', key: en.key, entry: en } : null;
     showPeek(en);
     dirty = true;
     invalidate();
@@ -1180,7 +1162,6 @@ function run(gl, canvas) {
     if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     swiped = true;
     if (trail) trailTo(trail.at + (dx < 0 ? 1 : -1));
-    else if (view === 'desk') stepDesk(dx < 0 ? 1 : -1);
     else if (view === 'drawer') flipBy(dx < 0 ? 1 : -1);
   });
   const wheel = { acc: 0, t: 0, lock: 0 };
@@ -1272,9 +1253,7 @@ function run(gl, canvas) {
     } else if (view === 'desk') {
       if (key === 'ArrowLeft' || key === 'ArrowRight') stepDesk(key === 'ArrowRight' ? 1 : -1);
       else if (key === 'ArrowUp') enter('cab');
-      else if (key === 'Escape') setWide(true);
-      else if (key === 'Enter' && wide) setWide(false);
-      else if (key === 'Enter' && document.activeElement === document.body) {
+      else if (key === 'Enter' && keyed && document.activeElement === document.body) {
         const en = entries.find((x) => x.key === `d${desk[cur]}`);
         if (en && (!hits || hits.has(en.i))) hold(en);
       } else return;

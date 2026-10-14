@@ -7,7 +7,7 @@ const LINE = {
 };
 
 const KEYS = {
-  desk: [['← →', 'shares3d.hint.next'], ['Enter', 'shares3d.hint.pick_up'], ['↑', 'shares3d.hint.look_up'], ['Esc', 'shares3d.hint.whole_desk'], ['/', 'shares3d.hint.search']],
+  desk: [['← →', 'shares3d.hint.next'], ['Enter', 'shares3d.hint.pick_up'], ['↑', 'shares3d.hint.look_up'], ['/', 'shares3d.hint.search']],
   cab: [['↓', 'shares3d.hint.look_down'], ['/', 'shares3d.hint.search']],
   drawer: [['← →', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.close_drawer']],
   held: [['← →', 'shares3d.hint.next'], ['Esc', 'shares3d.hint.put_back']],
