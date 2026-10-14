@@ -93,6 +93,7 @@ export function createHeld(t) {
         else img.remove();
       });
       img.src = item.m;
+      if (item.cached) img.classList.add('now');
       photo.append(img);
     }
     const meta = el('div', 'h-meta');

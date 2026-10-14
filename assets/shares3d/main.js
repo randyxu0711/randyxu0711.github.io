@@ -374,7 +374,7 @@ function run(gl, canvas) {
     const here = e.where === 'x' && mode === 'tag' ? drawers[e.k].key : null;
     return {
       t: it.t, s: it.s, d: it.d, g: it.g, n: it.n, e: it.e, u: it.u, x: it.x, i: it.i,
-      m: thumb(it.m), m0: it.m,
+      m: thumb(it.m), m0: it.m, cached: !!atlas.image(e.i),
       stamp: it.x ? 'var(--redline)' : tint('stamp', mainName(it.s)).css,
       tabs: it.g.slice(0, TABS).map((g) => ({ name: g, css: tint('tab', g).css })),
       also: here !== null ? it.g.filter((g) => g !== here) : [],
@@ -731,8 +731,9 @@ function run(gl, canvas) {
 
   function interact(hit, mouse) {
     if (held) {
+      const other = hit && hit.kind === 'card' && hit.entry.key !== held.entry.key;
       release();
-      return;
+      if (!other) return;
     }
     if (!hit) {
       if (trail) closeTrail();
@@ -798,6 +799,7 @@ function run(gl, canvas) {
     const aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
     const s = stageName();
     const k = reduce.matches ? 1 : 1 - Math.exp(-dt * 10);
+    const kFly = reduce.matches ? 1 : 1 - Math.exp(-dt * 20);
     const kf = reduce.matches ? 1 : 1 - Math.exp(-dt * 4);
 
     if (pointer.moved && !held && !coarse.matches && lit) {
@@ -875,7 +877,7 @@ function run(gl, canvas) {
       let pose = poses.get(e.key);
       if (!pose) pose = goal;
       else if (moved(pose, goal) > 0.01) {
-        pose = blend(pose, goal, k);
+        pose = blend(pose, goal, held && held.entry.key === e.key && held.phase === 'fly' ? kFly : k);
         busy = true;
         dirty = true;
       } else if (pose !== goal) {
@@ -884,7 +886,7 @@ function run(gl, canvas) {
       }
       poses.set(e.key, pose);
       out.push(cardItem(e, pose));
-      if (held && held.entry.key === e.key && held.phase === 'fly' && moved(pose, goal) < 0.05) {
+      if (held && held.entry.key === e.key && held.phase === 'fly' && moved(pose, goal) < 1) {
         held.phase = 'swap';
         card.show();
         const h = held;
@@ -894,7 +896,7 @@ function run(gl, canvas) {
           card.paste();
           dirty = true;
           invalidate();
-        }, reduce.matches ? 0 : 180);
+        }, reduce.matches ? 0 : 120);
       }
     });
     if (fading) {
