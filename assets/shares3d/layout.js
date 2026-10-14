@@ -3,7 +3,8 @@ export const IMG = { H: 66.5 };
 export const DESK = { N: 6, COLS: 3, PITCH_X: 158, PITCH_XN: 146, PITCH_Z: 138, FRONT: 260, BACK: 60, GAP: 12 };
 export const DRAWER = { W: 150, H: 75, GAP: 6, D: 8 };
 export const CAB = { Z: -480, DEPTH: 240, SIDE: 10, BASE: 24, TOP: 12 };
-export const SPLIT = 60;
+export const WINDOW = 60;
+export const AHEAD = 8;
 export const SOURCES = 7;
 export const LABEL = { W: 140, H: 17.5 };
 export const FOV = 35;
@@ -66,11 +67,11 @@ export function groups(items, mode) {
   const last = (d) => (d.kind === 'other' || d.kind === 'untagged' ? 1 : 0);
   if (mode === 'year') list.sort((a, b) => (a.key < b.key ? 1 : -1));
   else list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
-  return list.flatMap((d) => {
-    if (d.ids.length <= SPLIT) return [{ ...d, part: 0, parts: 1 }];
-    const parts = Math.ceil(d.ids.length / SPLIT);
-    return Array.from({ length: parts }, (_, k) => ({ ...d, ids: d.ids.slice(k * SPLIT, (k + 1) * SPLIT), part: k + 1, parts }));
-  });
+  return list;
+}
+
+export function drawerWindow(n, cur) {
+  return Math.max(0, Math.min(cur - AHEAD, n - WINDOW));
 }
 
 export function cabinet(n, cols = n > 16 ? 5 : Math.max(1, Math.min(4, n)), z = CAB.Z) {

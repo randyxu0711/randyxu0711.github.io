@@ -3,7 +3,7 @@ import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, hueOf,
-  drawerOut, drawerCards, focusDrawer, matches, PULL, tagged, trailDepth, trailPose, trailShown,
+  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -52,7 +52,7 @@ const moved = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z
 
 function drawerName(d) {
   const name = d.kind === 'other' ? t('shares3d.other') : d.kind === 'untagged' ? t('shares3d.untagged') : d.key;
-  return d.parts > 1 ? `${name} · ${d.part}` : name;
+  return name;
 }
 
 function start() {
@@ -187,10 +187,21 @@ function run(gl, canvas) {
   const card = createHeld(t);
   const hint = createHint(hintEl, helpEl, t);
 
+  function shown(k) {
+    const n = drawers[k].ids.length;
+    const start = drawerWindow(n, focus && focus.k === k ? focus.cur : 0);
+    return { start, n: Math.min(n, WINDOW) };
+  }
+
+  function shownIds(k) {
+    const w = shown(k);
+    return drawers[k].ids.slice(w.start, w.start + w.n);
+  }
+
   function wanted() {
     const out = [...desk];
-    if (focus) out.push(...drawers[focus.k].ids);
-    if (closing && drawers[closing.k]) out.push(...drawers[closing.k].ids);
+    if (focus) out.push(...shownIds(focus.k));
+    if (closing && drawers[closing.k]) out.push(...shownIds(closing.k));
     if (trail) out.push(...trail.ids);
     if (held) out.push(held.entry.i);
     return [...new Set(out)];
@@ -205,6 +216,10 @@ function run(gl, canvas) {
     return closing ? closing.k : -1;
   }
 
+  function drawerEntry(k, i, j) {
+    return { key: `x${k}:${i}`, i, where: 'x', k, j };
+  }
+
   function relink() {
     if (held) held.entry = entries.find((e) => e.key === held.entry.key) || held.entry;
   }
@@ -212,7 +227,10 @@ function run(gl, canvas) {
   function buildEntries() {
     const out = desk.map((i, slot) => ({ key: `d${i}`, i, where: 'd', slot }));
     const open = [...new Set([focus ? focus.k : -1, closing ? closing.k : -1])].filter((k) => k >= 0);
-    open.forEach((k) => drawers[k].ids.forEach((i, j) => out.push({ key: `x${k}:${i}`, i, where: 'x', k, j })));
+    open.forEach((k) => {
+      const { start } = shown(k);
+      shownIds(k).forEach((i, j) => out.push(drawerEntry(k, i, start + j)));
+    });
     if (trail) trail.ids.forEach((i, j) => out.push({ key: `t${i}`, i, where: 't', j }));
     if (trailOut) trailOut.ids.filter((i) => !(trail && trail.ids.includes(i))).forEach((i) => out.push({ key: `t${i}`, i, where: 'o' }));
     return out;
@@ -244,7 +262,8 @@ function run(gl, canvas) {
     }
     const f = frontPose(e.k);
     const at = focus && focus.k === e.k ? focus.cur : 0;
-    const local = drawerCards(drawers[e.k].ids.length, at)[e.j];
+    const w = shown(e.k);
+    const local = drawerCards(w.n, at - w.start)[e.j - w.start];
     return { x: f.x, y: f.y + local.y, z: f.z + local.z, q: quat(local.rx, 0) };
   }
 
@@ -359,7 +378,11 @@ function run(gl, canvas) {
   function siblings(e) {
     if (e.where === 'd') return desk.map((i) => entries.find((x) => x.key === `d${i}`));
     if (e.where === 't') return trail.ids.map((i) => entries.find((x) => x.key === `t${i}`));
-    return drawers[e.k].ids.map((i, j) => entries.find((x) => x.where === 'x' && x.k === e.k && x.j === j));
+    return drawers[e.k].ids.map((i, j) => drawerEntry(e.k, i, j));
+  }
+
+  function place(sibs, e) {
+    return sibs.findIndex((x) => x && x.key === e.key);
   }
 
   function itemFor(e) {
@@ -411,7 +434,7 @@ function run(gl, canvas) {
   function step(dir) {
     if (!held || held.phase !== 'dom' || card.busy()) return;
     const sibs = siblings(held.entry);
-    const j = nextIndex(sibs, sibs.indexOf(held.entry), dir);
+    const j = nextIndex(sibs, place(sibs, held.entry), dir);
     if (j < 0) {
       card.bump(dir);
       return;
@@ -425,6 +448,10 @@ function run(gl, canvas) {
     if (held.entry.where === 't') trail.at = held.entry.j;
     card.step(dir, itemFor(held.entry));
     atlas.want(wanted());
+    if (held.entry.where === 'x') {
+      entries = buildEntries();
+      relink();
+    }
     dirty = true;
     invalidate();
   }
@@ -568,7 +595,7 @@ function run(gl, canvas) {
     const st = window.history.state;
     const back = push ? true : !!(st && st.sh3d && st.back);
     const d = v === 'drawer' ? drawers[k] : null;
-    const next = { sh3d: v, back, mode, key: d ? d.key : null, part: d ? d.part : 0 };
+    const next = { sh3d: v, back, mode, key: d ? d.key : null };
     try {
       if (push) window.history.pushState(next, '', urlFor(v, k));
       else window.history.replaceState(next, '', urlFor(v, k));
@@ -673,6 +700,11 @@ function run(gl, canvas) {
     const next = clamp(j, 0, n - 1);
     if (next === focus.cur) return;
     focus.cur = next;
+    if (n > WINDOW) {
+      atlas.want(wanted());
+      entries = buildEntries();
+      relink();
+    }
     showPeek(entries.find((e) => e.where === 'x' && e.k === focus.k && e.j === next));
     dirty = true;
     invalidate();
@@ -905,7 +937,7 @@ function run(gl, canvas) {
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
     const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
-      return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
+      return `${place(sibs, held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
     })() : '';
     hint.set(s, count, coarse.matches);
 
@@ -1255,7 +1287,7 @@ function run(gl, canvas) {
       return;
     }
     if (st.mode !== mode && MODES.includes(st.mode)) setMode(st.mode, false, false);
-    const k = drawers.findIndex((d) => d.key === st.key && d.part === st.part);
+    const k = drawers.findIndex((d) => d.key === st.key);
     show(k >= 0 ? 'drawer' : 'cab', k, 0);
   });
   window.addEventListener('scroll', () => {

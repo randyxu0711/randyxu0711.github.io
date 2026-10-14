@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
 import { box } from 'scene3d/geometry.js';
-import { CARD, IMG, DRAWER, CAB, FOV, SPLIT } from 'shares3d/layout.js';
+import { CARD, IMG, DRAWER, CAB, FOV, WINDOW } from 'shares3d/layout.js';
 
 const TAB = { W: 30, H: 8, GAP: 2.5, MAX: 3, EDGE: 6 };
 const STICKY = 18;
@@ -266,7 +266,7 @@ export function createScene(n) {
   scene.add(desk);
 
   const maxDrawers = n + 32;
-  const maxCards = n + SPLIT;
+  const maxCards = n + WINDOW;
   const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, flatAttrs);
   const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(CARD_VERT, CARD_FRAG), maxCards, Object.assign({ iPhoto: 1, iHero: 1, iPhotoTile: 4 }, solidAttrs));
   const solidMat = material(INST_VERT, SOLID_FRAG);

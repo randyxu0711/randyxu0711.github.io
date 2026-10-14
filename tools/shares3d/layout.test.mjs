@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CARD, DESK, CAB, DRAWER, SPLIT, FOV, PITCH, IMG,
-  recent, thumb, groups, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, hueOf,
+  CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG,
+  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, hueOf,
 } from 'shares3d/layout.js';
 
 const share = (d, extra = {}) => ({ d, s: 'example.com', g: [], ...extra });
@@ -205,7 +205,6 @@ test('分組:tag 每個 tag 一份,張數多的在前,未分類最後', () => {
     ['Security', 'tag', [0]],
     ['', 'untagged', [2]],
   ]);
-  assert.ok(out.every((d) => d.part === 0 && d.parts === 1));
 });
 
 test('分組:只有 1 張的來源併成其他來源,放最後', () => {
@@ -231,11 +230,30 @@ test('分組:年份新到舊', () => {
   assert.deepEqual(groups(items, 'year').map((d) => [d.key, d.kind, d.ids]), [['2026', 'year', [0, 1]], ['2025', 'year', [2]], ['2024', 'year', [3]]]);
 });
 
-test('分組:超過 60 張拆成兩格,依日期新到舊', () => {
-  const items = Array.from({ length: SPLIT + 1 }, () => share('2026-10-01', { g: ['AI/LLM'] }));
-  const out = groups(items, 'tag');
-  assert.deepEqual(out.map((d) => [d.part, d.parts, d.ids.length]), [[1, 2, SPLIT], [2, 2, 1]]);
-  assert.equal(out[1].ids[0], SPLIT);
+test('分組:張數再多也不拆格', () => {
+  const tagged = Array.from({ length: WINDOW * 3 }, () => share('2026-10-01', { g: ['AI/LLM'] }));
+  assert.deepEqual(groups(tagged, 'tag').map((d) => d.ids.length), [WINDOW * 3]);
+  const singles = Array.from({ length: WINDOW + 1 }, (_, i) => share('2026-10-01', { s: `site${i}.com` }));
+  assert.deepEqual(groups(singles, 'source').map((d) => [d.kind, d.ids.length]), [['other', WINDOW + 1]]);
+});
+
+test('抽屜窗口:張數不超過窗口時整格都在', () => {
+  assert.equal(drawerWindow(WINDOW, 0), 0);
+  assert.equal(drawerWindow(WINDOW, WINDOW - 1), 0);
+});
+
+test('抽屜窗口:翻過去的牌留幾張在前面,窗口跟著往後滑,到底停住', () => {
+  const n = WINDOW * 3;
+  assert.equal(drawerWindow(n, 0), 0);
+  const starts = Array.from({ length: n }, (_, cur) => drawerWindow(n, cur));
+  starts.forEach((st, cur) => {
+    assert.ok(cur >= st && cur < st + WINDOW);
+    assert.ok(st + WINDOW <= n);
+    if (cur > 0) assert.ok(cur - 1 >= st, '上一張還在');
+    if (cur < n - 1) assert.ok(cur + 1 < st + WINDOW, '下一張已經在');
+    if (cur > 0) assert.ok(st - starts[cur - 1] <= 1, '一次只滑一張');
+  });
+  assert.equal(starts[n - 1], n - WINDOW);
 });
 
 test('櫃子:4 欄,超過 16 格 5 欄;上排在高處', () => {
@@ -248,22 +266,3 @@ test('櫃子:4 欄,超過 16 格 5 欄;上排在高處', () => {
   assert.ok(c.slots.every((s) => s.y + DRAWER.H / 2 <= c.height - CAB.TOP && s.y - DRAWER.H / 2 >= CAB.BASE));
 });
 
-test('分組:剛好 60 張不拆', () => {
-  const items = Array.from({ length: SPLIT }, () => share('2026-10-01', { g: ['AI/LLM'] }));
-  assert.deepEqual(groups(items, 'tag').map((d) => [d.part, d.parts, d.ids.length]), [[0, 1, SPLIT]]);
-});
-
-test('分組:tag 與其他來源各 61 張都拆成兩格', () => {
-  const tagged = Array.from({ length: SPLIT + 1 }, () => share('2026-10-01', { g: ['AI/LLM'] }));
-  assert.deepEqual(groups(tagged, 'tag').map((d) => [d.part, d.parts, d.ids.length]), [[1, 2, SPLIT], [2, 2, 1]]);
-  const singles = Array.from({ length: SPLIT + 1 }, (_, i) => share('2026-10-01', { s: `site${i}.com` }));
-  assert.deepEqual(groups(singles, 'source').map((d) => [d.key, d.kind, d.part, d.parts, d.ids.length]), [['', 'other', 1, 2, SPLIT], ['', 'other', 2, 2, 1]]);
-});
-
-test('分組拆開時,第一格是較新的 60 張', () => {
-  const items = days('2026-10-13', SPLIT + 1).map((d) => share(d, { g: ['AI/LLM'] }));
-  const [first, second] = groups(items, 'tag');
-  const p1 = first.ids.map((i) => items[i].d);
-  const p2 = second.ids.map((i) => items[i].d);
-  assert.ok(p1.every((d) => p2.every((e) => d >= e)));
-});
