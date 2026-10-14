@@ -42,6 +42,7 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
   <div class="sh3d-stage" id="sh3d-stage" hidden></div>
   <div class="sh3d-bar" id="sh3d-bar" hidden>
     <p class="sh3d-peek" id="sh3d-peek" hidden></p>
+    <p class="sh3d-keyhelp" id="sh3d-keyhelp" hidden></p>
     <div class="sh3d-tools">
       <button type="button" class="key sh3d-go" id="sh3d-go"></button>
       <div class="sh3d-keys" role="group" aria-label="{% include t.html k="shares3d.group" %}" data-i18n-attr="aria-label:shares3d.group">
@@ -54,6 +55,8 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
         aria-label="{% include t.html k="shares3d.search" %}" placeholder="{% include t.html k="shares3d.search_ph" %}"
         data-i18n-attr="aria-label:shares3d.search;placeholder:shares3d.search_ph">
       <span class="sh3d-found" id="sh3d-found" aria-live="polite" hidden></span>
+      <button type="button" class="key sh3d-help" id="sh3d-help" aria-expanded="false" aria-controls="sh3d-keyhelp"
+        aria-label="{% include t.html k="shares3d.keys" %}" title="{% include t.html k="shares3d.keys" %}" data-i18n-attr="aria-label:shares3d.keys;title:shares3d.keys">?</button>
     </div>
     <p class="sh3d-hint" id="sh3d-hint" aria-live="polite"></p>
   </div>

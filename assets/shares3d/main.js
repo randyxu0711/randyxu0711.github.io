@@ -19,6 +19,8 @@ const qEl = document.getElementById('sh3d-q');
 const found = document.getElementById('sh3d-found');
 const goBtn = document.getElementById('sh3d-go');
 const findBtn = document.getElementById('sh3d-find');
+const helpBtn = document.getElementById('sh3d-help');
+const helpEl = document.getElementById('sh3d-keyhelp');
 const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -185,7 +187,7 @@ function run(gl, canvas) {
   let heroStale = true;
   gl.setHero(hero.mask, hero.photo);
   const card = createHeld(t);
-  const hint = createHint(hintEl, t);
+  const hint = createHint(hintEl, helpEl, t);
 
   function wanted() {
     const out = [...desk];
@@ -969,6 +971,11 @@ function run(gl, canvas) {
   });
   qEl.addEventListener('input', () => setQuery(qEl.value));
   qEl.addEventListener('blur', () => { if (!qEl.value) qEl.classList.remove('open'); });
+  function toggleHelp(on = helpEl.hidden) {
+    helpEl.hidden = !on;
+    helpBtn.setAttribute('aria-expanded', String(on));
+  }
+  helpBtn.addEventListener('click', () => toggleHelp());
   findBtn.addEventListener('click', () => {
     qEl.classList.add('open');
     qEl.focus();
@@ -1102,6 +1109,16 @@ function run(gl, canvas) {
     }
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName)) return;
     if (!lit || !onScreen()) return;
+    if (e.key === '?') {
+      toggleHelp();
+      e.preventDefault();
+      return;
+    }
+    if (e.key === 'Escape' && !helpEl.hidden) {
+      toggleHelp(false);
+      e.preventDefault();
+      return;
+    }
     if (e.key === '/') {
       qEl.classList.add('open');
       qEl.focus();

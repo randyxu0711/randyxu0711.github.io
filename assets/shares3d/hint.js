@@ -1,22 +1,26 @@
-const FINE = {
-  desk: [['← →', 'shares3d.hint.next'], ['Enter', 'shares3d.hint.pick_up'], ['↑', 'shares3d.hint.look_up'], ['/', 'shares3d.hint.search']],
-  cab: [[null, 'shares3d.hint.drawer'], ['↓', 'shares3d.hint.look_down'], ['/', 'shares3d.hint.search']],
-  drawer: [['← →', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.close_drawer']],
-  held: [['← →', 'shares3d.hint.next'], [null, 'shares3d.hint.flip'], ['Esc', 'shares3d.hint.put_back']],
+const LINE = {
+  desk: ['shares3d.hint.desk', 'shares3d.hint.desk_touch'],
+  cab: ['shares3d.hint.cab', 'shares3d.hint.cab_touch'],
+  drawer: ['shares3d.hint.drawer', 'shares3d.hint.drawer_touch'],
+  held: ['shares3d.hint.flip', 'shares3d.hint.tap_card'],
 };
 
-const COARSE = {
-  desk: [[null, 'shares3d.hint.swipe']],
-  cab: [[null, 'shares3d.hint.tap_drawer']],
-  drawer: [[null, 'shares3d.hint.tap_flip']],
-  held: [[null, 'shares3d.hint.tap_card']],
+const KEYS = {
+  desk: [['← →', 'shares3d.hint.next'], ['Enter', 'shares3d.hint.pick_up'], ['↑', 'shares3d.hint.look_up'], ['Esc', 'shares3d.hint.whole_desk'], ['/', 'shares3d.hint.search']],
+  cab: [['↓', 'shares3d.hint.look_down'], ['/', 'shares3d.hint.search']],
+  drawer: [['← →', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.close_drawer']],
+  held: [['← →', 'shares3d.hint.next'], ['Esc', 'shares3d.hint.put_back']],
 };
 
 export function hintFor(stage, coarse) {
-  return (coarse ? COARSE : FINE)[stage] || [];
+  return LINE[stage] ? [LINE[stage][coarse ? 1 : 0]] : [];
 }
 
-export function createHint(el, t) {
+export function keysFor(stage) {
+  return KEYS[stage] || [];
+}
+
+export function createHint(el, help, t) {
   let last = '';
   function set(stage, count, coarse) {
     const key = `${stage}|${count || ''}|${coarse ? 1 : 0}|${document.documentElement.getAttribute('data-lang')}`;
@@ -29,16 +33,18 @@ export function createHint(el, t) {
       c.textContent = count;
       el.append(c);
     }
-    hintFor(stage, coarse).forEach(([k, text]) => {
+    hintFor(stage, coarse).forEach((text) => {
       const s = document.createElement('span');
-      if (k) {
-        const kb = document.createElement('kbd');
-        kb.textContent = k;
-        s.append(kb);
-      }
-      s.append(t(text));
+      s.textContent = t(text);
       el.append(s);
     });
+    help.replaceChildren(...keysFor(stage).map(([k, text]) => {
+      const row = document.createElement('span');
+      const kb = document.createElement('kbd');
+      kb.textContent = k;
+      row.append(kb, t(text));
+      return row;
+    }));
   }
   return { set, reset: () => { last = ''; } };
 }
