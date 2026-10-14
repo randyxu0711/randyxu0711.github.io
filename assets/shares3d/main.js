@@ -201,7 +201,6 @@ function run(gl, canvas) {
   function wanted() {
     const out = [...desk];
     if (focus) out.push(...shownIds(focus.k));
-    if (closing && drawers[closing.k]) out.push(...shownIds(closing.k));
     if (trail) out.push(...trail.ids);
     if (held) out.push(held.entry.i);
     return [...new Set(out)];
@@ -226,11 +225,10 @@ function run(gl, canvas) {
 
   function buildEntries() {
     const out = desk.map((i, slot) => ({ key: `d${i}`, i, where: 'd', slot }));
-    const open = [...new Set([focus ? focus.k : -1, closing ? closing.k : -1])].filter((k) => k >= 0);
-    open.forEach((k) => {
-      const { start } = shown(k);
-      shownIds(k).forEach((i, j) => out.push(drawerEntry(k, i, start + j)));
-    });
+    if (focus) {
+      const { start } = shown(focus.k);
+      shownIds(focus.k).forEach((i, j) => out.push(drawerEntry(focus.k, i, start + j)));
+    }
     if (trail) trail.ids.forEach((i, j) => out.push({ key: `t${i}`, i, where: 't', j }));
     if (trailOut) trailOut.ids.filter((i) => !(trail && trail.ids.includes(i))).forEach((i) => out.push({ key: `t${i}`, i, where: 'o' }));
     return out;
