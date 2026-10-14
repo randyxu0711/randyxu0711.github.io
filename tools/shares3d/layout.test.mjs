@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CARD, DESK, CAB, DRAWER, SPLIT, FOV, PITCH, IMG,
-  recent, thumb, groups, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailPose, trailShown, mainName, hueOf,
+  recent, thumb, groups, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, hueOf,
 } from 'shares3d/layout.js';
 
 const share = (d, extra = {}) => ({ d, s: 'example.com', g: [], ...extra });
@@ -138,14 +138,16 @@ test('桌面全景:6 張都在畫面裡、工具列上面,俯角不變', () => {
   }
 });
 
-test('相關卡:同 tag 的卡照原本的順序(新的在前)', () => {
-  const items = [{ g: ['A', 'B'] }, { g: ['B'] }, { g: [] }, { g: ['A'] }];
-  assert.deepEqual(tagged(items, 'A'), [0, 3]);
-  assert.deepEqual(tagged(items, 'B'), [0, 1]);
-  assert.deepEqual(tagged(items, 'C'), []);
+test('相關卡:同 tag 的卡,點的那張排第一,其餘照原本順序接在後面(循環)', () => {
+  const items = [{ g: ['A', 'B'] }, { g: ['B'] }, { g: [] }, { g: ['A'] }, { g: ['A'] }];
+  assert.deepEqual(tagged(items, 'A', 0), [0, 3, 4]);
+  assert.deepEqual(tagged(items, 'A', 3), [3, 4, 0]);
+  assert.deepEqual(tagged(items, 'B', 1), [1, 0]);
+  assert.deepEqual(tagged(items, 'C', 0), []);
+  assert.deepEqual([0, 1, 2].map((j) => trailDepth(j, 1, 3)), [2, 0, 1]);
 });
 
-test('相關卡:疊在主角後面、上緣一張比一張高,看過的平放在左邊、不壓到工具列,都在畫面裡', () => {
+test('相關卡:全部疊在主角後面、上緣一張比一張高,不壓到 nav', () => {
   for (const [narrow, aspect] of VIEWS) {
     const a = arrange(DESK.N, 13, narrow);
     for (let k = 0; k < DESK.N; k++) {
@@ -158,16 +160,13 @@ test('相關卡:疊在主角後面、上緣一張比一張高,看過的平放在
       for (let d = 1; d <= TRAIL.SHOW; d++) {
         assert.ok(top(d) > top(d - 1), `narrow=${narrow} aspect=${aspect} k=${k} d=${d}`);
         assert.ok(top(d) <= 0.86, `narrow=${narrow} aspect=${aspect} k=${k} d=${d} under nav`);
+        assert.ok(trailPose(hero, d).z < hero.z, 'behind the hero');
+        assert.equal(trailPose(hero, d).x, hero.x, 'never off to the side');
       }
       assert.deepEqual(trailPose(hero, TRAIL.SHOW + 4), trailPose(hero, TRAIL.SHOW));
-      const pile = trailPose(hero, -1);
-      assert.equal(pile.rx, -Math.PI / 2);
-      assert.ok(pile.x + CARD.W / 2 < hero.x - CARD.W / 2, 'pile clears the hero');
-      const [, y] = project(cam, aspect, [pile.x, pile.y, pile.z + CARD.H / 2]);
-      assert.ok(y >= -0.7, `narrow=${narrow} aspect=${aspect} k=${k} pile above the toolbar`);
     }
   }
-  assert.deepEqual([-2, -1, 0, TRAIL.SHOW, TRAIL.SHOW + 1].map(trailShown), [false, true, true, true, false]);
+  assert.deepEqual([0, TRAIL.SHOW, TRAIL.SHOW + 1].map(trailShown), [true, true, false]);
 });
 
 test('櫃子鏡頭:整個櫃子在畫面裡,幾乎平視', () => {

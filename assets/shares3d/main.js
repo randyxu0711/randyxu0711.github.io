@@ -3,7 +3,7 @@ import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, hueOf,
-  drawerOut, drawerCards, focusDrawer, matches, PULL, tagged, trailPose, trailShown,
+  drawerOut, drawerCards, focusDrawer, matches, PULL, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -234,14 +234,14 @@ function run(gl, canvas) {
   }
 
   function heroCard() {
-    return liftPose(cur, items[desk[cur]].i, a);
+    return Object.assign(liftPose(0, 0, a), { x: 0, z: a.front + 10 });
   }
 
   function targetOf(e) {
     const it = items[e.i];
     if (e.where === 'o') return cabPose();
     if (e.where === 't') {
-      const p = trailPose(heroCard(), e.j - trail.at);
+      const p = trailPose(heroCard(), trailDepth(e.j, trail.at, trail.ids.length));
       return { x: p.x, y: p.y, z: p.z, q: quat(p.rx, p.ry) };
     }
     if (e.where === 'd') {
@@ -262,8 +262,8 @@ function run(gl, canvas) {
       return clamp((now - trailOut.t0) / TRAIL_OUT, 0, 1);
     }
     if (e.where === 't') {
-      const d = e.j - trail.at;
-      return Math.max(d === 0 ? 0 : d > 0 ? Math.min(0.1 * d, 0.4) : 0.25, matchFade);
+      const d = trailDepth(e.j, trail.at, trail.ids.length);
+      return Math.max(Math.min(0.1 * d, 0.4), matchFade);
     }
     let base = e.where === 'x' ? fades.drawers[e.k] || 0 : fades.desk;
     return Math.max(base, matchFade);
@@ -302,7 +302,7 @@ function run(gl, canvas) {
       fade: fadeOf(e, hits && !hits.has(e.i) ? MISS : 0),
       hidden: (held && held.entry.key === e.key && held.phase === 'dom')
         || (e.where === 'd' && !!trail && trail.ids.includes(e.i))
-        || (e.where === 't' && !trailShown(e.j - trail.at)),
+        || (e.where === 't' && !trailShown(trailDepth(e.j, trail.at, trail.ids.length))),
     };
   }
 
@@ -609,9 +609,9 @@ function run(gl, canvas) {
   }
 
   function openTrail(i, tag) {
-    const ids = tagged(items, tag);
+    const ids = tagged(items, tag, i);
     if (!ids.length) return;
-    release();
+    if (held && held.phase !== 'dom') return;
     if (view !== 'desk') {
       show('desk');
       remember('desk', -1, false);
@@ -624,12 +624,16 @@ function run(gl, canvas) {
       const from = poses.get(`d${id}`);
       poses.set(`t${id}`, from && desk.includes(id) ? from : cabPose());
     });
-    trail = { tag, ids, at: Math.max(0, ids.indexOf(i)) };
+    trail = { tag, ids, at: 0 };
     peek.hidden = true;
     hover = null;
     atlas.want(wanted());
     entries = buildEntries();
-    relink();
+    const hero = entries.find((x) => x.key === `t${i}`);
+    if (held) {
+      held.entry = hero;
+      card.fill(itemFor(hero));
+    } else hold(hero);
     pointer.moved = true;
     dirty = true;
     invalidate();
@@ -649,7 +653,7 @@ function run(gl, canvas) {
   }
 
   function trailTo(j) {
-    const next = clamp(j, 0, trail.ids.length - 1);
+    const next = trailDepth(j, 0, trail.ids.length);
     if (next === trail.at) return;
     trail.at = next;
     peek.hidden = true;
@@ -932,7 +936,7 @@ function run(gl, canvas) {
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
     const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'trail' ? `${trail.at + 1} / ${trail.ids.length} · ${trail.tag}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
-      return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}`;
+      return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
     })() : '';
     hint.set(s, count, coarse.matches);
 
