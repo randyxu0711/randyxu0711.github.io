@@ -38,7 +38,6 @@ const HELD_DIST = 300;
 const FLAT = -Math.PI / 2;
 const SWIPE = 50;
 const TRAIL_OUT = 500;
-const DWELL = 60;
 const SETTLE = 12;
 const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
@@ -114,7 +113,6 @@ function run(gl, canvas) {
   let wide = false;
   let trail = null;
   let trailOut = null;
-  let dwell = null;
   let settle = null;
   let bottom = -1;
   let top = 1;
@@ -539,7 +537,6 @@ function run(gl, canvas) {
   });
 
   function setFocus(f) {
-    disarmFlip();
     if (focus && (!f || f.k !== focus.k)) closing = { k: focus.k };
     focus = f ? Object.assign({}, f) : null;
     if (focus && closing && closing.k === focus.k) closing = null;
@@ -713,21 +710,6 @@ function run(gl, canvas) {
     invalidate();
   }
 
-  function armFlip(j) {
-    if (dwell && dwell.j === j) return;
-    disarmFlip();
-    dwell = { j, id: setTimeout(() => {
-      dwell = null;
-      flipTo(j);
-    }, DWELL) };
-  }
-
-  function disarmFlip() {
-    if (!dwell) return;
-    clearTimeout(dwell.id);
-    dwell = null;
-  }
-
   function flipBy(dir) {
     if (!focus) return;
     const ids = drawers[focus.k].ids.map((i) => ({ i }));
@@ -840,8 +822,7 @@ function run(gl, canvas) {
       const before = hover ? hover.key || `k${hover.k}` : '';
       hover = h && (h.kind === 'drawer' || h.entry.where !== 'x') && !(h.kind === 'card' && lifted(h.entry)) ? h : null;
       const behind = h && h.kind === 'card' && h.entry.where === 'x' && focus && h.entry.k === focus.k && h.entry.j !== focus.cur && (!hits || hits.has(h.entry.i));
-      if (behind && !settle) armFlip(h.entry.j);
-      else disarmFlip();
+      if (behind && !settle) flipTo(h.entry.j);
       const after = hover ? hover.key || `k${hover.k}` : '';
       if (before !== after) dirty = true;
       stage.style.cursor = h ? 'pointer' : '';
@@ -1213,7 +1194,6 @@ function run(gl, canvas) {
       if (Math.abs(wheel.acc) < WHEEL.STEP) return;
       if (trail) trailTo(trail.at + (wheel.acc > 0 ? 1 : -1));
       else flipBy(wheel.acc > 0 ? 1 : -1);
-      disarmFlip();
       settle = { x: pointer.x, y: pointer.y };
       wheel.acc = 0;
       return;
