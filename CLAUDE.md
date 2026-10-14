@@ -39,9 +39,11 @@
 front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照網址)/ `source`(網域)/
 `description`(og:description)/ `image`(og:image,hotlink 不存 repo)/ `note`(心得,選填)/ `tags` / `issue`。
 - **所有列出 share 的地方都直接開原文、另開分頁**。
-- **首頁是 WebGL 剪報桌與目錄櫃**(規格 `docs/shares-webgl.md`,開頭的 v2 段優先;版面 `_layouts/shares.html`,程式 `assets/shares3d/`,共用 `assets/scene3d/`):
-  **不捲動,分三層**:剪報桌(最新 6 張,立起來那張正對鏡頭,`←` `→` 換)→ `↑` 抬頭看目錄櫃(依 tag / 來源 / 月份分組,超過 60 張拆格)→
-  點抽屜拉開撥卡(前面的往前倒)。`Esc` / `↓` / 瀏覽器上一頁退一層(`pushState`,tag 抽屜網址 `#tag-名稱`)。
+- **首頁是 WebGL 剪報桌與目錄櫃**(規格 `docs/shares-webgl.md`,開頭的 v2.1、v2 段優先;版面 `_layouts/shares.html`,程式 `assets/shares3d/`,共用 `assets/scene3d/`):
+  **不捲動,分三層**:剪報桌(俯角 55°,最新 6 張,立起來那張正對鏡頭,`←` `→` 換)→ `↑` / 往上滾 / 手機往下拉 抬頭看目錄櫃(依 tag / 來源 / 月份分組,超過 60 張拆格)→
+  點抽屜拉開撥卡(前面的往前倒,滾輪撥)。`Esc` / `↓` / 瀏覽器上一頁退一層(`pushState`,tag 抽屜網址 `#tag-名稱`)。
+  **操作要單純**(本質是讀卡片):滑鼠點一下就拿起(觸控兩段),點空白處退一層(桌面上是全景),點標籤叫出同 tag 的卡疊在主角後面;
+  提示列一句話,鍵盤操作收在 `?` 鍵。點擊層 `.sh3d-stage` 必須鋪滿畫面(以前只有內容欄寬,寬螢幕兩側點不到)。
   - **剪報卡**:上方 og:image 經 wsrv.nl 轉 webp(帶 CORS)貼進第二張拼貼貼圖,圖到了才淡入,場景不等;下方標題兩行、來源章、日期、編號
     畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色。上緣每個 tag 一片標籤(最多 3 片),抽屜面的色條同色相(色相用名稱雜湊,程式不列 tag)。
     心得便利貼、已開過的勾、封存的紅章。
