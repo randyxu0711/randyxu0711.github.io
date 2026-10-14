@@ -9,6 +9,7 @@ const IH = Math.round(IMG.H * MM);
 const PAD = 2;
 const PITCH_X = CW + 2 * PAD;
 const PITCH_Y = CH + 2 * PAD;
+const PHOTO_Y = IH + 2 * PAD;
 const PER_FRAME = 6;
 const MAX_TILES = 72;
 const MIP_EVERY = 500;
@@ -115,8 +116,6 @@ function drawCard(g, it) {
 }
 
 function drawPhoto(g, img) {
-  g.fillStyle = '#000';
-  g.fillRect(0, 0, CW, CH);
   const r = img.naturalWidth / Math.max(1, img.naturalHeight);
   const want = CW / IH;
   let sw = img.naturalWidth;
@@ -143,7 +142,7 @@ export function createAtlas(gl, items, onDrawn) {
   const cap = Math.max(1, Math.min(items.length, MAX_TILES, cols * Math.floor(max / PITCH_Y)));
   const rows = Math.ceil(cap / cols);
   const rt = makeTarget(renderer, cols * PITCH_X, rows * PITCH_Y);
-  const rtImg = makeTarget(renderer, cols * PITCH_X, rows * PITCH_Y);
+  const rtImg = makeTarget(renderer, cols * PITCH_X, rows * PHOTO_Y);
 
   const black = new THREE.Color(0, 0, 0);
   const saved = new THREE.Color();
@@ -163,14 +162,18 @@ export function createAtlas(gl, items, onDrawn) {
 
   const quadScene = new THREE.Scene();
   const quadCam = new THREE.OrthographicCamera(0, rt.width, rt.height, 0, -1, 1);
+  const photoCam = new THREE.OrthographicCamera(0, rtImg.width, rtImg.height, 0, -1, 1);
   const quadGeo = new THREE.PlaneGeometry(CW, CH);
+  const photoGeo = new THREE.PlaneGeometry(CW, IH);
   const quadMat = () => new THREE.ShaderMaterial({ uniforms: { map: { value: null } }, vertexShader: QUAD_VERT, fragmentShader: QUAD_FRAG, depthTest: false, depthWrite: false });
-  const canvases = Array.from({ length: PER_FRAME }, () => {
+  const sheet = (h) => Array.from({ length: PER_FRAME }, () => {
     const c = document.createElement('canvas');
     c.width = CW;
-    c.height = CH;
+    c.height = h;
     return c;
   });
+  const canvases = sheet(CH);
+  const photoCanvases = sheet(IH);
 
   const slotOf = new Map();
   const itemOf = new Array(cap).fill(-1);
@@ -208,6 +211,14 @@ export function createAtlas(gl, items, onDrawn) {
   function photo(i) {
     const s = slotOf.get(i);
     return s === undefined ? 0 : shown[s];
+  }
+
+  function photoTile(i) {
+    const s = slotOf.get(i);
+    if (s === undefined || !shown[s]) return null;
+    const x = (s % cols) * PITCH_X + PAD;
+    const y = Math.floor(s / cols) * PHOTO_Y + PAD;
+    return [(x + 0.5) / rtImg.width, (y + 0.5) / rtImg.height, (CW - 1) / rtImg.width, (IH - 1) / rtImg.height];
   }
 
   function load(i) {
@@ -254,18 +265,19 @@ export function createAtlas(gl, items, onDrawn) {
     });
   }
 
-  function blit(target, jobs, key, last) {
+  function blit(target, jobs, key, last, photoPass) {
     const meshes = jobs.map(([s, draw], k) => {
-      const c = canvases[k];
+      const c = (photoPass ? photoCanvases : canvases)[k];
       draw(c.getContext('2d'));
       const tex = new THREE.CanvasTexture(c);
       tex.generateMipmaps = false;
       tex.minFilter = THREE.LinearFilter;
       const mat = quadMat();
       mat.uniforms.map.value = tex;
-      const mesh = new THREE.Mesh(quadGeo, mat);
-      const p = cell(s);
-      mesh.position.set(p.x + CW / 2, p.y + CH / 2, 0);
+      const mesh = new THREE.Mesh(photoPass ? photoGeo : quadGeo, mat);
+      const x = (s % cols) * PITCH_X + PAD;
+      const y = Math.floor(s / cols) * (photoPass ? PHOTO_Y : PITCH_Y) + PAD;
+      mesh.position.set(x + CW / 2, y + (photoPass ? IH : CH) / 2, 0);
       quadScene.add(mesh);
       return mesh;
     });
@@ -276,7 +288,7 @@ export function createAtlas(gl, items, onDrawn) {
     target.texture.generateMipmaps = last || now - lastMip[key] > MIP_EVERY;
     if (target.texture.generateMipmaps) lastMip[key] = now;
     renderer.setRenderTarget(target);
-    renderer.render(quadScene, quadCam);
+    renderer.render(quadScene, photoPass ? photoCam : quadCam);
     renderer.setRenderTarget(prevTarget);
     renderer.autoClear = prevAuto;
     meshes.forEach((mesh) => {
@@ -297,7 +309,7 @@ export function createAtlas(gl, items, onDrawn) {
       });
     } else {
       const batch = [...new Set(photoQueue.splice(0, PER_FRAME))].filter((s) => itemOf[s] >= 0 && photos.get(itemOf[s]));
-      blit(rtImg, batch.map((s) => [s, (g) => drawPhoto(g, photos.get(itemOf[s]))]), 'photo', !photoQueue.length);
+      blit(rtImg, batch.map((s) => [s, (g) => drawPhoto(g, photos.get(itemOf[s]))]), 'photo', !photoQueue.length, true);
       const now = performance.now();
       batch.forEach((s) => { if (!shown[s]) shown[s] = now; });
     }
@@ -309,6 +321,7 @@ export function createAtlas(gl, items, onDrawn) {
     clear(rt);
     clear(rtImg);
     ready.fill(0);
+    shown.fill(0);
     stale.clear();
     queue.length = 0;
     photoQueue.length = 0;
@@ -328,7 +341,7 @@ export function createAtlas(gl, items, onDrawn) {
     });
   }
 
-  return { texture: rt.texture, photos: rtImg.texture, tile, photo, want, pump, reset, refresh, pending: () => queue.length > 0 || photoQueue.length > 0 };
+  return { texture: rt.texture, photos: rtImg.texture, tile, photo, photoTile, want, pump, reset, refresh, pending: () => queue.length > 0 || photoQueue.length > 0 };
 }
 
 export function createLabels(onTexture) {

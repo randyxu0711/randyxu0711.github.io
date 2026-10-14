@@ -149,8 +149,8 @@ export function deskCam(pose, aspect, a = BASE) {
 export function cabCam(aspect, a = BASE) {
   const cab = a.cab;
   const wide = (cab.width / 2 + 24) / (TAN * aspect * (a.narrow ? 0.96 : 0.92));
-  const tall = (cab.height / 2 + 24) / (TAN * 0.8);
-  return view([0, cab.height / 2, cab.z], Math.max(wide, tall), PITCH.CAB, 0.06);
+  const tall = (cab.height / 2 + 24) / (TAN * (a.narrow ? 0.7 : 0.8));
+  return view([0, cab.height / 2, cab.z], Math.max(wide, tall), PITCH.CAB, a.narrow ? 0.12 : 0.06);
 }
 
 export const PULL = CAB.DEPTH - 60;

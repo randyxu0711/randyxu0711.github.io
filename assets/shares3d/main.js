@@ -181,6 +181,7 @@ function run(gl, canvas) {
   function wanted() {
     const out = [...desk];
     if (focus) out.push(...drawers[focus.k].ids);
+    if (closing && drawers[closing.k]) out.push(...drawers[closing.k].ids);
     if (held) out.push(held.entry.i);
     return [...new Set(out)];
   }
@@ -252,6 +253,7 @@ function run(gl, canvas) {
       x: pose.x, y: pose.y, z: pose.z, q: pose.q, s: pose.s,
       tile: atlas.tile(e.i),
       photo: photoOf(e.i),
+      photoTile: atlas.photoTile(e.i),
       stamp: it.x && tokens ? tokens.redline.slice(0, 3) : tint('stamp', mainName(it.s)).rgb,
       tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: labels.tagTile(tags.indexOf(g)) })),
       sticky: !!it.n,
@@ -446,7 +448,8 @@ function run(gl, canvas) {
   function remember(v, k, push) {
     const st = window.history.state;
     const back = push ? true : !!(st && st.sh3d && st.back);
-    const next = { sh3d: v, k, back };
+    const d = v === 'drawer' ? drawers[k] : null;
+    const next = { sh3d: v, back, mode, key: d ? d.key : null, part: d ? d.part : 0 };
     try {
       if (push) window.history.pushState(next, '', urlFor(v, k));
       else window.history.replaceState(next, '', urlFor(v, k));
@@ -531,7 +534,8 @@ function run(gl, canvas) {
     if (!hit) return null;
     if (hit.kind === 'drawer') return { kind: 'drawer', k: hit.index };
     const e = entries[hit.index];
-    return e ? { kind: 'card', key: e.key, entry: e } : null;
+    if (!e || (e.where === 'x' && !(focus && focus.k === e.k))) return null;
+    return { kind: 'card', key: e.key, entry: e };
   }
 
   function interact(hit) {
@@ -796,7 +800,7 @@ function run(gl, canvas) {
     bar.querySelectorAll('[data-group-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.groupSet === mode)));
   }
 
-  function setMode(m, keep = true) {
+  function setMode(m, keep = true, nav = true) {
     if (m === mode || !MODES.includes(m)) return;
     mode = m;
     if (keep) {
@@ -813,7 +817,9 @@ function run(gl, canvas) {
     if (wasDrawer) {
       view = 'cab';
       syncGo();
-      remember('cab', -1, false);
+      const st = window.history.state;
+      if (nav && st && st.sh3d === 'drawer' && st.back) window.history.back();
+      else if (nav) remember('cab', -1, false);
     }
     invalidate();
   }
@@ -941,9 +947,10 @@ function run(gl, canvas) {
       if (key === 'ArrowDown' || key === 'Escape') back();
       else return;
     } else {
-      const fwd = ['ArrowDown', 'ArrowRight', 'j'].includes(key);
-      const bwd = ['ArrowUp', 'ArrowLeft', 'k'].includes(key);
+      const fwd = ['ArrowRight', 'j'].includes(key);
+      const bwd = ['ArrowLeft', 'k'].includes(key);
       if (fwd || bwd) flipBy(fwd ? 1 : -1);
+      else if (key === 'ArrowDown') back();
       else if (key === 'Enter') {
         const en = entries.find((x) => x.where === 'x' && x.k === focus.k && x.j === focus.cur);
         if (en && (!hits || hits.has(en.i))) hold(en);
@@ -955,8 +962,17 @@ function run(gl, canvas) {
   window.addEventListener('popstate', (e) => {
     const st = e.state;
     release();
-    if (st && st.sh3d) show(st.sh3d, st.k, 0);
-    else show('desk');
+    if (!st || !st.sh3d) {
+      show('desk');
+      return;
+    }
+    if (st.sh3d !== 'drawer') {
+      show(st.sh3d);
+      return;
+    }
+    if (st.mode !== mode && MODES.includes(st.mode)) setMode(st.mode, false, false);
+    const k = drawers.findIndex((d) => d.key === st.key && d.part === st.part);
+    show(k >= 0 ? 'drawer' : 'cab', k, 0);
   });
   window.addEventListener('scroll', () => {
     if (held) release();
@@ -1015,13 +1031,9 @@ function run(gl, canvas) {
     if (name !== null) {
       if (mode !== 'tag') setMode('tag', false);
       const k = drawers.findIndex((d) => d.kind === 'tag' && d.key === name);
-      if (k >= 0) {
-        show('drawer', k, 0);
-        remember('drawer', k, false);
-      }
-    } else {
-      remember('desk', -1, false);
+      if (k >= 0) show('drawer', k, 0);
     }
+    remember(view, focus ? focus.k : -1, false);
     invalidate();
   };
   gl.warm().then(go, go);

@@ -86,7 +86,7 @@ ${LIGHT}
 ${SKETCH}
 `;
 
-const CARD_VERT = INST_VERT.replace('attribute float iHot;', 'attribute float iHot;\nattribute float iPhoto;\nvarying float vPhoto;').replace('vHot = iHot;', 'vHot = iHot;\n  vPhoto = iPhoto;');
+const CARD_VERT = INST_VERT.replace('attribute float iHot;', 'attribute float iHot;\nattribute float iPhoto;\nattribute vec4 iPhotoTile;\nvarying float vPhoto;\nvarying vec4 vPhotoTile;').replace('vHot = iHot;', 'vHot = iHot;\n  vPhoto = iPhoto;\n  vPhotoTile = iPhotoTile;');
 
 const CARD_FRAG = /* glsl */ `
 uniform sampler2D uCards;
@@ -97,6 +97,7 @@ uniform vec3 uPaperDeep;
 uniform vec3 uInk3;
 uniform vec3 uEdge;
 varying float vPhoto;
+varying vec4 vPhotoTile;
 ${INST_HEAD}
 void main() {
   int f = int(vFace + 0.5);
@@ -106,8 +107,10 @@ void main() {
   vec3 c = mix(uPaperDeep, uEdge, vHot);
   if (f == 4) {
     if (ty < ${IMG.H.toFixed(2)}) {
-      vec3 photo = texture2D(uPhotos, at).rgb;
-      c = mix(mix(uPaper, uInk3, m.g * 0.7), photo, vPhoto);
+      float r = ${(IMG.H / CARD.H).toFixed(5)};
+      vec2 pu = vec2(vUv.x, clamp((vUv.y - (1.0 - r)) / r, 0.0, 1.0));
+      vec3 photo = texture2D(uPhotos, vPhotoTile.xy + pu * vPhotoTile.zw).rgb;
+      c = mix(mix(uPaper, uInk3, m.g * 0.7), photo, vPhoto * step(0.0001, vPhotoTile.z));
     } else {
       c = mix(uFace, uInk, m.r);
       c = mix(c, uInk3, m.g);
@@ -312,7 +315,7 @@ export function createScene(n) {
   const maxDrawers = n + 32;
   const maxCards = n + SPLIT;
   const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, flatAttrs);
-  const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(CARD_VERT, CARD_FRAG), maxCards, Object.assign({ iPhoto: 1 }, solidAttrs));
+  const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(CARD_VERT, CARD_FRAG), maxCards, Object.assign({ iPhoto: 1, iPhotoTile: 4 }, solidAttrs));
   const solidMat = material(INST_VERT, SOLID_FRAG);
   const woodMat = material(INST_VERT, WOOD_FRAG);
   const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), material(INST_VERT, TAB_FRAG), maxCards * TAB.MAX, solidAttrs);
@@ -360,6 +363,7 @@ export function createScene(n) {
     const fades = [cards, tabs, stickies].map((mesh) => mesh.geometry.attributes.iFade);
     const hot = cards.geometry.attributes.iHot;
     const photo = cards.geometry.attributes.iPhoto;
+    const photoTile = cards.geometry.attributes.iPhotoTile;
     let ns = 0;
     let nt = 0;
     cards.count = Math.min(list.length, maxCards);
@@ -374,6 +378,8 @@ export function createScene(n) {
       fades[0].setX(k, c.fade || 0);
       hot.setX(k, c.hot || 0);
       photo.setX(k, c.photo || 0);
+      const pt = c.photoTile || [0, 0, 0, 0];
+      photoTile.setXYZW(k, pt[0], pt[1], pt[2], pt[3]);
       const shown = c.tabs.slice(0, TAB.MAX);
       shown.forEach((tab, j) => {
         _a.makeTranslation(CARD.W / 2 - TAB.EDGE - TAB.W / 2 - (shown.length - 1 - j) * (TAB.W + TAB.GAP), CARD.H / 2, 0);
@@ -394,7 +400,7 @@ export function createScene(n) {
     stickies.count = ns;
     tabs.count = nt;
     paint(stickies, ns, tint.sticky);
-    touch(cards, 'iTile', 'iColor', 'iFade', 'iHot', 'iPhoto');
+    touch(cards, 'iTile', 'iColor', 'iFade', 'iHot', 'iPhoto', 'iPhotoTile');
     touch(tabs, 'iColor', 'iTile', 'iFade');
     touch(stickies, 'iFade');
   }
