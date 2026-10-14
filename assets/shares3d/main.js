@@ -117,6 +117,7 @@ function run(gl, canvas) {
   let hover = null;
   let closing = null;
   let swiped = false;
+  let deck = null;
   const cam = { pos: null, look: null };
   const lamp = { pos: null };
   const pointer = { x: 0, y: 0, on: false, moved: false };
@@ -422,7 +423,67 @@ function run(gl, canvas) {
     }
   }
 
+  function deckItem() {
+    return itemFor({ i: deck.ids[deck.at], where: 's' });
+  }
+
+  function showFound() {
+    found.hidden = !hits;
+    if (!hits) return;
+    found.textContent = deck ? `${deck.at + 1} / ${deck.ids.length}` : t('shares3d.matches', 0);
+    card.el.classList.toggle('stacked', !!deck && deck.ids.length - deck.at > 1);
+  }
+
+  function openDeck(ids) {
+    release();
+    if (!deck) {
+      deck = { ids, at: 0 };
+      card.fill(deckItem());
+      card.el.classList.add('finding');
+      card.show(false);
+      card.paste();
+    } else {
+      deck.ids = ids;
+      deck.at = 0;
+      card.fill(deckItem());
+    }
+    peek.hidden = true;
+  }
+
+  function closeDeck() {
+    if (!deck) return;
+    deck = null;
+    card.hide();
+    card.el.classList.remove('finding', 'stacked');
+  }
+
+  function deckStep(dir) {
+    if (!deck || card.busy()) return;
+    const at = deck.at + dir;
+    if (at < 0 || at >= deck.ids.length) {
+      card.bump(dir);
+      return;
+    }
+    deck.at = at;
+    card.step(dir, deckItem());
+    showFound();
+  }
+
+  function clearSearch() {
+    qEl.value = '';
+    setQuery('');
+    qEl.classList.remove('open');
+    qEl.blur();
+  }
+
   card.onAction((act) => {
+    if (deck) {
+      if (act === 'close') clearSearch();
+      else if (act === 'prev') deckStep(-1);
+      else if (act === 'next') deckStep(1);
+      else if (act === 'open') recordSeen({ i: deck.ids[deck.at] });
+      return;
+    }
     if (act === 'close') release();
     else if (act === 'prev') step(-1);
     else if (act === 'next') step(1);
@@ -589,6 +650,11 @@ function run(gl, canvas) {
       return;
     }
     hold(e);
+  }
+
+  function measureTop() {
+    const nav = document.querySelector('.nav');
+    document.documentElement.style.setProperty('--sh3d-top', `${nav ? nav.getBoundingClientRect().bottom : 0}px`);
   }
 
   function frame(t0) {
@@ -766,8 +832,8 @@ function run(gl, canvas) {
     const d = tokens.desk;
     dark = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     tints.clear();
-    if (held) {
-      const it = itemFor(held.entry);
+    if (held || deck) {
+      const it = deck ? deckItem() : itemFor(held.entry);
       card.recolor(it.stamp, it.tabs);
     }
     if (!liveT0 && !dark) root.classList.add('soft');
@@ -779,8 +845,10 @@ function run(gl, canvas) {
   function setQuery(q) {
     const words = q.trim();
     hits = words ? new Set(items.map((it, i) => (matches(it, words) ? i : -1)).filter((i) => i >= 0)) : null;
-    found.hidden = !hits;
-    if (hits) found.textContent = t('shares3d.matches', hits.size);
+    root.classList.toggle('finding', !!hits);
+    if (hits && hits.size) openDeck([...hits].sort((x, y) => x - y));
+    else closeDeck();
+    showFound();
     if (hits && focus) {
       const ids = drawers[focus.k].ids;
       if (!hits.has(ids[focus.cur])) {
@@ -870,10 +938,9 @@ function run(gl, canvas) {
     qEl.focus();
   });
   qEl.addEventListener('keydown', (e) => {
-    if (e.key !== 'Escape') return;
-    qEl.value = '';
-    setQuery('');
-    qEl.blur();
+    if (e.key === 'Escape') clearSearch();
+    else if ((e.key === 'ArrowDown' || e.key === 'Enter') && deck) card.focus();
+    else return;
     e.preventDefault();
   });
   const clearBtn = document.getElementById('seen-clear');
@@ -881,7 +948,7 @@ function run(gl, canvas) {
   window.addEventListener('storage', (e) => { if (e.key === SEEN_KEY) refreshSeen(); });
   list.addEventListener('focusin', (e) => {
     const art = e.target.closest && e.target.closest('article.share');
-    if (!art || !lit) return;
+    if (!art || !lit || deck || hits) return;
     const i = items.findIndex((it) => it.l === art.getAttribute('data-link'));
     if (i < 0) return;
     const en = reveal(i);
@@ -893,7 +960,7 @@ function run(gl, canvas) {
   list.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter' && e.key !== ' ') return;
     const art = e.target.closest && e.target.closest('article.share');
-    if (!art || !lit) return;
+    if (!art || !lit || deck || hits) return;
     const i = items.findIndex((it) => it.l === art.getAttribute('data-link'));
     const en = i >= 0 ? reveal(i) : null;
     if (!en) return;
@@ -936,12 +1003,23 @@ function run(gl, canvas) {
       swiped = false;
       return;
     }
+    if (deck || hits) {
+      clearSearch();
+      return;
+    }
     if (!lit || e.detail > 1 || (held && held.phase !== 'dom')) return;
     const r = canvas.getBoundingClientRect();
     interact(resolve(gl.pick(e.clientX - r.left, e.clientY - r.top)));
   });
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (deck || hits) {
+      if (e.key === 'Escape') {
+        clearSearch();
+        e.preventDefault();
+      }
+      return;
+    }
     if (held) {
       if (e.key === 'Escape' && held.phase !== 'dom') {
         release();
@@ -1022,10 +1100,13 @@ function run(gl, canvas) {
     drawLabels();
     hint.reset();
     syncGo();
+    showFound();
     invalidate();
   });
+  new ResizeObserver(measureTop).observe(document.documentElement);
 
   pressKeys();
+  measureTop();
   syncGo();
   gl.resize(canvas.clientWidth, canvas.clientHeight);
   entries = buildEntries();

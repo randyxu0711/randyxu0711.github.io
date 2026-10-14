@@ -132,14 +132,14 @@ export function createHeld(t) {
     front.querySelectorAll('.h-tabs span').forEach((sp, k) => { if (tabs[k]) sp.style.setProperty('--c', tabs[k].css); });
   }
 
-  function show() {
+  function show(focus = true) {
     opener = document.activeElement;
     shown = true;
     applyLabels();
     root.setAttribute('aria-hidden', 'false');
     if (current) root.setAttribute('aria-label', current.t);
     root.classList.add('on');
-    flipBtn.focus({ preventScroll: true });
+    if (focus) flipBtn.focus({ preventScroll: true });
   }
 
   function paste() {}
@@ -244,6 +244,7 @@ export function createHeld(t) {
       return;
     }
     if (!shown || e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName) && e.key !== 'Escape') return;
     if (e.key === 'ArrowLeft') act('prev');
     else if (e.key === 'ArrowRight') act('next');
     else if (e.key === 'Escape') act('close');
@@ -263,5 +264,5 @@ export function createHeld(t) {
   document.addEventListener('langchange', applyLabels);
   applyLabels();
 
-  return { el: root, fill, target, show, paste, hide, flip, step, bump, recolor, busy: () => busy, onAction: (cb) => { listener = cb; } };
+  return { el: root, fill, target, show, paste, hide, flip, step, bump, recolor, focus: () => card.focus({ preventScroll: true }), busy: () => busy, onAction: (cb) => { listener = cb; } };
 }
