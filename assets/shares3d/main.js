@@ -405,6 +405,7 @@ function run(gl, canvas) {
     if (!held) return;
     card.hide();
     held = null;
+    settle = { x: pointer.x, y: pointer.y };
     bar.classList.remove('holding');
     dirty = true;
     invalidate();
