@@ -109,9 +109,7 @@ export function arrange(nDesk, nDrawers, narrow) {
   const back = front - (rows - 1) * DESK.PITCH_Z;
   const z = back - CARD.H / 2 - DESK.BACK;
   const cab = narrow ? cabinet(nDrawers, Math.max(1, Math.min(2, nDrawers)), z) : cabinet(nDrawers, undefined, z);
-  const half = Math.max(cab.width / 2, (cols * DESK.PITCH_X) / 2) + 420;
-  const desk = { x0: -half, x1: half, z0: cab.z - CAB.DEPTH - 40, z1: front + CARD.H / 2 + 420 };
-  return { narrow: !!narrow, cols, rows, front, cab, desk };
+  return { narrow: !!narrow, cols, rows, front, cab };
 }
 
 const BASE = arrange(DESK.N, 0, false);

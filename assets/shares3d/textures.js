@@ -369,7 +369,7 @@ export function createLabels(onTexture) {
       const x = (k % LCOLS) * LW;
       const y = Math.floor(k / LCOLS) * LH;
       g.fillStyle = '#008';
-      g.fillRect(x + 40, y + 12, 176, 64);
+      g.fillRect(x + 43, y + 15, 170, 58);
       g.fillStyle = '#00f';
       g.fillRect(x + 46, y + 18, 164, 52);
       fitFont(g, name, 600, 28, display, 140, 12);

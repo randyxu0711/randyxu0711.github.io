@@ -24,7 +24,7 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
 const GROUP_KEY = 'shares3d-group';
 const MODES = ['tag', 'source', 'month'];
-const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit', 'wood', 'wood-deep', 'wood-front'];
+const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit'];
 const SEEN_KEY = 'seen-links';
 const MISS = 0.6;
 const SLIDE = 380;
@@ -827,7 +827,6 @@ function run(gl, canvas) {
   function rearrange() {
     a = arrange(desk.length, drawers.length, narrow);
     cab = a.cab;
-    gl.setDesk(a.desk);
     fronts.length = 0;
     drawers.forEach(() => fronts.push(0));
     fades.drawers = drawers.map(() => fades.cab);
@@ -980,9 +979,6 @@ function run(gl, canvas) {
     invalidate();
   }, { passive: true });
   new ResizeObserver(() => {
-    document.documentElement.style.setProperty('--sh3d-bar-h', `${bar.offsetHeight}px`);
-  }).observe(bar);
-  new ResizeObserver(() => {
     gl.resize(canvas.clientWidth, canvas.clientHeight);
     if (isNarrow() !== narrow) {
       narrow = !narrow;
@@ -1008,7 +1004,6 @@ function run(gl, canvas) {
   pressKeys();
   syncGo();
   gl.resize(canvas.clientWidth, canvas.clientHeight);
-  gl.setDesk(a.desk);
   entries = buildEntries();
   applyColors();
   drawLabels();

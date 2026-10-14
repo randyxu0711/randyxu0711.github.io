@@ -52,7 +52,7 @@ test('縮圖網址:wsrv.nl 轉 webp,原網址整段編碼', () => {
   assert.ok(Math.abs(CARD.W / IMG.H - 1.91) < 0.01);
 });
 
-test('桌上的卡不互相重疊,都在櫃子前面;桌板蓋住桌上與櫃子', () => {
+test('桌上的卡不互相重疊,都在櫃子前面', () => {
   const half = (ry) => ({ x: (CARD.W / 2) * Math.cos(ry) + (CARD.H / 2) * Math.abs(Math.sin(ry)), z: (CARD.H / 2) * Math.cos(ry) + (CARD.W / 2) * Math.abs(Math.sin(ry)) });
   for (const narrow of [false, true]) {
     const a = arrange(DESK.N, 13, narrow);
@@ -67,8 +67,6 @@ test('桌上的卡不互相重疊,都在櫃子前面;桌板蓋住桌上與櫃子
       }
       assert.ok(poses[i].z - half(poses[i].ry).z > a.cab.z + 40, `narrow=${narrow} ${i} cab`);
     }
-    assert.ok(a.desk.z0 < a.cab.z - CAB.DEPTH && a.desk.z1 > a.front + CARD.H);
-    assert.ok(a.desk.x0 < -a.cab.width / 2 && a.desk.x1 > a.cab.width / 2);
   }
 });
 

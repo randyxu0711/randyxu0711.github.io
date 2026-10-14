@@ -3,11 +3,15 @@
 html.js .sh3d:not(.on):not(.fail) .sh3d-list { visibility: hidden; }
 .sh3d-stage { height: 100vh; height: 100svh; touch-action: pan-y; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .main:has(> .sh3d.on) { padding-bottom: 0; }
-body:has(.sh3d.on) .footer-inner { padding-bottom: calc(var(--sh3d-bar-h, 7.5rem) + 1rem); }
+html:has(.sh3d.on), body:has(.sh3d.on) { overflow: hidden; overscroll-behavior: none; }
+body:has(.sh3d.on) .footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; pointer-events: none; transition: opacity 250ms, visibility 250ms; }
+body:has(.sh3d.on) .footer-inner { padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 0.35rem); justify-content: center; gap: 0.25rem 1rem; font-size: var(--t-xs); }
+body:has(.sh3d.on) .footer-inner > * { pointer-events: auto; }
+body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opacity: 0; visibility: hidden; }
 
 .sh3d-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; pointer-events: none;
-  padding: 0.5rem 16px calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+  padding: 0.5rem 16px calc(env(safe-area-inset-bottom, 0px) + 1.9rem);
   display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
   transition: opacity 250ms, visibility 250ms;
 }
@@ -33,4 +37,4 @@ body:has(.sh3d.on) .footer-inner { padding-bottom: calc(var(--sh3d-bar-h, 7.5rem
   font: 500 var(--t-sm) / 1.35 var(--font-ui); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .sh3d-peek small { margin-left: 0.5rem; font: 400 var(--t-xs) / 1 var(--font-code); color: var(--ink-3); }
-@media (prefers-reduced-motion: reduce) { .sh3d-bar { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .sh3d-bar, body:has(.sh3d.on) .footer { transition: none; } }
