@@ -26,7 +26,7 @@ const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
 const GROUP_KEY = 'shares3d-group';
-const MODES = ['tag', 'source', 'month'];
+const MODES = ['tag', 'source', 'year'];
 const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit'];
 const SEEN_KEY = 'seen-links';
 const MISS = 0.6;
@@ -46,19 +46,12 @@ const DEPTH = { desk: 0, cab: 1, drawer: 2 };
 const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 1 }, cab: { desk: 0.85, held: 0.35, trail: 0.5 }, other: 0.5 };
 
 const t = (k, n) => (window.siteI18n ? window.siteI18n.t(k, n) : k);
-const lang = () => (document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh');
 const md = (d) => `${+d.slice(5, 7)}/${+d.slice(8, 10)}`;
 const gap = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]);
 const moved = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z) + Math.abs(a.q[0] - b.q[0]) + Math.abs(a.q[1] - b.q[1]) + Math.abs(a.q[2] - b.q[2]) + Math.abs((a.s || 1) - (b.s || 1));
 
-function monthName(key) {
-  const [y, m] = key.split('-').map(Number);
-  if (lang() === 'zh') return `${y} 年 ${m} 月`;
-  return new Date(Date.UTC(y, m - 1, 1)).toLocaleString('en', { month: 'short', year: 'numeric', timeZone: 'UTC' });
-}
-
 function drawerName(d) {
-  const name = d.kind === 'other' ? t('shares3d.other') : d.kind === 'untagged' ? t('shares3d.untagged') : d.kind === 'month' ? monthName(d.key) : d.key;
+  const name = d.kind === 'other' ? t('shares3d.other') : d.kind === 'untagged' ? t('shares3d.untagged') : d.key;
   return d.parts > 1 ? `${name} · ${d.part}` : name;
 }
 

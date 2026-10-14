@@ -4,6 +4,7 @@ export const DESK = { N: 6, COLS: 3, PITCH_X: 158, PITCH_XN: 146, PITCH_Z: 138, 
 export const DRAWER = { W: 150, H: 75, GAP: 6, D: 8 };
 export const CAB = { Z: -480, DEPTH: 240, SIDE: 10, BASE: 24, TOP: 12 };
 export const SPLIT = 60;
+export const SOURCES = 7;
 export const LABEL = { W: 140, H: 17.5 };
 export const FOV = 35;
 export const PITCH = { DESK: (55 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
@@ -50,18 +51,20 @@ export function groups(items, mode) {
   };
   items.forEach((it, i) => {
     if (mode === 'source') add(it.s, i);
-    else if (mode === 'month') add(it.d.slice(0, 7), i);
+    else if (mode === 'year') add(it.d.slice(0, 4), i);
     else if (it.g.length) it.g.forEach((g) => add(g, i));
     else add('', i);
   });
   let list = [...map].map(([key, ids]) => ({ key, kind: mode === 'tag' && key === '' ? 'untagged' : mode, ids }));
   if (mode === 'source') {
-    const other = list.filter((d) => d.ids.length < 2).flatMap((d) => d.ids).sort((a, b) => a - b);
-    list = list.filter((d) => d.ids.length >= 2);
+    list.sort((a, b) => b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+    const keep = (d, k) => d.ids.length >= 2 && k < SOURCES;
+    const other = list.filter((d, k) => !keep(d, k)).flatMap((d) => d.ids).sort((a, b) => a - b);
+    list = list.filter(keep);
     if (other.length) list.push({ key: '', kind: 'other', ids: other });
   }
   const last = (d) => (d.kind === 'other' || d.kind === 'untagged' ? 1 : 0);
-  if (mode === 'month') list.sort((a, b) => (a.key < b.key ? 1 : -1));
+  if (mode === 'year') list.sort((a, b) => (a.key < b.key ? 1 : -1));
   else list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   return list.flatMap((d) => {
     if (d.ids.length <= SPLIT) return [{ ...d, part: 0, parts: 1 }];

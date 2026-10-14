@@ -193,7 +193,7 @@ test('來源主名稱與色相是穩定的', () => {
 });
 
 test('空:分組不出錯', () => {
-  for (const mode of ['tag', 'source', 'month']) assert.deepEqual(groups([], mode), []);
+  for (const mode of ['tag', 'source', 'year']) assert.deepEqual(groups([], mode), []);
 });
 
 test('分組:tag 每個 tag 一份,張數多的在前,未分類最後', () => {
@@ -216,9 +216,19 @@ test('分組:只有 1 張的來源併成其他來源,放最後', () => {
   ]);
 });
 
-test('分組:月份新到舊', () => {
-  const items = [share('2026-10-13'), share('2026-09-30'), share('2026-09-01'), share('2025-12-31')];
-  assert.deepEqual(groups(items, 'month').map((d) => [d.key, d.ids]), [['2026-10', [0]], ['2026-09', [1, 2]], ['2025-12', [3]]]);
+test('分組:來源最多 7 格,張數少的併進其他來源', () => {
+  const items = [];
+  for (let k = 0; k < 9; k++) for (let j = 0; j <= 9 - k; j++) items.push(share('2026-10-01', { s: `s${k}.com` }));
+  const out = groups(items, 'source');
+  assert.deepEqual(out.map((d) => d.key), ['s0.com', 's1.com', 's2.com', 's3.com', 's4.com', 's5.com', 's6.com', '']);
+  assert.equal(out[7].kind, 'other');
+  assert.equal(out[7].ids.length, 3 + 2);
+  assert.deepEqual(out[7].ids, [...out[7].ids].sort((a, b) => a - b));
+});
+
+test('分組:年份新到舊', () => {
+  const items = [share('2026-10-13'), share('2026-01-01'), share('2025-12-31'), share('2024-05-01')];
+  assert.deepEqual(groups(items, 'year').map((d) => [d.key, d.kind, d.ids]), [['2026', 'year', [0, 1]], ['2025', 'year', [2]], ['2024', 'year', [3]]]);
 });
 
 test('分組:超過 60 張拆成兩格,依日期新到舊', () => {
