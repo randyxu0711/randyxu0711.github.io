@@ -39,13 +39,16 @@
 front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照網址)/ `source`(網域)/
 `description`(og:description)/ `image`(og:image,hotlink 不存 repo)/ `note`(心得,選填)/ `tags` / `issue`。
 - **所有列出 share 的地方都直接開原文、另開分頁**。
-- **首頁是 WebGL 剪報桌與目錄櫃**(規格 `docs/shares-webgl.md`,版面 `_layouts/shares.html`,程式 `assets/shares3d/`,共用 `assets/scene3d/`):
-  捲動時鏡頭走過桌上(最近 7 天,4–12 張)、週疊(最近 12 個有轉發的週)、目錄櫃(依 tag / 來源 / 月份分組,超過 60 張拆格)。
-  - 場景裡是**純文字索引卡**(og:image 大多沒有 CORS,不進 WebGL):正面畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色,換主題不重畫;
-    來源印章、tag 色標(色相與位置用 tag 名稱雜湊,程式不列 tag)、心得便利貼、已開過的勾、封存的紅章。
-  - 拿起 = 3D 卡飛到 `held.js` 的 HTML 卡位置後換手,og:image 以 hotlink 剪報貼上;翻面看心得 / 摘要;← → / 左右滑換一張。
-  - 週疊點了攤開;抽屜點了拉出、撥卡(前面的往前倒);主角之外淡出、夜間檯燈跟著主角走;底部提示列(`hint.js`)、`/` 搜尋、`#tag-名稱` 開抽屜。
-  - 純函式在 `layout.js`(桌上 / 週疊 / 分組 / 櫃子 / 鏡頭 / 撥卡 / 搜尋),用 `node:test` 測(`tools/shares3d/`)。窄螢幕(直立)桌面、週疊、櫃子都改 2 欄。
+- **首頁是 WebGL 剪報桌與目錄櫃**(規格 `docs/shares-webgl.md`,開頭的 v2 段優先;版面 `_layouts/shares.html`,程式 `assets/shares3d/`,共用 `assets/scene3d/`):
+  **不捲動,分三層**:剪報桌(最新 6 張,立起來那張正對鏡頭,`←` `→` 換)→ `↑` 抬頭看目錄櫃(依 tag / 來源 / 月份分組,超過 60 張拆格)→
+  點抽屜拉開撥卡(前面的往前倒)。`Esc` / `↓` / 瀏覽器上一頁退一層(`pushState`,tag 抽屜網址 `#tag-名稱`)。
+  - **剪報卡**:上方 og:image 經 wsrv.nl 轉 webp(帶 CORS)貼進第二張拼貼貼圖,圖到了才淡入,場景不等;下方標題兩行、來源章、日期、編號
+    畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色。上緣每個 tag 一片標籤(最多 3 片),抽屜面的色條同色相(色相用名稱雜湊,程式不列 tag)。
+    心得便利貼、已開過的勾、封存的紅章。
+  - 桌板、櫃身、抽屜面是程序木紋(token `--wood` 三個);牆是 `--desk`。
+  - 拿起 = 3D 卡飛到 `held.js` 的 HTML 卡位置後換手(同版面的剪報卡);翻面看心得 / 摘要;← → / 左右滑換一張。
+  - 主角之外淡出、夜間檯燈跟著主角走;底部提示列(`hint.js`)與換層按鈕、`/` 搜尋。
+  - 純函式在 `layout.js`(桌上 / 分組 / 櫃子 / 鏡頭 / 撥卡 / 搜尋 / 縮圖網址),用 `node:test` 測(`tools/shares3d/`)。窄螢幕(直立)桌面與櫃子改 2 欄。
   - **保底**:`share-card.html` 的格狀清單(縮圖磁磚 + 停留浮出心得)照常輸出,沒有 JS / WebGL 失敗時顯示;有 JS 時視覺隱藏,Tab 到一張 = 場景裡移過去,Enter 拿起。
 - og:title 結尾重複的網站名稱(「 - 網站名」「 | Blog | 網站名」)由 `share.py` 的 `clean_title` 拿掉;issue 填的標題覆蓋不動。
 - **share 不產生內部頁**:`_plugins/no-post-output.rb`(`collections.posts.output: false` 在 Jekyll 無效)。

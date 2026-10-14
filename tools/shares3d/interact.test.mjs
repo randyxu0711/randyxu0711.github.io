@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CARD, CAB, DRAWER, FOV, SPREAD, LEAN, PULL,
-  arrange, pileBase, spreadPoses, drawerOut, drawerCards, focusPile, focusDrawer, matches,
+  CARD, CAB, DRAWER, FOV, LEAN, PULL,
+  arrange, drawerOut, drawerCards, focusDrawer, matches,
 } from 'shares3d/layout.js';
 
 const project = (cam, aspect, pt) => {
@@ -22,34 +22,6 @@ const inView = (cam, aspect, pts) => pts.every((pt) => {
   const [x, y] = project(cam, aspect, pt);
   return Math.abs(x) <= 1 && Math.abs(y) <= 1;
 });
-const corners = (p) => [-1, 1].flatMap((sx) => [-1, 1].map((sz) => [p.x + sx * CARD.W / 2, p.y, p.z + sz * CARD.H / 2]));
-
-test('攤開的一疊:桌機一排 4 張、手機 2 張,浮在桌上、在那一疊前面、互不重疊', () => {
-  const wide = arrange(12, 12, 13, false);
-  const base = pileBase(3, wide);
-  const out = spreadPoses(6, base, wide);
-  assert.equal(out.length, 6);
-  assert.ok(out.every((p) => p.y >= SPREAD.Y && p.z > base.z));
-  assert.equal(new Set(out.slice(0, 4).map((p) => p.z)).size, 1);
-  assert.ok(out[4].z > out[0].z);
-  for (let k = 1; k < 4; k++) assert.ok(out[k].x - out[k - 1].x >= CARD.W + 8);
-  assert.ok(out[4].z - out[0].z >= CARD.H + 8);
-  const narrow = arrange(12, 12, 13, true);
-  const two = spreadPoses(5, pileBase(1, narrow), narrow);
-  assert.deepEqual(two.map((p) => Math.round((p.z - two[0].z) / SPREAD.PITCH_Z)), [0, 0, 1, 1, 2]);
-  assert.deepEqual(spreadPoses(0, base, wide), []);
-});
-
-test('攤開時鏡頭看得到每一張', () => {
-  for (const [narrow, aspect] of [[false, 1.6], [false, 1.33], [true, 0.46]]) {
-    const a = arrange(12, 12, 13, narrow);
-    for (const pi of [0, 3, 11]) {
-      const poses = spreadPoses(9, pileBase(pi, a), a);
-      assert.ok(inView(focusPile(poses, aspect, a), aspect, poses.flatMap(corners)), `narrow=${narrow} pi=${pi}`);
-    }
-  }
-});
-
 test('抽屜裡的卡:往前倒的不穿過前板,後靠的不穿過背板,彼此平行不互穿', () => {
   for (const n of [1, 2, 30, 60]) {
     for (const cur of [0, Math.floor(n / 2), n - 1]) {
@@ -79,7 +51,7 @@ test('撥到第幾張,前面的都倒下', () => {
 
 test('拉開的抽屜往前拉,鏡頭看得到整個抽屜', () => {
   for (const [narrow, aspect] of [[false, 1.6], [true, 0.46]]) {
-    const a = arrange(12, 12, 13, narrow);
+    const a = arrange(6, 13, narrow);
     for (const k of [0, 6, 12]) {
       const out = drawerOut(a.cab, k);
       assert.equal(out.z, a.cab.z + PULL);

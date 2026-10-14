@@ -49,7 +49,6 @@ export function createHeld(t) {
   let shown = false;
   let flipped = false;
   let busy = false;
-  let clip = null;
   let current = null;
   let backLabel = null;
   let backAlso = null;
@@ -70,44 +69,38 @@ export function createHeld(t) {
   function fill(item) {
     current = item;
     card.style.setProperty('--stamp', item.stamp);
-    card.style.setProperty('--tab', item.tab);
-    card.style.setProperty('--slot', item.slot);
     const name = mainName(item.s);
 
     front.replaceChildren();
-    const letter = el('b', null, (Array.from(name)[0] || '?').toUpperCase());
-    const stamp = el('div', 'h-stamp');
-    stamp.append(letter, el('i', null, name.slice(0, 10).toUpperCase()));
-    front.append(
-      el('div', 'h-tab'),
-      el('div', 'h-rules'),
-      el('div', 'h-redline'),
-      el('div', 'h-src', item.s),
-      el('div', 'h-date', item.d),
-      el('h2', 'h-title', item.t),
-      el('div', 'h-tags', item.g.join(' · ')),
-      stamp
-    );
-    if (item.n) front.append(el('div', 'h-sticky'));
-    clip = null;
+    const tabs = el('div', 'h-tabs');
+    item.tabs.forEach((tab) => {
+      const s = el('span', null, tab.name);
+      s.style.setProperty('--c', tab.css);
+      tabs.append(s);
+    });
+    const photo = el('figure', 'h-photo');
+    photo.append(el('span', null, name));
     if (item.m) {
-      const fig = el('figure', 'h-clip pre');
       const img = el('img');
       img.alt = '';
       img.decoding = 'async';
       img.referrerPolicy = 'no-referrer';
+      img.addEventListener('load', () => img.classList.add('in'));
       img.addEventListener('error', () => {
-        fig.remove();
-        if (clip === fig) clip = null;
+        if (item.m0 && img.getAttribute('src') !== item.m0) img.src = item.m0;
+        else img.remove();
       });
       img.src = item.m;
-      fig.append(img);
-      front.append(fig);
-      clip = fig;
+      photo.append(img);
     }
+    const meta = el('div', 'h-meta');
+    meta.append(el('span', 'h-stamp', item.x ? '封存 ARCHIVED' : item.s), el('span', 'h-date', `${+item.d.slice(5, 7)}/${+item.d.slice(8, 10)}`));
+    if (item.i) meta.append(el('span', 'h-num', `№ ${item.i}`));
+    front.append(tabs, photo, el('h2', 'h-title', item.t), meta);
+    if (item.n) front.append(el('div', 'h-sticky'));
 
     backLabel = el('div', 'h-label', item.n ? t('shares3d.note') : t('shares3d.summary'));
-    back.replaceChildren(backLabel, el('p', 'h-text', item.n || item.e || ''), el('div', 'h-btags', item.g.join(' · ')));
+    back.replaceChildren(backLabel, el('h3', 'h-btitle', item.t), el('p', 'h-text', item.n || item.e || ''), el('div', 'h-btags', item.g.join(' · ')));
     backAlso = null;
     if (item.also && item.also.length) {
       backAlso = el('div', 'h-also', t('shares3d.also_in', item.also.join('、')));
@@ -134,9 +127,9 @@ export function createHeld(t) {
     setFlip(force === undefined ? !flipped : !!force);
   }
 
-  function recolor(stampCss, tabCss) {
+  function recolor(stampCss, tabs) {
     card.style.setProperty('--stamp', stampCss);
-    card.style.setProperty('--tab', tabCss);
+    front.querySelectorAll('.h-tabs span').forEach((sp, k) => { if (tabs[k]) sp.style.setProperty('--c', tabs[k].css); });
   }
 
   function show() {
@@ -149,20 +142,7 @@ export function createHeld(t) {
     flipBtn.focus({ preventScroll: true });
   }
 
-  function paste() {
-    if (!clip) return;
-    const fig = clip;
-    if (reduce.matches) {
-      fig.classList.remove('pre');
-      fig.classList.add('in');
-      return;
-    }
-    fig.getBoundingClientRect();
-    requestAnimationFrame(() => {
-      fig.classList.remove('pre');
-      fig.classList.add('in');
-    });
-  }
+  function paste() {}
 
   function hide() {
     const inside = root.contains(document.activeElement);

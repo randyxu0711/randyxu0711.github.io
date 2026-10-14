@@ -1,22 +1,22 @@
 import * as THREE from 'three';
 import { wrap, clampLines } from 'scene3d/text.js';
-import { mainName } from 'shares3d/layout.js';
+import { CARD, IMG, mainName, thumb } from 'shares3d/layout.js';
 
-const CW = 320;
-const CH = 192;
+const CW = 400;
+const CH = 328;
+const MM = CW / CARD.W;
+const IH = Math.round(IMG.H * MM);
 const PAD = 2;
 const PITCH_X = CW + 2 * PAD;
 const PITCH_Y = CH + 2 * PAD;
 const PER_FRAME = 6;
-const MAX_TILES = 120;
+const MAX_TILES = 72;
 const MIP_EVERY = 500;
 const LW = 256;
 const LH = 128;
 const LCOLS = 8;
-const PW = 512;
-const PH = 64;
-const PCOLS = 4;
-const PROWS = 3;
+const TW = 256;
+const TH = 64;
 
 const QUAD_VERT = /* glsl */ `
 varying vec2 vUv;
@@ -42,67 +42,98 @@ export function loadFonts(items) {
   const sample = items.map((it) => it.t).join('') + 'AaBb0123…';
   const all = Promise.all([
     document.fonts.load(`600 16px ${cssFont('--font-display', 'serif')}`, sample),
-    document.fonts.load(`400 16px ${cssFont('--font-code', 'monospace')}`, 'Aa0123.-·'),
+    document.fonts.load(`400 16px ${cssFont('--font-code', 'monospace')}`, 'Aa0123.-·№'),
     document.fonts.load(`700 16px ${cssFont('--font-ui', 'sans-serif')}`, 'AaBb中文分類'),
   ]).catch(() => {});
   return Promise.race([all, new Promise((r) => setTimeout(r, 3000))]);
 }
 
+function fitFont(g, text, weight, size, family, maxW, min) {
+  let fs = size;
+  g.font = `${weight} ${fs}px ${family}`;
+  while (g.measureText(text).width > maxW && fs > min) {
+    fs -= 1;
+    g.font = `${weight} ${fs}px ${family}`;
+  }
+}
+
 function drawCard(g, it) {
-  const k = CW / 640;
   const display = cssFont('--font-display', 'serif');
   const code = cssFont('--font-code', 'monospace');
+  const x0 = 16;
+  const w = CW - 2 * x0;
   g.globalCompositeOperation = 'source-over';
   g.fillStyle = '#000';
   g.fillRect(0, 0, CW, CH);
   g.globalCompositeOperation = 'lighter';
-  g.textBaseline = 'top';
-  g.textAlign = 'left';
-  g.fillStyle = '#0f0';
-  g.font = `400 ${21 * k}px ${code}`;
-  g.fillText(it.s, 28 * k, 36 * k);
-  g.textAlign = 'right';
-  g.fillText(it.d, CW - 28 * k, 36 * k);
-  g.textAlign = 'left';
-  g.fillStyle = '#f00';
-  g.font = `600 ${29 * k}px ${display}`;
-  clampLines(g, wrap(g, it.t, 350 * k), 5, 350 * k).forEach((l, n) => g.fillText(l, 28 * k, (125 + 38 * n) * k));
-  g.fillStyle = '#0f0';
-  g.font = `400 ${19 * k}px ${code}`;
-  g.textBaseline = 'alphabetic';
-  g.fillText(it.g.join(' · '), 28 * k, CH - 24 * k);
-  const name = mainName(it.s);
-  g.save();
-  g.translate(500 * k, 214 * k);
-  g.rotate(-0.14);
-  g.strokeStyle = '#00f';
-  g.fillStyle = '#00f';
-  g.lineWidth = 5 * k;
-  g.beginPath();
-  g.arc(0, 0, 71.5 * k, 0, Math.PI * 2);
-  g.stroke();
-  g.lineWidth = 2 * k;
-  g.beginPath();
-  g.arc(0, 0, 63 * k, 0, Math.PI * 2);
-  g.stroke();
+  g.textBaseline = 'middle';
   g.textAlign = 'center';
-  g.font = `600 ${64 * k}px ${display}`;
-  g.fillText(it.x ? '封' : (Array.from(name)[0] || '?').toUpperCase(), 0, 14 * k);
-  g.font = `400 ${15 * k}px ${code}`;
-  g.fillText(it.x ? 'ARCHIVED' : name.slice(0, 10).toUpperCase(), 0, 40 * k);
+  g.fillStyle = '#0f0';
+  const name = mainName(it.s);
+  fitFont(g, name, 600, 44, display, w - 40, 16);
+  g.fillText(name, CW / 2, IH / 2);
+
+  g.textAlign = 'left';
+  g.textBaseline = 'top';
+  g.fillStyle = '#f00';
+  g.font = `600 19px ${display}`;
+  clampLines(g, wrap(g, it.t, w), 2, w).forEach((l, n) => g.fillText(l, x0, IH + 12 + n * 25));
+
+  const base = CH - 22;
+  g.textBaseline = 'middle';
+  g.font = `500 12px ${code}`;
+  const label = it.x ? '封存 ARCHIVED' : it.s;
+  const lw = Math.min(g.measureText(label).width, 170);
+  g.save();
+  g.translate(x0 + 6, base);
+  g.rotate(-0.035);
+  g.fillStyle = '#00f';
+  g.strokeStyle = '#00f';
+  g.lineWidth = 1.6;
+  g.strokeRect(-6, -10, lw + 12, 20);
+  g.fillText(label, 0, 1, 170);
   g.restore();
+  g.fillStyle = '#0f0';
+  g.font = `400 13px ${code}`;
+  g.fillText(`${+it.d.slice(5, 7)}/${+it.d.slice(8, 10)}`, x0 + lw + 30, base + 1);
+  g.textAlign = 'right';
+  const num = it.i ? `№ ${it.i}` : '';
+  g.fillText(num, CW - x0, base + 1);
   if (it.seen) {
+    const cx = CW - x0 - g.measureText(num).width - 22;
     g.strokeStyle = '#0f0';
-    g.lineWidth = 4 * k;
+    g.lineWidth = 2.4;
     g.lineCap = 'round';
     g.lineJoin = 'round';
     g.beginPath();
-    g.moveTo(596 * k, 132 * k);
-    g.lineTo(606 * k, 144 * k);
-    g.lineTo(624 * k, 112 * k);
+    g.moveTo(cx - 7, base);
+    g.lineTo(cx - 2, base + 6);
+    g.lineTo(cx + 8, base - 8);
     g.stroke();
   }
   g.globalCompositeOperation = 'source-over';
+}
+
+function drawPhoto(g, img) {
+  g.fillStyle = '#000';
+  g.fillRect(0, 0, CW, CH);
+  const r = img.naturalWidth / Math.max(1, img.naturalHeight);
+  const want = CW / IH;
+  let sw = img.naturalWidth;
+  let sh = img.naturalHeight;
+  if (r > want) sw = sh * want;
+  else sh = sw / want;
+  g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, CW, IH);
+}
+
+function makeTarget(renderer, w, h) {
+  return new THREE.WebGLRenderTarget(w, h, {
+    depthBuffer: false,
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+    magFilter: THREE.LinearFilter,
+    anisotropy: Math.min(8, renderer.capabilities.getMaxAnisotropy()),
+  });
 }
 
 export function createAtlas(gl, items, onDrawn) {
@@ -111,27 +142,24 @@ export function createAtlas(gl, items, onDrawn) {
   const cols = Math.max(1, Math.floor(max / PITCH_X));
   const cap = Math.max(1, Math.min(items.length, MAX_TILES, cols * Math.floor(max / PITCH_Y)));
   const rows = Math.ceil(cap / cols);
-  const rt = new THREE.WebGLRenderTarget(cols * PITCH_X, rows * PITCH_Y, {
-    depthBuffer: false,
-    generateMipmaps: true,
-    minFilter: THREE.LinearMipmapLinearFilter,
-    magFilter: THREE.LinearFilter,
-    anisotropy: Math.min(8, renderer.capabilities.getMaxAnisotropy()),
-  });
+  const rt = makeTarget(renderer, cols * PITCH_X, rows * PITCH_Y);
+  const rtImg = makeTarget(renderer, cols * PITCH_X, rows * PITCH_Y);
 
   const black = new THREE.Color(0, 0, 0);
   const saved = new THREE.Color();
-  function clear() {
+  function clear(target) {
     renderer.getClearColor(saved);
     const alpha = renderer.getClearAlpha();
     renderer.setClearColor(black, 1);
-    renderer.setRenderTarget(rt);
+    renderer.setRenderTarget(target);
     renderer.clear();
     renderer.setRenderTarget(null);
     renderer.setClearColor(saved, alpha);
   }
-  clear();
+  clear(rt);
+  clear(rtImg);
   rt.texture.generateMipmaps = false;
+  rtImg.texture.generateMipmaps = false;
 
   const quadScene = new THREE.Scene();
   const quadCam = new THREE.OrthographicCamera(0, rt.width, rt.height, 0, -1, 1);
@@ -148,10 +176,13 @@ export function createAtlas(gl, items, onDrawn) {
   const itemOf = new Array(cap).fill(-1);
   const used = new Float64Array(cap);
   const ready = new Uint8Array(cap);
+  const shown = new Float64Array(cap);
   const queue = [];
+  const photoQueue = [];
   const stale = new Set();
+  const photos = new Map();
+  const lastMip = { mask: 0, photo: 0 };
   let clock = 0;
-  let lastMip = 0;
   let quadReady = false;
 
   const probe = new THREE.Mesh(quadGeo, quadMat());
@@ -174,6 +205,30 @@ export function createAtlas(gl, items, onDrawn) {
     return [(c.x + 0.5) / rt.width, (c.y + 0.5) / rt.height, (CW - 1) / rt.width, (CH - 1) / rt.height];
   }
 
+  function photo(i) {
+    const s = slotOf.get(i);
+    return s === undefined ? 0 : shown[s];
+  }
+
+  function load(i) {
+    const url = thumb(items[i].m);
+    if (!url || photos.has(i)) return;
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.decoding = 'async';
+    photos.set(i, null);
+    img.onload = () => {
+      photos.set(i, img);
+      const s = slotOf.get(i);
+      if (s !== undefined) {
+        photoQueue.push(s);
+        onDrawn();
+      }
+    };
+    img.onerror = () => photos.set(i, false);
+    img.src = url;
+  }
+
   function want(ids) {
     clock++;
     const keep = new Set(ids);
@@ -192,16 +247,17 @@ export function createAtlas(gl, items, onDrawn) {
       slotOf.set(i, s);
       used[s] = clock;
       ready[s] = 0;
+      shown[s] = 0;
       queue.push(s);
+      if (photos.get(i)) photoQueue.push(s);
+      else load(i);
     });
   }
 
-  function pump() {
-    if (!queue.length || !quadReady) return false;
-    const batch = [...new Set(queue.splice(0, PER_FRAME))].filter((s) => itemOf[s] >= 0 && (!ready[s] || stale.has(s)));
-    const meshes = batch.map((s, k) => {
+  function blit(target, jobs, key, last) {
+    const meshes = jobs.map(([s, draw], k) => {
       const c = canvases[k];
-      drawCard(c.getContext('2d'), items[itemOf[s]]);
+      draw(c.getContext('2d'));
       const tex = new THREE.CanvasTexture(c);
       tex.generateMipmaps = false;
       tex.minFilter = THREE.LinearFilter;
@@ -217,9 +273,9 @@ export function createAtlas(gl, items, onDrawn) {
     const prevAuto = renderer.autoClear;
     renderer.autoClear = false;
     const now = performance.now();
-    rt.texture.generateMipmaps = !queue.length || now - lastMip > MIP_EVERY;
-    if (rt.texture.generateMipmaps) lastMip = now;
-    renderer.setRenderTarget(rt);
+    target.texture.generateMipmaps = last || now - lastMip[key] > MIP_EVERY;
+    if (target.texture.generateMipmaps) lastMip[key] = now;
+    renderer.setRenderTarget(target);
     renderer.render(quadScene, quadCam);
     renderer.setRenderTarget(prevTarget);
     renderer.autoClear = prevAuto;
@@ -228,20 +284,39 @@ export function createAtlas(gl, items, onDrawn) {
       mesh.material.uniforms.map.value.dispose();
       mesh.material.dispose();
     });
-    batch.forEach((s) => {
-      ready[s] = 1;
-      stale.delete(s);
-    });
+  }
+
+  function pump() {
+    if (!quadReady || (!queue.length && !photoQueue.length)) return false;
+    if (queue.length) {
+      const batch = [...new Set(queue.splice(0, PER_FRAME))].filter((s) => itemOf[s] >= 0 && (!ready[s] || stale.has(s)));
+      blit(rt, batch.map((s) => [s, (g) => drawCard(g, items[itemOf[s]])]), 'mask', !queue.length);
+      batch.forEach((s) => {
+        ready[s] = 1;
+        stale.delete(s);
+      });
+    } else {
+      const batch = [...new Set(photoQueue.splice(0, PER_FRAME))].filter((s) => itemOf[s] >= 0 && photos.get(itemOf[s]));
+      blit(rtImg, batch.map((s) => [s, (g) => drawPhoto(g, photos.get(itemOf[s]))]), 'photo', !photoQueue.length);
+      const now = performance.now();
+      batch.forEach((s) => { if (!shown[s]) shown[s] = now; });
+    }
     onDrawn();
     return true;
   }
 
   function reset() {
-    clear();
+    clear(rt);
+    clear(rtImg);
     ready.fill(0);
     stale.clear();
     queue.length = 0;
-    itemOf.forEach((i, s) => { if (i >= 0) queue.push(s); });
+    photoQueue.length = 0;
+    itemOf.forEach((i, s) => {
+      if (i < 0) return;
+      queue.push(s);
+      if (photos.get(i)) photoQueue.push(s);
+    });
   }
 
   function refresh(ids) {
@@ -253,7 +328,7 @@ export function createAtlas(gl, items, onDrawn) {
     });
   }
 
-  return { texture: rt.texture, tile, want, pump, reset, refresh, pending: () => queue.length > 0 };
+  return { texture: rt.texture, photos: rtImg.texture, tile, photo, want, pump, reset, refresh, pending: () => queue.length > 0 || photoQueue.length > 0 };
 }
 
 export function createLabels(onTexture) {
@@ -261,11 +336,13 @@ export function createLabels(onTexture) {
   let height = 1;
   let drawerRows = 1;
 
-  function draw(drawers, piles) {
+  function draw(drawers, tags) {
     const ui = cssFont('--font-ui', 'sans-serif');
     const code = cssFont('--font-code', 'monospace');
+    const display = cssFont('--font-display', 'serif');
     drawerRows = Math.max(1, Math.ceil(drawers.length / LCOLS));
-    height = drawerRows * LH + PROWS * PH;
+    const tagRows = Math.max(1, Math.ceil(tags.length / LCOLS));
+    height = drawerRows * LH + tagRows * TH;
     const canvas = document.createElement('canvas');
     canvas.width = LCOLS * LW;
     canvas.height = height;
@@ -278,27 +355,23 @@ export function createLabels(onTexture) {
     drawers.forEach(({ name, count }, k) => {
       const x = (k % LCOLS) * LW;
       const y = Math.floor(k / LCOLS) * LH;
-      g.strokeStyle = '#0f0';
-      g.lineWidth = 4;
-      g.strokeRect(x + 46, y + 16, 164, 54);
-      let fs = 28;
-      g.font = `700 ${fs}px ${ui}`;
-      while (g.measureText(name).width > 148 && fs > 12) {
-        fs -= 1;
-        g.font = `700 ${fs}px ${ui}`;
-      }
+      g.fillStyle = '#008';
+      g.fillRect(x + 40, y + 12, 176, 64);
+      g.fillStyle = '#00f';
+      g.fillRect(x + 46, y + 18, 164, 52);
+      fitFont(g, name, 600, 28, display, 140, 12);
       g.fillStyle = '#f00';
-      g.fillText(name, x + LW / 2, y + 44);
+      g.fillText(name, x + LW / 2 + 4, y + 39);
       g.fillStyle = '#0f0';
-      g.font = `400 20px ${code}`;
-      g.fillText(count, x + LW / 2, y + 88);
+      g.font = `400 16px ${code}`;
+      g.fillText(count, x + LW / 2 + 4, y + 60);
     });
-    piles.forEach((text, k) => {
-      const x = (k % PCOLS) * PW;
-      const y = drawerRows * LH + Math.floor(k / PCOLS) * PH;
+    tags.forEach((name, k) => {
+      const x = (k % LCOLS) * TW;
+      const y = drawerRows * LH + Math.floor(k / LCOLS) * TH;
+      fitFont(g, name, 700, 30, ui, TW - 24, 12);
       g.fillStyle = '#f00';
-      g.font = `400 30px ${code}`;
-      g.fillText(text, x + PW / 2, y + PH / 2);
+      g.fillText(name, x + TW / 2, y + TH / 2 + 2);
     });
     const old = texture;
     texture = new THREE.CanvasTexture(canvas);
@@ -314,7 +387,7 @@ export function createLabels(onTexture) {
   return {
     draw,
     drawerTile: (k) => rect((k % LCOLS) * LW, Math.floor(k / LCOLS) * LH, LW, LH),
-    pileTile: (k) => rect((k % PCOLS) * PW, drawerRows * LH + Math.floor(k / PCOLS) * PH, PW, PH),
+    tagTile: (k) => rect((k % LCOLS) * TW, drawerRows * LH + Math.floor(k / LCOLS) * TH, TW, TH),
     restore: () => { if (texture) texture.needsUpdate = true; },
   };
 }

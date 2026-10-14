@@ -1,16 +1,14 @@
 const FINE = {
-  desk: [[null, 'shares3d.hint.pick'], [null, 'shares3d.hint.scroll'], ['/', 'shares3d.hint.search']],
-  pile: [[null, 'shares3d.hint.pick'], ['Esc', 'shares3d.hint.pile_close']],
-  cab: [[null, 'shares3d.hint.drawer'], ['/', 'shares3d.hint.search']],
-  drawer: [['↑ ↓', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.close_drawer']],
+  desk: [['← →', 'shares3d.hint.next'], ['Enter', 'shares3d.hint.pick_up'], ['↑', 'shares3d.hint.look_up'], ['/', 'shares3d.hint.search']],
+  cab: [[null, 'shares3d.hint.drawer'], ['↓', 'shares3d.hint.look_down'], ['/', 'shares3d.hint.search']],
+  drawer: [['← →', 'shares3d.hint.flip_cards'], ['Enter', 'shares3d.hint.pick_up'], ['Esc', 'shares3d.hint.close_drawer']],
   held: [['← →', 'shares3d.hint.next'], [null, 'shares3d.hint.flip'], ['Esc', 'shares3d.hint.put_back']],
 };
 
 const COARSE = {
-  desk: [[null, 'shares3d.hint.tap'], [null, 'shares3d.hint.scroll']],
-  pile: [[null, 'shares3d.hint.tap'], [null, 'shares3d.hint.scroll_close']],
+  desk: [[null, 'shares3d.hint.swipe'], [null, 'shares3d.hint.tap']],
   cab: [[null, 'shares3d.hint.tap_drawer']],
-  drawer: [[null, 'shares3d.hint.tap_flip'], [null, 'shares3d.hint.tap_pick'], [null, 'shares3d.hint.scroll_close']],
+  drawer: [[null, 'shares3d.hint.tap_flip'], [null, 'shares3d.hint.tap_pick']],
   held: [[null, 'shares3d.hint.swipe'], [null, 'shares3d.hint.tap_card'], [null, 'shares3d.hint.tap_out']],
 };
 

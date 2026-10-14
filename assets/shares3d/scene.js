@@ -1,15 +1,45 @@
 import * as THREE from 'three';
 import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
 import { box } from 'scene3d/geometry.js';
-import { CARD, DRAWER, CAB, FOV, LABEL, SPLIT } from 'shares3d/layout.js';
+import { CARD, IMG, DRAWER, CAB, FOV, SPLIT } from 'shares3d/layout.js';
 
-const TAB = { W: 28, H: 9 };
+const TAB = { W: 30, H: 8, GAP: 2.5, MAX: 3, EDGE: 6 };
+const BOARD = 30;
 const STICKY = 18;
 const HANDLE = { W: 32, H: 6, D: 6, DROP: 29 };
 const SHADOW = 9;
 const TRAY = { T: 3, SIDE: 34 };
 
-const FINISH = 'gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, max(uDim, vFade)), uUnlit.rgb, uUnlit.a), 1.0);';
+const FINISH = 'gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uFadeTo, max(uDim, vFade)), uUnlit.rgb, uUnlit.a), 1.0);';
+
+const WOOD = /* glsl */ `
+uniform vec3 uWood;
+uniform vec3 uWoodDeep;
+uniform vec3 uWoodFront;
+float h21(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float vn(vec2 p) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(h21(i), h21(i + vec2(1.0, 0.0)), f.x), mix(h21(i + vec2(0.0, 1.0)), h21(i + vec2(1.0, 1.0)), f.x), f.y);
+}
+vec3 wood(vec2 p, vec3 light, vec3 dark) {
+  vec2 q = p * vec2(0.011, 0.15);
+  float n = vn(q) * 0.55 + vn(q * 2.7 + 13.1) * 0.3 + vn(q * 7.3 + 5.7) * 0.15;
+  float fine = 1.0 - clamp(fwidth(p.y) * 0.25, 0.0, 1.0);
+  float ring = 0.5 + 0.5 * sin(p.y * 0.33 + n * 9.0);
+  float g = mix(n, ring, 0.35 * fine);
+  float pores = vn(p * vec2(0.5, 2.6)) * fine;
+  return mix(dark, light, clamp(0.3 + 0.7 * g - 0.1 * pores, 0.0, 1.0));
+}
+vec2 grainAt(vec3 w, vec3 n) {
+  return abs(n.y) > 0.5 ? w.xz : vec2(w.x + w.z, w.y);
+}
+`;
 
 const INST_VERT = /* glsl */ `
 attribute float face;
@@ -42,6 +72,7 @@ void main() {
 
 const INST_HEAD = /* glsl */ `
 uniform vec3 uDesk;
+uniform vec3 uFadeTo;
 uniform float uDim;
 uniform vec4 uUnlit;
 varying vec4 vTile;
@@ -55,33 +86,33 @@ ${LIGHT}
 ${SKETCH}
 `;
 
+const CARD_VERT = INST_VERT.replace('attribute float iHot;', 'attribute float iHot;\nattribute float iPhoto;\nvarying float vPhoto;').replace('vHot = iHot;', 'vHot = iHot;\n  vPhoto = iPhoto;');
+
 const CARD_FRAG = /* glsl */ `
 uniform sampler2D uCards;
+uniform sampler2D uPhotos;
 uniform vec3 uFace;
 uniform vec3 uPaper;
 uniform vec3 uPaperDeep;
 uniform vec3 uInk3;
-uniform vec3 uRule;
-uniform vec3 uRedline;
 uniform vec3 uEdge;
+varying float vPhoto;
 ${INST_HEAD}
-float hairline(float d, float w, float aa) {
-  return 1.0 - smoothstep(w, w + aa, d);
-}
 void main() {
   int f = int(vFace + 0.5);
   float ty = (1.0 - vUv.y) * ${CARD.H.toFixed(2)};
-  float aa = max(fwidth(ty), 1e-4);
-  vec3 m = texture2D(uCards, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
-  float rule = hairline(abs(mod(ty - 30.88 + 3.76, 7.52) - 3.76), 0.18, aa) * step(29.0, ty) * step(ty, 74.5);
-  float red = hairline(abs(ty - 15.83), 0.3, aa);
+  vec2 at = vTile.xy + vUv * vTile.zw;
+  vec3 m = texture2D(uCards, at).rgb * step(0.0001, vTile.z);
   vec3 c = mix(uPaperDeep, uEdge, vHot);
   if (f == 4) {
-    c = mix(uFace, uRule, rule);
-    c = mix(c, uRedline, red);
-    c = mix(c, uInk, m.r);
-    c = mix(c, uInk3, m.g);
-    c = mix(c, vColor, m.b * 0.85);
+    if (ty < ${IMG.H.toFixed(2)}) {
+      vec3 photo = texture2D(uPhotos, at).rgb;
+      c = mix(mix(uPaper, uInk3, m.g * 0.7), photo, vPhoto);
+    } else {
+      c = mix(uFace, uInk, m.r);
+      c = mix(c, uInk3, m.g);
+      c = mix(c, vColor, m.b * 0.9);
+    }
   } else if (f == 5) {
     c = uPaper;
   }
@@ -97,20 +128,48 @@ void main() {
 }
 `;
 
-const DRAWER_FRAG = /* glsl */ `
+const TAB_FRAG = /* glsl */ `
 uniform sampler2D uLabels;
-uniform vec3 uFace;
-uniform vec3 uInk3;
-uniform vec3 uEdgeNDeep;
-uniform vec3 uEdge;
 ${INST_HEAD}
 void main() {
+  vec3 c = vColor;
+  if (int(vFace + 0.5) == 4) c = mix(c, uInk, texture2D(uLabels, vTile.xy + vUv * vTile.zw).r * step(0.0001, vTile.z) * 0.85);
+  ${FINISH}
+}
+`;
+
+const WOOD_FRAG = /* glsl */ `
+${INST_HEAD}
+${WOOD}
+void main() {
+  vec3 c = wood(grainAt(vWorld, vN), uWood, uWoodDeep) * vColor;
+  ${FINISH}
+}
+`;
+
+const DRAWER_FRAG = /* glsl */ `
+uniform sampler2D uLabels;
+uniform vec3 uPaper;
+uniform vec3 uInk3;
+uniform vec3 uEdge;
+${INST_HEAD}
+${WOOD}
+void main() {
   int f = int(vFace + 0.5);
-  vec3 m = texture2D(uLabels, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
-  vec3 c = mix(uEdgeNDeep, uEdge, vHot);
+  vec3 c = mix(wood(grainAt(vWorld, vN), uWoodFront, uWoodDeep), uWoodDeep, 0.35);
+  c = mix(c, uEdge, vHot);
   if (f == 4) {
-    c = mix(uFace, uInk, m.r);
-    c = mix(c, mix(uInk3, uEdge, vHot), m.g);
+    vec3 m = texture2D(uLabels, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
+    c = wood(grainAt(vWorld, vN), uWoodFront, uWoodDeep);
+    float tinted = step(0.001, vColor.r + vColor.g + vColor.b);
+    float strip = step(0.94, vUv.y) * step(0.06, vUv.x) * step(vUv.x, 0.94);
+    c = mix(c, vColor, strip * tinted);
+    c = mix(c, uEdge, smoothstep(0.25, 0.45, m.b));
+    c = mix(c, uPaper, smoothstep(0.7, 0.9, m.b));
+    float band = step(0.1797, vUv.x) * step(vUv.x, 0.2148) * step(0.4531, vUv.y) * step(vUv.y, 0.8594);
+    c = mix(c, vColor, band * tinted);
+    c = mix(c, uWoodDeep * 0.45, m.r);
+    c = mix(c, mix(uWoodDeep * 0.8, uEdge, vHot), m.g);
   }
   ${FINISH}
 }
@@ -118,9 +177,13 @@ void main() {
 
 const DESK_VERT = /* glsl */ `
 varying vec3 vWorld;
+varying vec3 vN;
+varying vec2 vUv;
 void main() {
   vec4 w = modelMatrix * vec4(position, 1.0);
   vWorld = w.xyz;
+  vN = normal;
+  vUv = uv;
   gl_Position = projectionMatrix * viewMatrix * w;
 }
 `;
@@ -128,12 +191,15 @@ void main() {
 const DESK_FRAG = /* glsl */ `
 uniform vec3 uDesk;
 uniform vec4 uUnlit;
+varying vec3 vN;
+varying vec2 vUv;
 ${LIGHT}
+${SKETCH}
+${WOOD}
 void main() {
-  vec3 n = vec3(0.0, 1.0, 0.0);
-  vec3 day = vec3(uAmbient + uKey * max(dot(n, uLight), 0.0));
-  vec3 c = lit(uDesk, n) / day;
-  gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), 1.0);
+  vec3 c = wood(grainAt(vWorld, vN), uWood, uWoodDeep);
+  if (vN.y < 0.5) c *= 0.72;
+  gl_FragColor = vec4(mix(sketch(lit(c, vN), vN, vUv), uUnlit.rgb, uUnlit.a), 1.0);
 }
 `;
 
@@ -172,22 +238,6 @@ void main() {
 }
 `;
 
-const LABEL_FRAG = /* glsl */ `
-uniform sampler2D uLabels;
-uniform vec3 uInk3;
-uniform vec4 uUnlit;
-varying vec4 vTile;
-varying vec2 vUv;
-varying float vFade;
-${LIGHT}
-${REVEAL}
-void main() {
-  float a = texture2D(uLabels, vTile.xy + vUv * vTile.zw).r;
-  vec3 c = lit(uInk3, vec3(0.0, 1.0, 0.0));
-  gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), a * 0.9 * (1.0 - vFade) * (1.0 - sketchAmount()));
-}
-`;
-
 const _qe = new THREE.Quaternion();
 const _ee = new THREE.Euler();
 export function quat(rx, ry) {
@@ -222,20 +272,22 @@ export function createScene(n) {
   };
   const colors = {
     uDesk: { value: new THREE.Color() },
+    uFadeTo: { value: new THREE.Color() },
+    uWood: { value: new THREE.Color() },
+    uWoodDeep: { value: new THREE.Color() },
+    uWoodFront: { value: new THREE.Color() },
     uFace: { value: new THREE.Color() },
     uPaper: { value: new THREE.Color() },
     uPaperDeep: { value: new THREE.Color() },
     uInk: { value: new THREE.Color() },
     uInk3: { value: new THREE.Color() },
-    uRule: { value: new THREE.Color() },
-    uRedline: { value: new THREE.Color() },
-    uEdgeNDeep: { value: new THREE.Color() },
     uEdge: { value: new THREE.Color() },
     uDrop: { value: new THREE.Vector4() },
     uDim: { value: 0 },
     uUnlit: { value: new THREE.Vector4(0, 0, 0, 0) },
     uSketch: { value: new THREE.Vector4(0, 0, 1, 9) },
     uCards: { value: null },
+    uPhotos: { value: null },
     uLabels: { value: null },
   };
   const uniforms = Object.assign({}, common, colors);
@@ -254,20 +306,19 @@ export function createScene(n) {
   const flatAttrs = { iTile: 4, iInner: 2, iFade: 1 };
   const flatGeo = (w, h) => new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
 
-  const desk = new THREE.Mesh(flatGeo(8000, 8000), material(DESK_VERT, DESK_FRAG));
-  desk.position.z = -1000;
+  const desk = new THREE.Mesh(box(-0.5, 0.5, -1, 0, -0.5, 0.5), material(DESK_VERT, DESK_FRAG));
   scene.add(desk);
 
   const maxDrawers = n + 32;
   const maxCards = n + SPLIT;
   const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, flatAttrs);
-  const labels = instanced(flatGeo(LABEL.W, LABEL.H), material(FLAT_VERT, LABEL_FRAG, { transparent: true, depthWrite: false }), 12, flatAttrs);
-  const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(INST_VERT, CARD_FRAG), maxCards, solidAttrs);
+  const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(CARD_VERT, CARD_FRAG), maxCards, Object.assign({ iPhoto: 1 }, solidAttrs));
   const solidMat = material(INST_VERT, SOLID_FRAG);
-  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), solidMat, maxCards, solidAttrs);
+  const woodMat = material(INST_VERT, WOOD_FRAG);
+  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), material(INST_VERT, TAB_FRAG), maxCards * TAB.MAX, solidAttrs);
   const stickies = instanced(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), solidMat, maxCards, solidAttrs);
-  const tray = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 4, solidAttrs);
-  const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 1, solidAttrs);
+  const tray = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), woodMat, 4, solidAttrs);
+  const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), woodMat, 1, solidAttrs);
   const fronts = instanced(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), material(INST_VERT, DRAWER_FRAG), maxDrawers, solidAttrs);
   const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), solidMat, maxDrawers, solidAttrs);
 
@@ -277,7 +328,7 @@ export function createScene(n) {
   const _e = new THREE.Euler();
   const _p = new THREE.Vector3();
   const _s = new THREE.Vector3(1, 1, 1);
-  const tint = { sticky: [1, 1, 0.6], body: [0.5, 0.5, 0.5], handle: [0.4, 0.4, 0.4], edge: [0.8, 0.6, 0.3] };
+  const tint = { sticky: [1, 1, 0.6], body: [1, 1, 1], tray: [0.62, 0.62, 0.62], handle: [0.4, 0.4, 0.4], edge: [0.8, 0.6, 0.3] };
 
   function pose(m, x, y, z, rx, ry, sx = 1, sy = 1, sz = 1) {
     _e.set(rx, ry, 0, 'YXZ');
@@ -305,10 +356,13 @@ export function createScene(n) {
     const tile = cards.geometry.attributes.iTile;
     const stamp = cards.geometry.attributes.iColor;
     const tabColor = tabs.geometry.attributes.iColor;
+    const tabTile = tabs.geometry.attributes.iTile;
     const fades = [cards, tabs, stickies].map((mesh) => mesh.geometry.attributes.iFade);
     const hot = cards.geometry.attributes.iHot;
+    const photo = cards.geometry.attributes.iPhoto;
     let ns = 0;
-    cards.count = tabs.count = Math.min(list.length, maxCards);
+    let nt = 0;
+    cards.count = Math.min(list.length, maxCards);
     for (let k = 0; k < cards.count; k++) {
       const c = list[k];
       place(_m, c);
@@ -319,21 +373,29 @@ export function createScene(n) {
       stamp.setXYZ(k, c.stamp[0], c.stamp[1], c.stamp[2]);
       fades[0].setX(k, c.fade || 0);
       hot.setX(k, c.hot || 0);
-      _a.makeTranslation(c.tab.x, CARD.H / 2, 0);
-      tabs.setMatrixAt(k, _a.premultiply(_m));
-      tabColor.setXYZ(k, c.tab.color[0], c.tab.color[1], c.tab.color[2]);
-      fades[1].setX(k, c.fade || 0);
+      photo.setX(k, c.photo || 0);
+      const shown = c.tabs.slice(0, TAB.MAX);
+      shown.forEach((tab, j) => {
+        _a.makeTranslation(CARD.W / 2 - TAB.EDGE - TAB.W / 2 - (shown.length - 1 - j) * (TAB.W + TAB.GAP), CARD.H / 2, 0);
+        tabs.setMatrixAt(nt, _a.premultiply(_m));
+        tabColor.setXYZ(nt, tab.color[0], tab.color[1], tab.color[2]);
+        const tt = tab.tile || [0, 0, 0, 0];
+        tabTile.setXYZW(nt, tt[0], tt[1], tt[2], tt[3]);
+        fades[1].setX(nt, c.fade || 0);
+        nt++;
+      });
       if (c.sticky) {
-        _a.makeRotationZ(0.12).setPosition(CARD.W / 2 - 12, -CARD.H / 2 + 11, CARD.T / 2 + 0.05);
+        _a.makeRotationZ(-0.1).setPosition(-CARD.W / 2 + 13, CARD.H / 2 - 13, CARD.T / 2 + 0.05);
         stickies.setMatrixAt(ns, _a.premultiply(_m));
         fades[2].setX(ns, c.fade || 0);
         ns++;
       }
     }
     stickies.count = ns;
+    tabs.count = nt;
     paint(stickies, ns, tint.sticky);
-    touch(cards, 'iTile', 'iColor', 'iFade', 'iHot');
-    touch(tabs, 'iColor', 'iFade');
+    touch(cards, 'iTile', 'iColor', 'iFade', 'iHot', 'iPhoto');
+    touch(tabs, 'iColor', 'iTile', 'iFade');
     touch(stickies, 'iFade');
   }
 
@@ -379,7 +441,7 @@ export function createScene(n) {
       tray.setMatrixAt(k, _m);
       tray.geometry.attributes.iFade.setX(k, t.fade || 0);
     });
-    paint(tray, tray.count, tint.handle);
+    paint(tray, tray.count, tint.tray);
     touch(tray, 'iFade');
   }
 
@@ -393,6 +455,8 @@ export function createScene(n) {
       tile.setXYZW(k, d.tile[0], d.tile[1], d.tile[2], d.tile[3]);
       fronts.geometry.attributes.iFade.setX(k, d.fade || 0);
       fronts.geometry.attributes.iHot.setX(k, d.hot || 0);
+      const tone = d.color || [0, 0, 0];
+      fronts.geometry.attributes.iColor.setXYZ(k, tone[0], tone[1], tone[2]);
       pose(_m, d.x, d.y - HANDLE.DROP, d.z + DRAWER.D, 0, 0);
       handles.setMatrixAt(k, _m);
       handles.geometry.attributes.iFade.setX(k, d.fade || 0);
@@ -400,26 +464,20 @@ export function createScene(n) {
       handles.geometry.attributes.iColor.setXYZ(k, c[0], c[1], c[2]);
     }
     handles.geometry.attributes.iColor.needsUpdate = true;
-    touch(fronts, 'iTile', 'iFade', 'iHot');
+    touch(fronts, 'iTile', 'iFade', 'iHot', 'iColor');
     touch(handles, 'iFade');
   }
 
-  function setPileLabels(list) {
-    const tile = labels.geometry.attributes.iTile;
-    labels.count = Math.min(list.length, 12);
-    for (let k = 0; k < labels.count; k++) {
-      const l = list[k];
-      pose(_m, l.x, 0.07, l.z, 0, 0);
-      labels.setMatrixAt(k, _m);
-      tile.setXYZW(k, l.tile[0], l.tile[1], l.tile[2], l.tile[3]);
-      labels.geometry.attributes.iFade.setX(k, l.fade || 0);
-    }
-    touch(labels, 'iTile', 'iFade');
+  function setDesk(b) {
+    desk.scale.set(b.x1 - b.x0, BOARD, b.z1 - b.z0);
+    desk.position.set((b.x0 + b.x1) / 2, 0, (b.z0 + b.z1) / 2);
+    desk.updateMatrixWorld();
   }
 
-  function setTextures(cardsTex, labelsTex) {
+  function setTextures(cardsTex, labelsTex, photosTex) {
     if (cardsTex) colors.uCards.value = cardsTex;
     if (labelsTex) colors.uLabels.value = labelsTex;
+    if (photosTex) colors.uPhotos.value = photosTex;
   }
 
   const clear = new THREE.Color();
@@ -448,18 +506,16 @@ export function createScene(n) {
     set('uPaperDeep', t['paper-deep']);
     set('uInk', t.ink);
     set('uInk3', t['ink-3']);
-    set('uRule', t.rule);
-    set('uRedline', t.redline);
-    set('uEdgeNDeep', t['edge-n-deep']);
     set('uEdge', t.edge);
+    set('uWood', t.wood);
+    set('uWoodDeep', t['wood-deep']);
+    set('uWoodFront', t['wood-front']);
+    set('uFadeTo', t.wood);
     tint.edge = t.edge.slice(0, 3);
     colors.uDrop.value.set(t['drop-near'][0], t['drop-near'][1], t['drop-near'][2], t['drop-near'][3]);
     tint.sticky = t.sticky.slice(0, 3);
-    tint.body = t['edge-n'].slice(0, 3);
-    tint.handle = t['edge-n-deep'].slice(0, 3);
-    paint(body, body.count, tint.body);
+    tint.handle = t.edge.slice(0, 3).map((v, k) => v * 0.62 + t['edge-n-deep'][k] * 0.2);
     paint(stickies, stickies.count, tint.sticky);
-    paint(tray, tray.count, tint.handle);
     common.uLampColor.value.setRGB(t.edge[0], t.edge[1], t.edge[2]).lerp(new THREE.Color(1, 1, 1), 0.45);
     unlitColor.setRGB(t.unlit[0], t.unlit[1], t.unlit[2]);
     colors.uUnlit.value.set(unlitColor.r, unlitColor.g, unlitColor.b, view.unlit);
@@ -529,5 +585,5 @@ export function createScene(n) {
     return renderer.compileAsync(scene, camera);
   }
 
-  return { renderer, canvas, setCards, setShadows, setCabinet, setTray, setDrawers, setPileLabels, setTextures, setColors, setLamp, deskPoint, pick, heldPose, aim, setIntro, resize, render, warm };
+  return { renderer, canvas, setCards, setShadows, setCabinet, setTray, setDrawers, setDesk, setTextures, setColors, setLamp, deskPoint, pick, heldPose, aim, setIntro, resize, render, warm };
 }

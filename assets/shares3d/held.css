@@ -8,69 +8,58 @@
 .h-stage { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding-top: 2.5rem; }
 .h-card {
   container-type: inline-size; position: relative; flex: none; pointer-events: auto; cursor: pointer;
-  width: min(40rem, calc(100vw - 32px), calc((100vh - 12rem) * 127 / 76)); aspect-ratio: 127 / 76;
+  width: min(36rem, calc(100vw - 32px), calc((100vh - 12rem) * 127 / 104)); aspect-ratio: 127 / 104;
   touch-action: pan-y; outline: none; -webkit-tap-highlight-color: transparent;
 }
 .h-card:focus-visible .h-flip { outline: 2px solid var(--edge); outline-offset: 6px; }
 .h-slide { position: absolute; inset: 0; perspective: 160cqw; }
 .h-flip {
-  --u: calc(100cqw / 640); --mm: calc(100cqw / 127);
+  --mm: calc(100cqw / 127);
   position: absolute; inset: 0; transform-style: preserve-3d; transition: transform 600ms cubic-bezier(0.3, 0.7, 0.2, 1);
 }
 .h-flip.flipped { transform: rotateY(180deg); }
 .h-flip.snap { transition: none; }
 .h-front, .h-back {
   position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden;
-  border-radius: calc(2 * var(--u)); box-shadow: 0 calc(0.4 * var(--u)) calc(4 * var(--u)) var(--drop-near), 0 calc(6 * var(--u)) calc(24 * var(--u)) var(--drop-far);
+  border-radius: calc(0.6 * var(--mm)); box-shadow: 0 calc(0.1 * var(--mm)) calc(0.8 * var(--mm)) var(--drop-near), 0 calc(1.2 * var(--mm)) calc(4.8 * var(--mm)) var(--drop-far);
 }
 .h-front { background: var(--face); color: var(--ink); }
-.h-back { background: var(--paper); color: var(--ink); transform: rotateY(180deg); display: flex; flex-direction: column; padding: calc(28 * var(--u)); gap: calc(14 * var(--u)); overflow: hidden; }
-.h-redline { position: absolute; left: 0; right: 0; top: calc(80 * var(--u)); height: calc(3 * var(--u)); background: var(--redline); }
-.h-rules { position: absolute; left: 0; right: 0; top: calc(156 * var(--u)); height: calc(192 * var(--u)); background: repeating-linear-gradient(to bottom, var(--rule) 0 calc(2 * var(--u)), transparent calc(2 * var(--u)) calc(38 * var(--u))); }
-.h-src, .h-date { position: absolute; top: calc(36 * var(--u)); font: 400 calc(21 * var(--u)) / 1 var(--font-code); color: var(--ink-3); white-space: nowrap; }
-.h-src { left: calc(28 * var(--u)); max-width: calc(380 * var(--u)); overflow: hidden; text-overflow: ellipsis; }
-.h-date { right: calc(28 * var(--u)); }
+.h-back { background: var(--paper); color: var(--ink); transform: rotateY(180deg); display: flex; flex-direction: column; padding: calc(5.5 * var(--mm)); gap: calc(2.6 * var(--mm)); overflow: hidden; }
+.h-photo { position: absolute; left: 0; right: 0; top: 0; height: calc(66.5 * var(--mm)); margin: 0; overflow: hidden; background: var(--paper); border-radius: calc(0.6 * var(--mm)) calc(0.6 * var(--mm)) 0 0; display: grid; place-items: center; }
+.h-photo span { font: 600 calc(13.5 * var(--mm)) / 1 var(--font-display); color: var(--ink-3); opacity: 0.7; }
+.h-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 300ms ease-out; }
+.h-photo img.in { opacity: 1; }
 .h-title {
-  position: absolute; left: calc(28 * var(--u)); top: calc(120.5 * var(--u)); width: calc(350 * var(--u)); margin: 0;
-  font: 600 calc(29 * var(--u)) / calc(38 * var(--u)) var(--font-display); color: var(--ink);
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5; line-clamp: 5; overflow: hidden; overflow-wrap: anywhere;
+  position: absolute; left: calc(5.08 * var(--mm)); right: calc(5.08 * var(--mm)); top: calc(70.2 * var(--mm)); margin: 0;
+  font: 600 calc(6.03 * var(--mm)) / calc(7.94 * var(--mm)) var(--font-display); color: var(--ink);
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; overflow-wrap: anywhere;
 }
-.h-tags { position: absolute; left: calc(28 * var(--u)); bottom: calc(20 * var(--u)); font: 400 calc(19 * var(--u)) / 1 var(--font-code); color: var(--ink-3); white-space: nowrap; }
+.h-meta {
+  position: absolute; left: calc(5.08 * var(--mm)); right: calc(5.08 * var(--mm)); top: calc(97.2 * var(--mm)); transform: translateY(-50%);
+  display: flex; align-items: center; gap: calc(3 * var(--mm)); font: 400 calc(4.13 * var(--mm)) / 1 var(--font-code); color: var(--ink-3); white-space: nowrap;
+}
 .h-stamp {
-  position: absolute; left: calc(500 * var(--u) - 74 * var(--u)); top: calc(214 * var(--u) - 74 * var(--u)); width: calc(148 * var(--u)); height: calc(148 * var(--u));
-  box-sizing: border-box; border: calc(5 * var(--u)) solid var(--stamp); border-radius: 50%; color: var(--stamp); opacity: 0.82; transform: rotate(-0.14rad);
+  max-width: calc(54 * var(--mm)); overflow: hidden; text-overflow: ellipsis; padding: calc(1.2 * var(--mm)) calc(1.9 * var(--mm));
+  border: calc(0.5 * var(--mm)) solid var(--stamp); border-radius: calc(0.4 * var(--mm)); color: var(--stamp);
+  font: 500 calc(3.81 * var(--mm)) / 1 var(--font-code); transform: rotate(-0.035rad);
 }
-.h-stamp::before { content: ""; position: absolute; inset: calc(5 * var(--u)); border: calc(2 * var(--u)) solid var(--stamp); border-radius: 50%; }
-.h-stamp b, .h-stamp i { position: absolute; left: 0; right: 0; text-align: center; font-style: normal; white-space: nowrap; }
-.h-stamp b { top: calc(29 * var(--u)); font: 600 calc(64 * var(--u)) / calc(64 * var(--u)) var(--font-display); }
-.h-stamp i { top: calc(97 * var(--u)); font: 400 calc(15 * var(--u)) / calc(15 * var(--u)) var(--font-code); }
-.h-tab {
-  position: absolute; width: calc(28 * var(--mm)); height: calc(9 * var(--mm)); bottom: 100%;
-  left: calc(50% + (-63.5 + 20 + var(--slot, 0) * 22) * var(--mm)); transform: translateX(-50%);
-  background: var(--tab); border-radius: calc(1.2 * var(--mm)) calc(1.2 * var(--mm)) 0 0;
+.h-num { margin-left: auto; }
+.h-tabs { position: absolute; bottom: 100%; right: calc(6 * var(--mm)); display: flex; gap: calc(2.5 * var(--mm)); }
+.h-tabs span {
+  width: calc(30 * var(--mm)); height: calc(8 * var(--mm)); display: grid; place-items: center; overflow: hidden; white-space: nowrap;
+  background: var(--c); border-radius: calc(1.2 * var(--mm)) calc(1.2 * var(--mm)) 0 0;
+  font: 700 calc(3.6 * var(--mm)) / 1 var(--font-ui); color: var(--ink);
 }
 .h-sticky {
   position: absolute; width: calc(18 * var(--mm)); height: calc(18 * var(--mm)); background: var(--sticky);
-  left: calc(50% + 51.5 * var(--mm)); top: calc(50% + 27 * var(--mm)); transform: translate(-50%, -50%) rotate(-0.12rad);
+  left: calc(13 * var(--mm)); top: calc(13 * var(--mm)); transform: translate(-50%, -50%) rotate(0.1rad);
   box-shadow: 0 calc(0.3 * var(--mm)) calc(1.2 * var(--mm)) var(--drop-near);
 }
-.h-clip {
-  position: absolute; left: calc(388 * var(--u)); top: calc(118 * var(--u)); width: calc(236 * var(--u)); margin: 0; padding: calc(6 * var(--u));
-  box-sizing: border-box; background: var(--face); transform: rotate(2.5deg); opacity: 0; pointer-events: none;
-  box-shadow: 0 calc(1 * var(--u)) calc(3 * var(--u)) var(--drop-near), 0 calc(8 * var(--u)) calc(18 * var(--u)) var(--drop-far);
-}
-.h-clip::before {
-  content: ""; position: absolute; left: 50%; top: calc(-10 * var(--u)); width: calc(78 * var(--u)); height: calc(22 * var(--u));
-  transform: translateX(-50%) rotate(-2deg); background: color-mix(in oklch, var(--sticky) 65%, transparent);
-  box-shadow: 0 calc(0.5 * var(--u)) calc(1.5 * var(--u)) var(--drop-near);
-}
-.h-clip img { display: block; width: 100%; aspect-ratio: 1.91; object-fit: cover; background: var(--paper-deep); }
-.h-clip.in { opacity: 1; transform: rotate(2.5deg); transition: opacity 120ms ease-out, transform 350ms cubic-bezier(0.3, 1.5, 0.5, 1); }
-.h-clip.pre { transform: translateY(calc(-26 * var(--u))) scale(1.08) rotate(5deg); }
-.h-label { font: 600 calc(17 * var(--u)) / 1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
-.h-text { flex: 1; min-height: 0; margin: 0; overflow-y: auto; overscroll-behavior: contain; font: 400 calc(27 * var(--u)) / 1.45 var(--font-display); color: var(--ink); overflow-wrap: anywhere; touch-action: pan-y; }
-.h-btags { font: 400 calc(19 * var(--u)) / 1 var(--font-code); color: var(--ink-3); }
-.h-also { font: 400 calc(18 * var(--u)) / 1.3 var(--font-ui); color: var(--ink-3); }
+.h-label { font: 600 calc(3.4 * var(--mm)) / 1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); }
+.h-btitle { margin: 0; font: 600 calc(5 * var(--mm)) / 1.3 var(--font-display); color: var(--ink); overflow-wrap: anywhere; }
+.h-text { flex: 1; min-height: 0; margin: 0; overflow-y: auto; overscroll-behavior: contain; font: 400 calc(4.6 * var(--mm)) / 1.5 var(--font-display); color: var(--ink); overflow-wrap: anywhere; touch-action: pan-y; }
+.h-btags { font: 400 calc(3.6 * var(--mm)) / 1 var(--font-code); color: var(--ink-3); }
+.h-also { font: 400 calc(3.4 * var(--mm)) / 1.3 var(--font-ui); color: var(--ink-3); }
 .h-bar { flex: none; pointer-events: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.6rem 0.75rem; padding: 0.5rem 0 1.25rem; max-width: 100%; }
 .h-bar .key { font-family: var(--font-ui); text-decoration: none; white-space: nowrap; }
 .h-bar .key:focus-visible, .h-bar .key:focus { outline: 2px solid var(--edge); outline-offset: 3px; }
@@ -78,5 +67,5 @@
 @media (prefers-reduced-motion: reduce) {
   .held.on { transition: none; }
   .h-flip { transition: none; }
-  .h-clip.in { transition: none; }
+  .h-photo img { transition: none; }
 }
