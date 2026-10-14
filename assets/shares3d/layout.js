@@ -1,12 +1,12 @@
 export const CARD = { W: 127, H: 104, T: 0.6 };
 export const IMG = { H: 66.5 };
-export const DESK = { N: 6, COLS: 3, PITCH_X: 158, PITCH_Z: 138, FRONT: 260, BACK: 120, GAP: 12 };
+export const DESK = { N: 6, COLS: 3, PITCH_X: 158, PITCH_Z: 138, FRONT: 260, BACK: 60, GAP: 12 };
 export const DRAWER = { W: 150, H: 75, GAP: 6, D: 8 };
 export const CAB = { Z: -480, DEPTH: 240, SIDE: 10, BASE: 24, TOP: 12 };
 export const SPLIT = 60;
 export const LABEL = { W: 140, H: 17.5 };
 export const FOV = 35;
-export const PITCH = { DESK: (50 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
+export const PITCH = { DESK: (36 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
 export const THUMB = 'https://wsrv.nl/?url=';
 
 export function hash(s) {
@@ -141,7 +141,7 @@ const view = (look, dist, pitch, shift) => {
 export function deskCam(pose, aspect, a = BASE) {
   const fw = a.narrow ? 0.86 : 0.46;
   const dist = Math.max(CARD.W / (fw * 2 * TAN * aspect), (CARD.H + 12) / (0.62 * 2 * TAN));
-  return view([pose.x, pose.y, pose.z], dist, PITCH.DESK, 0.05);
+  return view([pose.x, pose.y, pose.z], dist, PITCH.DESK, -0.03);
 }
 
 export function cabCam(aspect, a = BASE) {

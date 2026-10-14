@@ -20,6 +20,11 @@ body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opac
 .sh3d-keys { display: flex; gap: 0.4rem; }
 .sh3d-bar:not(.at-cab) .sh3d-keys { display: none; }
 .sh3d-q { width: min(16rem, calc(100vw - 32px)); }
+.sh3d-find { display: none; }
+@media (max-width: 640px) {
+  .sh3d-find { display: inline-flex; }
+  .sh3d-q:not(.open) { display: none; }
+}
 .sh3d-found { font: 400 var(--t-xs) / 1 var(--font-code); color: var(--ink-3); }
 .sh3d-hint {
   margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 1rem; max-width: 100%;

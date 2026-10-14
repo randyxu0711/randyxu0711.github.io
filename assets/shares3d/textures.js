@@ -97,11 +97,8 @@ function drawCard(g, it) {
   g.fillStyle = '#0f0';
   g.font = `400 13px ${code}`;
   g.fillText(`${+it.d.slice(5, 7)}/${+it.d.slice(8, 10)}`, x0 + lw + 30, base + 1);
-  g.textAlign = 'right';
-  const num = it.i ? `№ ${it.i}` : '';
-  g.fillText(num, CW - x0, base + 1);
   if (it.seen) {
-    const cx = CW - x0 - g.measureText(num).width - 22;
+    const cx = CW - x0 - 10;
     g.strokeStyle = '#0f0';
     g.lineWidth = 2.4;
     g.lineCap = 'round';
@@ -341,7 +338,41 @@ export function createAtlas(gl, items, onDrawn) {
     });
   }
 
-  return { texture: rt.texture, photos: rtImg.texture, tile, photo, photoTile, want, pump, reset, refresh, pending: () => queue.length > 0 || photoQueue.length > 0 };
+  return { image: (i) => photos.get(i) || null, texture: rt.texture, photos: rtImg.texture, tile, photo, photoTile, want, pump, reset, refresh, pending: () => queue.length > 0 || photoQueue.length > 0 };
+}
+
+export function createHero() {
+  const K = 2;
+  const sheet = (h) => {
+    const c = document.createElement('canvas');
+    c.width = CW * K;
+    c.height = h * K;
+    return c;
+  };
+  const mc = sheet(CH);
+  const pc = sheet(IH);
+  const mask = new THREE.CanvasTexture(mc);
+  const photo = new THREE.CanvasTexture(pc);
+  mask.anisotropy = photo.anisotropy = 4;
+  let item = -1;
+  let hasPhoto = false;
+  function paint(c, fn) {
+    const g = c.getContext('2d');
+    g.setTransform(K, 0, 0, K, 0, 0);
+    fn(g);
+    g.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  function draw(i, it, img) {
+    paint(mc, (g) => drawCard(g, it));
+    mask.needsUpdate = true;
+    hasPhoto = !!img;
+    if (img) {
+      paint(pc, (g) => drawPhoto(g, img));
+      photo.needsUpdate = true;
+    }
+    item = i;
+  }
+  return { mask, photo, draw, item: () => item, hasPhoto: () => hasPhoto, restore: () => { mask.needsUpdate = true; photo.needsUpdate = true; } };
 }
 
 export function createLabels(onTexture) {

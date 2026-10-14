@@ -6,7 +6,7 @@ import {
   drawerOut, drawerCards, focusDrawer, matches, PULL,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
-import { createAtlas, createLabels, loadFonts } from 'shares3d/textures.js';
+import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
 import { createHeld } from 'shares3d/held.js';
 import { createHint } from 'shares3d/hint.js';
 
@@ -18,6 +18,7 @@ const hintEl = document.getElementById('sh3d-hint');
 const qEl = document.getElementById('sh3d-q');
 const found = document.getElementById('sh3d-found');
 const goBtn = document.getElementById('sh3d-go');
+const findBtn = document.getElementById('sh3d-find');
 const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -37,7 +38,7 @@ const SWIPE = 50;
 const PHOTO_IN = 450;
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
-const FADE = { desk: { cab: 0.45, drawer: 0.6, held: 0.35 }, cab: { desk: 0.3, held: 0.35 }, other: 0.5, rest: 0.16 };
+const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35 }, cab: { desk: 0.3, held: 0.35 }, other: 0.5, rest: 0.16 };
 
 const t = (k, n) => (window.siteI18n ? window.siteI18n.t(k, n) : k);
 const lang = () => (document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh');
@@ -175,6 +176,9 @@ function run(gl, canvas) {
   });
   const labels = createLabels((tex) => gl.setTextures(null, tex, null));
   gl.setTextures(atlas.texture, null, atlas.photos);
+  const hero = createHero();
+  let heroStale = true;
+  gl.setHero(hero.mask, hero.photo);
   const card = createHeld(t);
   const hint = createHint(hintEl, t);
 
@@ -247,6 +251,16 @@ function run(gl, canvas) {
     return ease(k);
   }
 
+  function heroOf(e) {
+    if (!lifted(e) || !fontsDone) return 0;
+    const img = atlas.image(e.i);
+    if (heroStale || hero.item() !== e.i || (img && !hero.hasPhoto())) {
+      hero.draw(e.i, items[e.i], img);
+      heroStale = false;
+    }
+    return hero.hasPhoto() ? 2 : 1;
+  }
+
   function cardItem(e, pose) {
     const it = items[e.i];
     return {
@@ -254,6 +268,7 @@ function run(gl, canvas) {
       tile: atlas.tile(e.i),
       photo: photoOf(e.i),
       photoTile: atlas.photoTile(e.i),
+      hero: heroOf(e),
       stamp: it.x && tokens ? tokens.redline.slice(0, 3) : tint('stamp', mainName(it.s)).rgb,
       tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: labels.tagTile(tags.indexOf(g)) })),
       sticky: !!it.n,
@@ -401,6 +416,8 @@ function run(gl, canvas) {
     const changed = markSeen();
     if (changed.length) {
       atlas.refresh(changed);
+      heroStale = true;
+      dirty = true;
       invalidate();
     }
   }
@@ -847,6 +864,11 @@ function run(gl, canvas) {
     else back();
   });
   qEl.addEventListener('input', () => setQuery(qEl.value));
+  qEl.addEventListener('blur', () => { if (!qEl.value) qEl.classList.remove('open'); });
+  findBtn.addEventListener('click', () => {
+    qEl.classList.add('open');
+    qEl.focus();
+  });
   qEl.addEventListener('keydown', (e) => {
     if (e.key !== 'Escape') return;
     qEl.value = '';
@@ -930,6 +952,7 @@ function run(gl, canvas) {
     if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement && document.activeElement.tagName)) return;
     if (!lit || !onScreen()) return;
     if (e.key === '/') {
+      qEl.classList.add('open');
       qEl.focus();
       e.preventDefault();
       return;
@@ -989,6 +1012,7 @@ function run(gl, canvas) {
   }).observe(canvas);
   canvas.addEventListener('webglcontextrestored', () => {
     atlas.reset();
+    hero.restore();
     labels.restore();
     applyColors();
     invalidate();
@@ -1010,6 +1034,7 @@ function run(gl, canvas) {
   atlas.want(wanted());
   loadFonts(items).then(() => {
     fontsDone = true;
+    heroStale = true;
     drawLabels();
     atlas.refresh(wanted());
     invalidate();

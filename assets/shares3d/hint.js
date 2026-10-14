@@ -6,10 +6,10 @@ const FINE = {
 };
 
 const COARSE = {
-  desk: [[null, 'shares3d.hint.swipe'], [null, 'shares3d.hint.tap']],
+  desk: [[null, 'shares3d.hint.swipe']],
   cab: [[null, 'shares3d.hint.tap_drawer']],
-  drawer: [[null, 'shares3d.hint.tap_flip'], [null, 'shares3d.hint.tap_pick']],
-  held: [[null, 'shares3d.hint.swipe'], [null, 'shares3d.hint.tap_card'], [null, 'shares3d.hint.tap_out']],
+  drawer: [[null, 'shares3d.hint.tap_flip']],
+  held: [[null, 'shares3d.hint.tap_card']],
 };
 
 export function hintFor(stage, coarse) {

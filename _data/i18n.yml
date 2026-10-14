@@ -84,13 +84,10 @@ shares3d.hint.close_drawer: { zh: "關上抽屜", en: "Close the drawer" }
 shares3d.hint.next:         { zh: "換一張", en: "Next card" }
 shares3d.hint.flip:         { zh: "點卡片翻面", en: "Click the card to flip it" }
 shares3d.hint.put_back:     { zh: "放回去", en: "Put back" }
-shares3d.hint.tap:          { zh: "點卡片拿起來", en: "Tap a card to pick it up" }
 shares3d.hint.tap_drawer:   { zh: "點抽屜拉開", en: "Tap a drawer to open it" }
 shares3d.hint.tap_flip:     { zh: "點一張撥到那張", en: "Tap a card to flip to it" }
-shares3d.hint.tap_pick:     { zh: "再點一次拿起來", en: "Tap again to pick it up" }
 shares3d.hint.swipe:        { zh: "左右滑換一張", en: "Swipe for the next card" }
 shares3d.hint.tap_card:     { zh: "點卡片翻面", en: "Tap the card to flip it" }
-shares3d.hint.tap_out:      { zh: "點外面放回去", en: "Tap outside to put it back" }
 shares3d.hint.look_up:      { zh: "抬頭看目錄櫃", en: "Look up at the catalog" }
 shares3d.hint.look_down:    { zh: "低頭回剪報桌", en: "Back to the desk" }
 shares3d.to_cab:   { zh: "目錄櫃", en: "Catalog" }
