@@ -774,8 +774,11 @@ function run(gl, canvas) {
       }
     }
     if (e.where === 't') {
-      if (e.j === trail.at) hold(e);
-      else trailTo(e.j);
+      if (e.j !== trail.at) {
+        trailTo(e.j);
+        if (!mouse) return;
+      }
+      hold(e);
       return;
     }
     if (e.where === 'd') {
@@ -793,7 +796,7 @@ function run(gl, canvas) {
     }
     if (focus && e.k === focus.k && e.j !== focus.cur) {
       flipTo(e.j);
-      return;
+      if (!mouse) return;
     }
     hold(e);
   }
