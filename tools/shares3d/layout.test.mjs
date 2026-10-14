@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CARD, DESK, CAB, DRAWER, SPLIT, FOV, PITCH, IMG,
-  recent, thumb, groups, cabinet, arrange, deskPose, liftPose, deskCam, cabCam, mainName, hueOf,
+  recent, thumb, groups, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, hueOf,
 } from 'shares3d/layout.js';
 
 const share = (d, extra = {}) => ({ d, s: 'example.com', g: [], ...extra });
@@ -88,7 +88,50 @@ test('桌面鏡頭:整張立起來的卡在畫面裡,手機佔大半寬度', () 
       const [r] = project(cam, aspect, [p.x + CARD.W / 2, p.y, p.z]);
       const [, top] = project(cam, aspect, liftCorners(p)[1]);
       const [, bottom] = project(cam, aspect, liftCorners(p)[0]);
-      assert.ok((r - l) / 2 > (narrow ? 0.7 : 0.35) || (top - bottom) / 2 > 0.5, `narrow=${narrow} aspect=${aspect} size`);
+      assert.ok((r - l) / 2 > (narrow ? 0.5 : 0.35) || (top - bottom) / 2 > 0.5, `narrow=${narrow} aspect=${aspect} size`);
+      const dir = cam.look.map((v, i) => v - cam.pos[i]);
+      assert.ok(Math.abs(Math.atan2(-dir[1], Math.hypot(dir[0], dir[2])) - PITCH.DESK) < 1e-6);
+    }
+  }
+});
+
+test('直立螢幕:左右的鄰卡露出一截,點得到', () => {
+  for (const aspect of [0.46, 0.75]) {
+    const a = arrange(DESK.N, 13, true);
+    for (let k = 0; k < DESK.N; k++) {
+      const cam = deskCam(liftPose(k, k + 1, a), aspect, a);
+      const n = deskPose(k % 2 ? k - 1 : k + 1, k + 2, a);
+      const near = n.x + (k % 2 ? CARD.W / 2 : -CARD.W / 2);
+      const [x] = project(cam, aspect, [near, n.y, n.z]);
+      assert.ok(Math.abs(x) < 0.85, `aspect=${aspect} k=${k} x=${x}`);
+    }
+  }
+});
+
+test('桌面鏡頭避開底部工具列:立起來那張整張在工具列上面', () => {
+  for (const [narrow, aspect] of VIEWS) {
+    const a = arrange(DESK.N, 13, narrow);
+    for (const [bottom, top] of [[-1, 1], [-0.7, 0.86], [-0.5, 0.78]]) {
+      const p = liftPose(0, 1, a);
+      const cam = deskCam(p, aspect, a, bottom, top);
+      liftCorners(p).forEach((pt) => {
+        const [x, y] = project(cam, aspect, pt);
+        assert.ok(Math.abs(x) <= 1 && y <= top && y >= bottom, `narrow=${narrow} aspect=${aspect} bottom=${bottom} top=${top}`);
+      });
+    }
+  }
+});
+
+test('桌面全景:6 張都在畫面裡、工具列上面,俯角不變', () => {
+  for (const [narrow, aspect] of VIEWS) {
+    const a = arrange(DESK.N, 13, narrow);
+    const poses = Array.from({ length: DESK.N }, (_, k) => deskPose(k, k + 1, a));
+    for (const [bottom, top] of [[-1, 1], [-0.6, 0.78]]) {
+      const cam = deskAll(poses, aspect, a, bottom, top);
+      poses.forEach((p) => [-1, 1].forEach((sx) => [-1, 1].forEach((sz) => {
+        const [x, y] = project(cam, aspect, [p.x + sx * CARD.W / 2, p.y, p.z + sz * CARD.H / 2]);
+        assert.ok(Math.abs(x) <= 1 && y <= top && y >= bottom, `narrow=${narrow} aspect=${aspect} bottom=${bottom}`);
+      })));
       const dir = cam.look.map((v, i) => v - cam.pos[i]);
       assert.ok(Math.abs(Math.atan2(-dir[1], Math.hypot(dir[0], dir[2])) - PITCH.DESK) < 1e-6);
     }

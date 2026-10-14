@@ -1,12 +1,12 @@
 export const CARD = { W: 127, H: 104, T: 0.6 };
 export const IMG = { H: 66.5 };
-export const DESK = { N: 6, COLS: 3, PITCH_X: 158, PITCH_Z: 138, FRONT: 260, BACK: 60, GAP: 12 };
+export const DESK = { N: 6, COLS: 3, PITCH_X: 158, PITCH_XN: 146, PITCH_Z: 138, FRONT: 260, BACK: 60, GAP: 12 };
 export const DRAWER = { W: 150, H: 75, GAP: 6, D: 8 };
 export const CAB = { Z: -480, DEPTH: 240, SIDE: 10, BASE: 24, TOP: 12 };
 export const SPLIT = 60;
 export const LABEL = { W: 140, H: 17.5 };
 export const FOV = 35;
-export const PITCH = { DESK: (36 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
+export const PITCH = { DESK: (55 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
 export const THUMB = 'https://wsrv.nl/?url=';
 
 export function hash(s) {
@@ -109,7 +109,7 @@ export function arrange(nDesk, nDrawers, narrow) {
   const back = front - (rows - 1) * DESK.PITCH_Z;
   const z = back - CARD.H / 2 - DESK.BACK;
   const cab = narrow ? cabinet(nDrawers, Math.max(1, Math.min(2, nDrawers)), z) : cabinet(nDrawers, undefined, z);
-  return { narrow: !!narrow, cols, rows, front, cab };
+  return { narrow: !!narrow, cols, rows, front, cab, pitch: narrow ? DESK.PITCH_XN : DESK.PITCH_X };
 }
 
 const BASE = arrange(DESK.N, 0, false);
@@ -119,7 +119,7 @@ export function deskPose(slot, seed, a = BASE) {
   const col = slot % a.cols;
   const row = Math.floor(slot / a.cols);
   return {
-    x: (col - (a.cols - 1) / 2) * DESK.PITCH_X + jitter(r, 5),
+    x: (col - (a.cols - 1) / 2) * a.pitch + jitter(r, 5),
     y: CARD.T / 2 + 0.1,
     z: a.front - row * DESK.PITCH_Z + jitter(r, 4),
     ry: jitter(r, 0.07),
@@ -138,10 +138,42 @@ const view = (look, dist, pitch, shift) => {
   return { look: at, pos: [at[0], at[1] + dist * Math.sin(pitch), at[2] + dist * Math.cos(pitch)] };
 };
 
-export function deskCam(pose, aspect, a = BASE) {
-  const fw = a.narrow ? 0.86 : 0.46;
-  const dist = Math.max(CARD.W / (fw * 2 * TAN * aspect), (CARD.H + 12) / (0.62 * 2 * TAN));
-  return view([pose.x, pose.y, pose.z], dist, PITCH.DESK, -0.03);
+export function deskCam(pose, aspect, a = BASE, bottom = -1, top = 1) {
+  const span = (top - bottom) / 2;
+  const fw = a.narrow ? 0.56 : 0.46;
+  const dist = Math.max(CARD.W / (fw * 2 * TAN * aspect), (CARD.H + 12) / (0.62 * span * 2 * TAN));
+  return view([pose.x, pose.y, pose.z], dist, PITCH.DESK, (top + bottom) / 4 - 0.03 * span);
+}
+
+export function deskAll(poses, aspect, a = BASE, bottom = -1, top = 1) {
+  const m = 8;
+  const xs = poses.flatMap((p) => [p.x - CARD.W / 2 - m, p.x + CARD.W / 2 + m]);
+  const zs = poses.flatMap((p) => [p.z - CARD.H / 2 - m, p.z + CARD.H / 2 + m]);
+  const box = { x0: Math.min(...xs), x1: Math.max(...xs), z0: Math.min(...zs), z1: Math.max(...zs) };
+  const look = [(box.x0 + box.x1) / 2, 0, (box.z0 + box.z1) / 2];
+  const pts = [];
+  for (const x of [box.x0, box.x1]) for (const y of [0, CARD.T + 4]) for (const z of [box.z0, box.z1]) pts.push([x, y, z]);
+  const mx = a.narrow ? FIT.NARROW : FIT.X;
+  const at = (d) => view(look, d, PITCH.DESK, (top + bottom) / 4);
+  const ok = (d) => {
+    const c = at(d);
+    return pts.every((pt) => {
+      const [x, y] = ndc(c.pos, c.look, aspect, pt);
+      return Math.abs(x) <= mx && y <= top - (1 - FIT.Y) && y >= bottom;
+    });
+  };
+  let lo = 100;
+  let hi = 400;
+  for (let k = 0; k < 24 && !ok(hi); k++) {
+    lo = hi;
+    hi *= 1.25;
+  }
+  for (let k = 0; k < 20; k++) {
+    const mid = (lo + hi) / 2;
+    if (ok(mid)) hi = mid;
+    else lo = mid;
+  }
+  return at(hi);
 }
 
 export function cabCam(aspect, a = BASE) {

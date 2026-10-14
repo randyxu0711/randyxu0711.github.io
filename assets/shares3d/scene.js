@@ -278,6 +278,7 @@ export function createScene(n) {
   const fronts = instanced(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), material(INST_VERT, DRAWER_FRAG), maxDrawers, solidAttrs);
   const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), solidMat, maxDrawers, solidAttrs);
 
+  const tabOwner = [];
   const _m = new THREE.Matrix4();
   const _a = new THREE.Matrix4();
   const _q = new THREE.Quaternion();
@@ -320,6 +321,7 @@ export function createScene(n) {
     const hero = cards.geometry.attributes.iHero;
     let ns = 0;
     let nt = 0;
+    tabOwner.length = 0;
     cards.count = Math.min(list.length, maxCards);
     for (let k = 0; k < cards.count; k++) {
       const c = list[k];
@@ -343,6 +345,7 @@ export function createScene(n) {
         const tt = tab.tile || [0, 0, 0, 0];
         tabTile.setXYZW(nt, tt[0], tt[1], tt[2], tt[3]);
         fades[1].setX(nt, c.fade || 0);
+        tabOwner[nt] = k;
         nt++;
       });
       if (c.sticky) {
@@ -499,18 +502,23 @@ export function createScene(n) {
     return raycaster.ray.intersectPlane(floor, hit) ? [hit.x, hit.y, hit.z] : null;
   }
 
-  const pickable = [cards, fronts, handles, body];
+  const pickable = [cards, tabs, fronts, handles, body];
+  const GONE = 0.85;
   function pick(x, y) {
     ndc.set((x / canvas.clientWidth) * 2 - 1, 1 - (y / canvas.clientHeight) * 2);
     raycaster.setFromCamera(ndc, camera);
     let best = null;
     pickable.forEach((mesh) => {
       if (!mesh.count) return;
-      const h = raycaster.intersectObject(mesh, false)[0];
+      const fade = mesh.geometry.attributes.iFade;
+      const h = raycaster.intersectObject(mesh, false).find((q) => fade.getX(q.instanceId) < GONE);
       if (h && (!best || h.distance < best.distance)) best = { mesh, distance: h.distance, id: h.instanceId };
     });
-    if (!best || best.mesh === body) return null;
-    return best.mesh === cards ? { kind: 'card', index: best.id } : { kind: 'drawer', index: best.id };
+    if (!best) return null;
+    if (best.mesh === body) return { kind: 'body' };
+    if (best.mesh === cards) return { kind: 'card', index: best.id };
+    if (best.mesh === tabs) return { kind: 'card', index: tabOwner[best.id] };
+    return { kind: 'drawer', index: best.id };
   }
 
   const _v = new THREE.Vector3();

@@ -2,7 +2,7 @@ import { readTokens, rgba, watchTheme } from 'scene3d/colors.js';
 import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
-  CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, cabCam, mainName, hueOf,
+  CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, hueOf,
   drawerOut, drawerCards, focusDrawer, matches, PULL,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
@@ -35,10 +35,11 @@ const TUG = 10;
 const HELD_DIST = 300;
 const FLAT = -Math.PI / 2;
 const SWIPE = 50;
+const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
-const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35 }, cab: { desk: 0.3, held: 0.35 }, other: 0.5, rest: 0.16 };
+const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35 }, cab: { desk: 0.5, held: 0.35 }, other: 0.5, rest: 0.16 };
 
 const t = (k, n) => (window.siteI18n ? window.siteI18n.t(k, n) : k);
 const lang = () => (document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh');
@@ -105,6 +106,9 @@ function run(gl, canvas) {
   let cab = a.cab;
   let view = 'desk';
   let cur = 0;
+  let wide = false;
+  let bottom = -1;
+  let top = 1;
   let slide = null;
   let dark = false;
   let raf = 0;
@@ -216,7 +220,7 @@ function run(gl, canvas) {
   }
 
   function lifted(e) {
-    return view === 'desk' && e.where === 'd' && e.slot === cur;
+    return view === 'desk' && !wide && e.where === 'd' && e.slot === cur;
   }
 
   function targetOf(e) {
@@ -239,7 +243,7 @@ function run(gl, canvas) {
   function fadeOf(e, matchFade) {
     if (held && held.entry.key === e.key) return 0;
     let base = e.where === 'x' ? fades.drawers[e.k] || 0 : fades.desk;
-    if (e.where === 'd' && view === 'desk' && !held && e.slot !== cur) base = Math.max(base, FADE.rest);
+    if (e.where === 'd' && view === 'desk' && !wide && !held && e.slot !== cur) base = Math.max(base, FADE.rest);
     return Math.max(base, matchFade);
   }
 
@@ -274,7 +278,6 @@ function run(gl, canvas) {
       tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: labels.tagTile(tags.indexOf(g)) })),
       sticky: !!it.n,
       fade: fadeOf(e, hits && !hits.has(e.i) ? MISS : 0),
-      hot: lifted(e) && !held ? 1 : 0,
       hidden: held && held.entry.key === e.key && held.phase === 'dom',
     };
   }
@@ -283,7 +286,7 @@ function run(gl, canvas) {
     const out = desk.map((i, slot) => {
       const p = deskPose(slot, items[i].i, a);
       const gone = held && held.entry.key === `d${i}`;
-      return { x: p.x, z: p.z, ry: p.ry, w: CARD.W, h: CARD.H, fade: gone ? 1 : Math.max(fades.desk, view === 'desk' && slot === cur ? 0.45 : 0) };
+      return { x: p.x, z: p.z, ry: p.ry, w: CARD.W, h: CARD.H, fade: gone ? 1 : Math.max(fades.desk, view === 'desk' && !wide && slot === cur ? 0.45 : 0) };
     });
     out.push({ x: 0, z: cab.z - cab.depth / 2 + 12, ry: 0, w: cab.width, h: cab.depth + 24, fade: fades.cab });
     return out;
@@ -317,7 +320,8 @@ function run(gl, canvas) {
   function camTarget(aspect) {
     if (focus) return focusDrawer(drawerOut(cab, focus.k), aspect, a);
     if (view === 'cab') return cabCam(aspect, a);
-    return deskCam(liftPose(cur, items[desk[cur]].i, a), aspect, a);
+    if (wide) return deskAll(desk.map((i, slot) => deskPose(slot, items[i].i, a)), aspect, a, bottom, top);
+    return deskCam(liftPose(cur, items[desk[cur]].i, a), aspect, a, bottom, top);
   }
 
   function lampTarget(s) {
@@ -330,6 +334,7 @@ function run(gl, canvas) {
       return { pos: [f.x, f.y + 170, f.z + 40], reach: 300 };
     }
     if (view === 'cab') return { pos: [0, cab.height + 120, cab.z + 260], reach: 520 };
+    if (wide) return { pos: [0, 320, a.front + 60 - (a.rows - 1) * 70], reach: 560 };
     const p = liftPose(cur, items[desk[cur]].i, a);
     return { pos: [p.x, p.y + 220, p.z + 130], reach: 360 };
   }
@@ -509,6 +514,7 @@ function run(gl, canvas) {
     if (v === 'drawer') setFocus({ k, cur: clamp(at, 0, drawers[k].ids.length - 1) });
     else if (focus) setFocus(null);
     view = v;
+    wide = false;
     entries = buildEntries();
     relink();
     syncGo();
@@ -553,6 +559,15 @@ function run(gl, canvas) {
     remember(view, -1, false);
   }
 
+  function setWide(v) {
+    if (wide === v) return;
+    wide = v;
+    peek.hidden = true;
+    pointer.moved = true;
+    dirty = true;
+    invalidate();
+  }
+
   function setCur(k) {
     const n = desk.length;
     const next = ((k % n) + n) % n;
@@ -564,6 +579,10 @@ function run(gl, canvas) {
   }
 
   function stepDesk(dir) {
+    if (wide) {
+      setWide(false);
+      return;
+    }
     for (let k = 1; k <= desk.length; k++) {
       const j = (((cur + dir * k) % desk.length) + desk.length) % desk.length;
       if (!hits || hits.has(desk[j])) {
@@ -610,21 +629,24 @@ function run(gl, canvas) {
 
   function resolve(hit) {
     if (!hit) return null;
+    if (hit.kind === 'body') return view === 'cab' ? hit : null;
     if (hit.kind === 'drawer') return { kind: 'drawer', k: hit.index };
     const e = entries[hit.index];
     if (!e || (e.where === 'x' && !(focus && focus.k === e.k))) return null;
     return { kind: 'card', key: e.key, entry: e };
   }
 
-  function interact(hit) {
+  function interact(hit, mouse) {
     if (held) {
       release();
       return;
     }
     if (!hit) {
-      if (view === 'drawer') back();
+      if (view === 'desk') setWide(true);
+      else back();
       return;
     }
+    if (hit.kind === 'body') return;
     if (hit.kind === 'drawer') {
       if (view === 'desk') enter('cab');
       else if (focus && focus.k === hit.k) back();
@@ -640,8 +662,11 @@ function run(gl, canvas) {
         cur = e.slot;
         back();
       } else if (view === 'desk') {
-        if (e.slot !== cur) setCur(e.slot);
-        else hold(e);
+        if (mouse || (!wide && e.slot === cur)) {
+          setCur(e.slot);
+          hold(e);
+        } else setCur(e.slot);
+        setWide(false);
       }
       return;
     }
@@ -671,10 +696,10 @@ function run(gl, canvas) {
 
     if (pointer.moved && !held && !coarse.matches && lit) {
       pointer.moved = false;
-      const h = pointer.on ? resolve(gl.pick(pointer.x, pointer.y)) : null;
+      const r = pointer.on ? resolve(gl.pick(pointer.x, pointer.y)) : null;
+      const h = r && r.kind !== 'body' ? r : null;
       const before = hover ? hover.key || `k${hover.k}` : '';
       hover = h && (h.kind === 'drawer' || h.entry.where !== 'x') && !(h.kind === 'card' && lifted(h.entry)) ? h : null;
-      if (h && h.kind === 'card' && h.entry.where === 'x' && focus && h.entry.k === focus.k && (!hits || hits.has(h.entry.i))) flipTo(h.entry.j);
       const after = hover ? hover.key || `k${hover.k}` : '';
       if (before !== after) dirty = true;
       stage.style.cursor = h ? 'pointer' : '';
@@ -682,6 +707,14 @@ function run(gl, canvas) {
       else if (!focus) peek.hidden = true;
     }
 
+    if (!held && !hits) {
+      const tools = bar.querySelector('.sh3d-tools').getBoundingClientRect();
+      const b = tools.height ? clamp(1 - (2 * (tools.top - 12)) / Math.max(1, canvas.clientHeight), -1, 0) : -1;
+      if (Math.abs(b - bottom) > 0.01) bottom = b;
+      const nav = document.querySelector('.nav');
+      const n = nav ? clamp(1 - (2 * nav.getBoundingClientRect().bottom) / Math.max(1, canvas.clientHeight), 0, 1) : 1;
+      if (Math.abs(n - top) > 0.01) top = n;
+    }
     const target = camTarget(aspect);
     if (!cam.pos || reduce.matches) {
       cam.pos = target.pos.slice();
@@ -692,7 +725,10 @@ function run(gl, canvas) {
         cam.look[q] = approach(cam.look[q], target.look[q], dt, 6);
       }
     }
-    if (gap(cam.pos, target.pos) + gap(cam.look, target.look) > 0.1) busy = true;
+    if (gap(cam.pos, target.pos) + gap(cam.look, target.look) > 0.1) {
+      busy = true;
+      pointer.moved = true;
+    }
 
     const wantDesk = FADE.desk[s] || 0;
     const wantCab = FADE.cab[s] || 0;
@@ -777,7 +813,7 @@ function run(gl, canvas) {
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
-    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'desk' ? `${cur + 1} / ${desk.length}` : s === 'held' ? (() => {
+    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'desk' && !wide ? `${cur + 1} / ${desk.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
       return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}`;
     })() : '';
@@ -983,8 +1019,10 @@ function run(gl, canvas) {
     invalidate();
   });
   let down = null;
+  let downType = 'mouse';
   stage.addEventListener('pointerdown', (e) => {
     swiped = false;
+    downType = e.pointerType;
     down = e.pointerType === 'mouse' ? null : { x: e.clientX, y: e.clientY };
   });
   stage.addEventListener('pointercancel', () => { down = null; });
@@ -993,11 +1031,46 @@ function run(gl, canvas) {
     const dx = e.clientX - down.x;
     const dy = e.clientY - down.y;
     down = null;
+    if (Math.abs(dy) >= SWIPE && Math.abs(dy) > Math.abs(dx) * 1.5) {
+      if (dy > 0 && view === 'desk') enter('cab');
+      else if (dy < 0 && view === 'cab') back();
+      else return;
+      swiped = true;
+      return;
+    }
     if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     swiped = true;
     if (view === 'desk') stepDesk(dx < 0 ? 1 : -1);
     else if (view === 'drawer') flipBy(dx < 0 ? 1 : -1);
   });
+  const wheel = { acc: 0, t: 0, lock: 0 };
+  stage.addEventListener('wheel', (e) => {
+    if (e.ctrlKey) return;
+    e.preventDefault();
+    if (!lit || held || deck || hits) return;
+    const dy = e.deltaY * (e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? canvas.clientHeight : 1);
+    const t0 = performance.now();
+    const quiet = t0 - wheel.t > WHEEL.QUIET;
+    wheel.t = t0;
+    if (quiet) wheel.acc = 0;
+    if (view === 'drawer') {
+      wheel.acc += dy;
+      if (Math.abs(wheel.acc) < WHEEL.STEP) return;
+      flipBy(wheel.acc > 0 ? 1 : -1);
+      wheel.acc = 0;
+      return;
+    }
+    if (!quiet && t0 < wheel.lock) {
+      wheel.lock = t0 + WHEEL.QUIET;
+      return;
+    }
+    wheel.acc += dy;
+    if (Math.abs(wheel.acc) < WHEEL.LEVEL) return;
+    if (wheel.acc < 0 && view === 'desk') enter('cab');
+    else if (wheel.acc > 0 && view === 'cab') back();
+    wheel.acc = 0;
+    wheel.lock = t0 + WHEEL.QUIET;
+  }, { passive: false });
   stage.addEventListener('click', (e) => {
     if (swiped) {
       swiped = false;
@@ -1009,7 +1082,7 @@ function run(gl, canvas) {
     }
     if (!lit || e.detail > 1 || (held && held.phase !== 'dom')) return;
     const r = canvas.getBoundingClientRect();
-    interact(resolve(gl.pick(e.clientX - r.left, e.clientY - r.top)));
+    interact(resolve(gl.pick(e.clientX - r.left, e.clientY - r.top)), downType === 'mouse');
   });
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
@@ -1039,6 +1112,8 @@ function run(gl, canvas) {
     if (view === 'desk') {
       if (key === 'ArrowLeft' || key === 'ArrowRight') stepDesk(key === 'ArrowRight' ? 1 : -1);
       else if (key === 'ArrowUp') enter('cab');
+      else if (key === 'Escape') setWide(true);
+      else if (key === 'Enter' && wide) setWide(false);
       else if (key === 'Enter' && document.activeElement === document.body) {
         const en = entries.find((x) => x.key === `d${desk[cur]}`);
         if (en && (!hits || hits.has(en.i))) hold(en);
