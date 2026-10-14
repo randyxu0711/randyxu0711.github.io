@@ -66,7 +66,6 @@ uniform vec3 uFace;
 uniform vec3 uPaper;
 uniform vec3 uPaperDeep;
 uniform vec3 uInk3;
-uniform vec3 uEdge;
 varying float vPhoto;
 varying float vHero;
 varying vec4 vPhotoTile;
@@ -78,7 +77,7 @@ void main() {
   float hm = step(0.5, vHero);
   float hp = step(1.5, vHero);
   vec3 m = mix(texture2D(uCards, at).rgb * step(0.0001, vTile.z), texture2D(uHeroMask, vUv).rgb, hm);
-  vec3 c = mix(uPaperDeep, uEdge, vHot);
+  vec3 c = uPaperDeep;
   if (f == 4) {
     if (ty < ${IMG.H.toFixed(2)}) {
       float r = ${(IMG.H / CARD.H).toFixed(5)};
@@ -279,6 +278,7 @@ export function createScene(n) {
   const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), solidMat, maxDrawers, solidAttrs);
 
   const tabOwner = [];
+  const tabSlot = [];
   const _m = new THREE.Matrix4();
   const _a = new THREE.Matrix4();
   const _q = new THREE.Quaternion();
@@ -315,7 +315,6 @@ export function createScene(n) {
     const tabColor = tabs.geometry.attributes.iColor;
     const tabTile = tabs.geometry.attributes.iTile;
     const fades = [cards, tabs, stickies].map((mesh) => mesh.geometry.attributes.iFade);
-    const hot = cards.geometry.attributes.iHot;
     const photo = cards.geometry.attributes.iPhoto;
     const photoTile = cards.geometry.attributes.iPhotoTile;
     const hero = cards.geometry.attributes.iHero;
@@ -332,7 +331,6 @@ export function createScene(n) {
       tile.setXYZW(k, t[0], t[1], t[2], t[3]);
       stamp.setXYZ(k, c.stamp[0], c.stamp[1], c.stamp[2]);
       fades[0].setX(k, c.fade || 0);
-      hot.setX(k, c.hot || 0);
       photo.setX(k, c.photo || 0);
       hero.setX(k, c.hero || 0);
       const pt = c.photoTile || [0, 0, 0, 0];
@@ -346,6 +344,7 @@ export function createScene(n) {
         tabTile.setXYZW(nt, tt[0], tt[1], tt[2], tt[3]);
         fades[1].setX(nt, c.fade || 0);
         tabOwner[nt] = k;
+        tabSlot[nt] = j;
         nt++;
       });
       if (c.sticky) {
@@ -358,7 +357,7 @@ export function createScene(n) {
     stickies.count = ns;
     tabs.count = nt;
     paint(stickies, ns, tint.sticky);
-    touch(cards, 'iTile', 'iColor', 'iFade', 'iHot', 'iPhoto', 'iHero', 'iPhotoTile');
+    touch(cards, 'iTile', 'iColor', 'iFade', 'iPhoto', 'iHero', 'iPhotoTile');
     touch(tabs, 'iColor', 'iTile', 'iFade');
     touch(stickies, 'iFade');
   }
@@ -517,7 +516,7 @@ export function createScene(n) {
     if (!best) return null;
     if (best.mesh === body) return { kind: 'body' };
     if (best.mesh === cards) return { kind: 'card', index: best.id };
-    if (best.mesh === tabs) return { kind: 'card', index: tabOwner[best.id] };
+    if (best.mesh === tabs) return { kind: 'card', index: tabOwner[best.id], tab: tabSlot[best.id] };
     return { kind: 'drawer', index: best.id };
   }
 

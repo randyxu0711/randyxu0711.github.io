@@ -131,6 +131,25 @@ export function liftPose(slot, seed, a = BASE) {
   return { x: p.x, y: (CARD.H / 2) * Math.cos(PITCH.DESK) + DESK.GAP, z: p.z + 10, rx: -PITCH.DESK, ry: 0 };
 }
 
+export const TRAIL = { SHOW: 4, GAP: 8, RISE: 3.5, SIDE: 24 };
+
+export function tagged(items, tag) {
+  return items.map((it, i) => (it.g.includes(tag) ? i : -1)).filter((i) => i >= 0);
+}
+
+export function trailPose(hero, d) {
+  if (d === 0) return { x: hero.x, y: hero.y, z: hero.z, rx: hero.rx, ry: 0 };
+  if (d > 0) {
+    const k = Math.min(d, TRAIL.SHOW);
+    return { x: hero.x, y: hero.y + TRAIL.RISE * k, z: hero.z - TRAIL.GAP * k, rx: hero.rx, ry: 0 };
+  }
+  return { x: hero.x - CARD.W - TRAIL.SIDE, y: CARD.T / 2 + 0.1, z: hero.z - CARD.H / 3, rx: -Math.PI / 2, ry: d % 2 ? 0.05 : -0.04 };
+}
+
+export function trailShown(d) {
+  return d >= -1 && d <= TRAIL.SHOW;
+}
+
 const view = (look, dist, pitch, shift) => {
   const up = [0, Math.cos(pitch), -Math.sin(pitch)];
   const s = shift * 2 * TAN * dist;

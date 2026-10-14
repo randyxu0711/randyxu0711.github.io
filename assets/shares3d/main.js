@@ -3,7 +3,7 @@ import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, hueOf,
-  drawerOut, drawerCards, focusDrawer, matches, PULL,
+  drawerOut, drawerCards, focusDrawer, matches, PULL, tagged, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -37,11 +37,12 @@ const TUG = 10;
 const HELD_DIST = 300;
 const FLAT = -Math.PI / 2;
 const SWIPE = 50;
+const TRAIL_OUT = 500;
 const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
-const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35 }, cab: { desk: 0.5, held: 0.35 }, other: 0.5, rest: 0.16 };
+const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 0.92 }, cab: { desk: 0.5, wide: 0.85, held: 0.35, trail: 0.5 }, other: 0.5, rest: 0.16 };
 
 const t = (k, n) => (window.siteI18n ? window.siteI18n.t(k, n) : k);
 const lang = () => (document.documentElement.getAttribute('data-lang') === 'en' ? 'en' : 'zh');
@@ -109,6 +110,8 @@ function run(gl, canvas) {
   let view = 'desk';
   let cur = 0;
   let wide = false;
+  let trail = null;
+  let trailOut = null;
   let bottom = -1;
   let top = 1;
   let slide = null;
@@ -193,12 +196,13 @@ function run(gl, canvas) {
     const out = [...desk];
     if (focus) out.push(...drawers[focus.k].ids);
     if (closing && drawers[closing.k]) out.push(...drawers[closing.k].ids);
+    if (trail) out.push(...trail.ids);
     if (held) out.push(held.entry.i);
     return [...new Set(out)];
   }
 
   function stageName() {
-    return held ? 'held' : view;
+    return held ? 'held' : trail ? 'trail' : view;
   }
 
   function openDrawerIndex() {
@@ -214,6 +218,8 @@ function run(gl, canvas) {
     const out = desk.map((i, slot) => ({ key: `d${i}`, i, where: 'd', slot }));
     const open = [...new Set([focus ? focus.k : -1, closing ? closing.k : -1])].filter((k) => k >= 0);
     open.forEach((k) => drawers[k].ids.forEach((i, j) => out.push({ key: `x${k}:${i}`, i, where: 'x', k, j })));
+    if (trail) trail.ids.forEach((i, j) => out.push({ key: `t${i}`, i, where: 't', j }));
+    if (trailOut) trailOut.ids.filter((i) => !(trail && trail.ids.includes(i))).forEach((i) => out.push({ key: `t${i}`, i, where: 'o' }));
     return out;
   }
 
@@ -222,11 +228,24 @@ function run(gl, canvas) {
   }
 
   function lifted(e) {
-    return view === 'desk' && !wide && e.where === 'd' && e.slot === cur;
+    return view === 'desk' && !wide && !trail && e.where === 'd' && e.slot === cur;
+  }
+
+  function cabPose() {
+    return { x: 0, y: cab.height * 0.6, z: cab.z + 10, q: quat(0, 0) };
+  }
+
+  function heroCard() {
+    return liftPose(cur, items[desk[cur]].i, a);
   }
 
   function targetOf(e) {
     const it = items[e.i];
+    if (e.where === 'o') return cabPose();
+    if (e.where === 't') {
+      const p = trailPose(heroCard(), e.j - trail.at);
+      return { x: p.x, y: p.y, z: p.z, q: quat(p.rx, p.ry) };
+    }
     if (e.where === 'd') {
       if (lifted(e)) {
         const p = liftPose(e.slot, it.i, a);
@@ -244,6 +263,14 @@ function run(gl, canvas) {
 
   function fadeOf(e, matchFade) {
     if (held && held.entry.key === e.key) return 0;
+    if (e.where === 'o') {
+      fading = true;
+      return clamp((now - trailOut.t0) / TRAIL_OUT, 0, 1);
+    }
+    if (e.where === 't') {
+      const d = e.j - trail.at;
+      return Math.max(d === 0 ? 0 : d > 0 ? Math.min(0.1 * d, 0.4) : 0.25, matchFade);
+    }
     let base = e.where === 'x' ? fades.drawers[e.k] || 0 : fades.desk;
     if (e.where === 'd' && view === 'desk' && !wide && !held && e.slot !== cur) base = Math.max(base, FADE.rest);
     return Math.max(base, matchFade);
@@ -259,7 +286,7 @@ function run(gl, canvas) {
   }
 
   function heroOf(e) {
-    if (!lifted(e) || !fontsDone) return 0;
+    if (!(lifted(e) || (e.where === 't' && e.j === trail.at)) || !fontsDone) return 0;
     const img = atlas.image(e.i);
     if (heroStale || hero.item() !== e.i || (img && !hero.hasPhoto())) {
       hero.draw(e.i, items[e.i], img);
@@ -280,7 +307,9 @@ function run(gl, canvas) {
       tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: labels.tagTile(tags.indexOf(g)) })),
       sticky: !!it.n,
       fade: fadeOf(e, hits && !hits.has(e.i) ? MISS : 0),
-      hidden: held && held.entry.key === e.key && held.phase === 'dom',
+      hidden: (held && held.entry.key === e.key && held.phase === 'dom')
+        || (e.where === 'd' && !!trail && trail.ids.includes(e.i))
+        || (e.where === 't' && !trailShown(e.j - trail.at)),
     };
   }
 
@@ -343,6 +372,7 @@ function run(gl, canvas) {
 
   function siblings(e) {
     if (e.where === 'd') return desk.map((i) => entries.find((x) => x.key === `d${i}`));
+    if (e.where === 't') return trail.ids.map((i) => entries.find((x) => x.key === `t${i}`));
     return drawers[e.k].ids.map((i, j) => entries.find((x) => x.where === 'x' && x.k === e.k && x.j === j));
   }
 
@@ -399,6 +429,7 @@ function run(gl, canvas) {
     if (held.pose) poses.set(held.entry.key, held.pose);
     if (focus && held.entry.where === 'x') focus.cur = held.entry.j;
     if (held.entry.where === 'd') cur = held.entry.slot;
+    if (held.entry.where === 't') trail.at = held.entry.j;
     card.step(dir, itemFor(held.entry));
     atlas.want(wanted());
     dirty = true;
@@ -483,7 +514,13 @@ function run(gl, canvas) {
     qEl.blur();
   }
 
-  card.onAction((act) => {
+  card.onAction((act, arg) => {
+    if (act === 'tag') {
+      const i = deck ? deck.ids[deck.at] : held ? held.entry.i : -1;
+      if (deck) clearSearch();
+      if (i >= 0) openTrail(i, arg);
+      return;
+    }
     if (deck) {
       if (act === 'close') clearSearch();
       else if (act === 'prev') deckStep(-1);
@@ -517,6 +554,10 @@ function run(gl, canvas) {
     else if (focus) setFocus(null);
     view = v;
     wide = false;
+    if (trail) {
+      leave(trail.ids);
+      trail = null;
+    }
     entries = buildEntries();
     relink();
     syncGo();
@@ -559,6 +600,68 @@ function run(gl, canvas) {
     }
     show(view === 'drawer' ? 'cab' : 'desk');
     remember(view, -1, false);
+  }
+
+  function leave(ids, keep = []) {
+    const out = [];
+    ids.forEach((i) => {
+      if (keep.includes(i)) return;
+      const p = poses.get(`t${i}`);
+      if (desk.includes(i)) {
+        if (p) poses.set(`d${i}`, p);
+        poses.delete(`t${i}`);
+      } else out.push(i);
+    });
+    trailOut = out.length ? { ids: out, t0: performance.now() } : null;
+  }
+
+  function openTrail(i, tag) {
+    const ids = tagged(items, tag);
+    if (!ids.length) return;
+    release();
+    if (view !== 'desk') {
+      show('desk');
+      remember('desk', -1, false);
+    }
+    wide = false;
+    if (trail) leave(trail.ids, ids);
+    else trailOut = null;
+    ids.forEach((id) => {
+      if (trail && trail.ids.includes(id)) return;
+      const from = poses.get(`d${id}`);
+      poses.set(`t${id}`, from && desk.includes(id) ? from : cabPose());
+    });
+    trail = { tag, ids, at: Math.max(0, ids.indexOf(i)) };
+    peek.hidden = true;
+    hover = null;
+    atlas.want(wanted());
+    entries = buildEntries();
+    relink();
+    pointer.moved = true;
+    dirty = true;
+    invalidate();
+  }
+
+  function closeTrail() {
+    if (!trail) return;
+    release();
+    leave(trail.ids);
+    trail = null;
+    peek.hidden = true;
+    entries = buildEntries();
+    relink();
+    pointer.moved = true;
+    dirty = true;
+    invalidate();
+  }
+
+  function trailTo(j) {
+    const next = clamp(j, 0, trail.ids.length - 1);
+    if (next === trail.at) return;
+    trail.at = next;
+    peek.hidden = true;
+    dirty = true;
+    invalidate();
   }
 
   function setWide(v) {
@@ -634,8 +737,8 @@ function run(gl, canvas) {
     if (hit.kind === 'body') return view === 'cab' ? hit : null;
     if (hit.kind === 'drawer') return { kind: 'drawer', k: hit.index };
     const e = entries[hit.index];
-    if (!e || (e.where === 'x' && !(focus && focus.k === e.k))) return null;
-    return { kind: 'card', key: e.key, entry: e };
+    if (!e || e.where === 'o' || (e.where === 'x' && !(focus && focus.k === e.k))) return null;
+    return { kind: 'card', key: e.key, entry: e, tab: hit.tab };
   }
 
   function interact(hit, mouse) {
@@ -644,7 +747,8 @@ function run(gl, canvas) {
       return;
     }
     if (!hit) {
-      if (view === 'desk') setWide(true);
+      if (trail) closeTrail();
+      else if (view === 'desk') setWide(true);
       else back();
       return;
     }
@@ -659,6 +763,19 @@ function run(gl, canvas) {
       return;
     }
     const e = hit.entry;
+    if (hit.tab !== undefined && (e.where === 'd' || e.where === 't')) {
+      const tag = items[e.i].g[hit.tab];
+      if (tag && !(trail && trail.tag === tag)) {
+        if (e.where === 'd') cur = e.slot;
+        openTrail(e.i, tag);
+        return;
+      }
+    }
+    if (e.where === 't') {
+      if (e.j === trail.at) hold(e);
+      else trailTo(e.j);
+      return;
+    }
     if (e.where === 'd') {
       if (view === 'cab') {
         cur = e.slot;
@@ -733,7 +850,7 @@ function run(gl, canvas) {
     }
 
     const wantDesk = FADE.desk[s] || 0;
-    const wantCab = FADE.cab[s] || 0;
+    const wantCab = (s === 'desk' && wide ? FADE.cab.wide : FADE.cab[s]) || 0;
     if (Math.abs(fades.desk - wantDesk) > 0.002) { fades.desk += (wantDesk - fades.desk) * kf; busy = true; dirty = true; }
     if (Math.abs(fades.cab - wantCab) > 0.002) { fades.cab += (wantCab - fades.cab) * kf; busy = true; dirty = true; }
     drawers.forEach((d, i) => {
@@ -743,6 +860,12 @@ function run(gl, canvas) {
       const out = focus && focus.k === i ? PULL : hover && hover.kind === 'drawer' && hover.k === i ? TUG : 0;
       if (Math.abs(fronts[i] - out) > 0.05) { fronts[i] = reduce.matches ? out : approach(fronts[i], out, dt, 9); busy = true; dirty = true; }
     });
+    if (trailOut && now - trailOut.t0 > TRAIL_OUT + 100) {
+      trailOut = null;
+      entries = buildEntries();
+      relink();
+      dirty = true;
+    }
     if (closing && fronts[closing.k] < 1) {
       closing = null;
       entries = buildEntries();
@@ -815,7 +938,7 @@ function run(gl, canvas) {
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
     bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
-    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'desk' && !wide ? `${cur + 1} / ${desk.length}` : s === 'held' ? (() => {
+    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'trail' ? `${trail.at + 1} / ${trail.ids.length} · ${trail.tag}` : s === 'desk' && !wide ? `${cur + 1} / ${desk.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
       return `${sibs.indexOf(held.entry) + 1} / ${sibs.length}`;
     })() : '';
@@ -1047,7 +1170,8 @@ function run(gl, canvas) {
     }
     if (Math.abs(dx) < SWIPE || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     swiped = true;
-    if (view === 'desk') stepDesk(dx < 0 ? 1 : -1);
+    if (trail) trailTo(trail.at + (dx < 0 ? 1 : -1));
+    else if (view === 'desk') stepDesk(dx < 0 ? 1 : -1);
     else if (view === 'drawer') flipBy(dx < 0 ? 1 : -1);
   });
   const wheel = { acc: 0, t: 0, lock: 0 };
@@ -1060,10 +1184,11 @@ function run(gl, canvas) {
     const quiet = t0 - wheel.t > WHEEL.QUIET;
     wheel.t = t0;
     if (quiet) wheel.acc = 0;
-    if (view === 'drawer') {
+    if (view === 'drawer' || trail) {
       wheel.acc += dy;
       if (Math.abs(wheel.acc) < WHEEL.STEP) return;
-      flipBy(wheel.acc > 0 ? 1 : -1);
+      if (trail) trailTo(trail.at + (wheel.acc > 0 ? 1 : -1));
+      else flipBy(wheel.acc > 0 ? 1 : -1);
       wheel.acc = 0;
       return;
     }
@@ -1126,7 +1251,15 @@ function run(gl, canvas) {
       return;
     }
     const key = e.key;
-    if (view === 'desk') {
+    if (trail) {
+      if (key === 'ArrowLeft' || key === 'ArrowRight') trailTo(trail.at + (key === 'ArrowRight' ? 1 : -1));
+      else if (key === 'Escape' || key === 'ArrowDown') closeTrail();
+      else if (key === 'ArrowUp') enter('cab');
+      else if (key === 'Enter') {
+        const en = entries.find((x) => x.where === 't' && x.j === trail.at);
+        if (en) hold(en);
+      } else return;
+    } else if (view === 'desk') {
       if (key === 'ArrowLeft' || key === 'ArrowRight') stepDesk(key === 'ArrowRight' ? 1 : -1);
       else if (key === 'ArrowUp') enter('cab');
       else if (key === 'Escape') setWide(true);

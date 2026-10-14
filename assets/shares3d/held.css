@@ -52,7 +52,8 @@
 }
 .h-num { margin-left: auto; }
 .h-tabs { position: absolute; bottom: 100%; right: calc(6 * var(--mm)); display: flex; gap: calc(2.5 * var(--mm)); }
-.h-tabs span {
+.h-tabs button {
+  appearance: none; border: 0; padding: 0; cursor: pointer;
   width: calc(30 * var(--mm)); height: calc(8 * var(--mm)); display: grid; place-items: center; overflow: hidden; white-space: nowrap;
   background: var(--c); border-radius: calc(1.2 * var(--mm)) calc(1.2 * var(--mm)) 0 0;
   font: 700 calc(3.6 * var(--mm)) / 1 var(--font-ui); color: var(--ink);

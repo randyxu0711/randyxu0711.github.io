@@ -119,6 +119,7 @@ function drawPhoto(g, img) {
   let sh = img.naturalHeight;
   if (r > want) sw = sh * want;
   else sh = sw / want;
+  g.clearRect(0, 0, CW, IH);
   g.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, 0, 0, CW, IH);
 }
 

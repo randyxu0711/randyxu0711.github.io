@@ -53,7 +53,7 @@ export function createHeld(t) {
   let backLabel = null;
   let backAlso = null;
   let opener = null;
-  const act = (a) => listener(a);
+  const act = (a, arg) => listener(a, arg);
 
   function applyLabels() {
     prevBtn.setAttribute('aria-label', t('shares3d.prev'));
@@ -74,9 +74,11 @@ export function createHeld(t) {
     front.replaceChildren();
     const tabs = el('div', 'h-tabs');
     item.tabs.forEach((tab) => {
-      const s = el('span', null, tab.name);
-      s.style.setProperty('--c', tab.css);
-      tabs.append(s);
+      const b = el('button', null, tab.name);
+      b.type = 'button';
+      b.style.setProperty('--c', tab.css);
+      b.addEventListener('click', () => act('tag', tab.name));
+      tabs.append(b);
     });
     const photo = el('figure', 'h-photo');
     photo.append(el('span', null, name));
@@ -129,7 +131,7 @@ export function createHeld(t) {
 
   function recolor(stampCss, tabs) {
     card.style.setProperty('--stamp', stampCss);
-    front.querySelectorAll('.h-tabs span').forEach((sp, k) => { if (tabs[k]) sp.style.setProperty('--c', tabs[k].css); });
+    front.querySelectorAll('.h-tabs button').forEach((sp, k) => { if (tabs[k]) sp.style.setProperty('--c', tabs[k].css); });
   }
 
   function show(focus = true) {
@@ -210,7 +212,7 @@ export function createHeld(t) {
 
   let down = null;
   card.addEventListener('pointerdown', (e) => {
-    if (e.button > 0) return;
+    if (e.button > 0 || e.target.closest('.h-tabs')) return;
     down = { x: e.clientX, y: e.clientY };
   });
   card.addEventListener('pointercancel', () => { down = null; });
@@ -236,7 +238,7 @@ export function createHeld(t) {
 
   document.addEventListener('keydown', (e) => {
     if (shown && e.key === 'Tab') {
-      const stops = [card, ...bar.querySelectorAll('button, a')].filter((n) => !n.hidden);
+      const stops = [card, ...card.querySelectorAll('.h-tabs button'), ...bar.querySelectorAll('button, a')].filter((n) => !n.hidden);
       const i = stops.indexOf(document.activeElement);
       const next = e.shiftKey ? (i <= 0 ? stops.length - 1 : i - 1) : (i < 0 || i === stops.length - 1 ? 0 : i + 1);
       stops[next].focus({ preventScroll: true });
