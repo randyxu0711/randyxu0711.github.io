@@ -6,6 +6,7 @@ body:has(.sh3d.finding) .footer { opacity: 0; visibility: hidden; }
 .sh3d-canvas { position: fixed; top: 0; left: 0; right: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; display: block; }
 .sh3d.on .sh3d-list { position: fixed; inset: 0; overflow: hidden; clip-path: inset(50%); pointer-events: none; white-space: nowrap; }
 html.js .sh3d:not(.on):not(.fail) .sh3d-list { visibility: hidden; }
+html.js .sh3d:not(.fail) .sh3d-list .thumb { display: none; }
 .sh3d-stage { position: fixed; left: 0; right: 0; top: var(--sh3d-top, 0px); bottom: 0; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .main:has(> .sh3d.on) { padding-bottom: 0; }
 html:has(.sh3d.on), body:has(.sh3d.on) { overflow: hidden; overscroll-behavior: none; }

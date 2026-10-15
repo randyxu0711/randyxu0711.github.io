@@ -18,8 +18,8 @@
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
   模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入;模組設 `assets: false` 就不載入)。
   目前的模組:`seen`(已開過)、`archive`(失效改連封存版)、`books`(書單頁);`shelf-filter`(原地篩選)已關掉,分享頁由場景裡的搜尋取代。
-- **字型三種角色**:`--font-display`(宋體,只給內容的名字:姓名、project、書名;小標題用黑體)、`--font-ui`(Inter + 思源黑體)、
-  `--font-code`(JetBrains Mono,程式碼與計數)。規則見 `docs/redesign/SLAB.md`〈字型與配色規則〉。
+- **字型三種角色**:`--font-display`(宋體,只給內容的名字:姓名、project、書名;小標題用黑體)、`--font-ui`(系統黑體)、
+  `--font-code`(系統等寬,程式碼與計數),都用系統字型、不下載(Google Fonts 的中文字型拖慢首次繪製);只有簽名字型自架在 `assets/fonts/`。規則見 `docs/redesign/SLAB.md`〈字型與配色規則〉。
 - **About 頁是捲動敘事**(`_includes/about.html`、`assets/css/about.css`、`assets/js/about.js`):每個 project 左邊是固定的展示台、
   右邊一步一則 `story`。截圖嵌在板子裡(裱框),連續幾步用同一張圖時不換板子,只移動鏡頭(`focus: x y 倍率`);
   程式碼放文字欄的 `.groove`,數字放標題上方的大字,展示台只放真畫面。首頁卡片捲進畫面時「放上桌」、換頁有 View Transition,

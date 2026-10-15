@@ -4,6 +4,7 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 modules: [layout.js, scene.js, textures.js, held.js, hint.js]
 ---
 {%- assign v = site.time | date: '%s' -%}
+<link rel="preconnect" href="https://wsrv.nl" crossorigin>
 <link rel="stylesheet" href="{{ '/assets/scene3d/scene3d.css' | relative_url }}?v={{ v }}">
 <link rel="stylesheet" href="{{ '/assets/shares3d/shares3d.css' | relative_url }}?v={{ v }}">
 <link rel="stylesheet" href="{{ '/assets/shares3d/held.css' | relative_url }}?v={{ v }}">

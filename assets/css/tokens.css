@@ -3,15 +3,21 @@
 /* 桌面與板材的 token。第 1 層數值來自 _config.yml 的 appearance,template 使用者只改那裡。
    設計與數值的來源:docs/redesign/SLAB.md */
 
+@font-face {
+  font-family: "Mrs Saint Delafield";
+  font-display: block;
+  src: url("{{ '/assets/fonts/mrs-saint-delafield-latin.woff2' | relative_url }}") format("woff2");
+}
+
 /* ── 第 1 層:原始值 ── */
 :root {
   --h: {{ site.appearance.hue | default: 72 }};      /* 琥珀色相 */
   --desk-h: 250;                                      /* 桌面偏冷,讓琥珀的側面更明顯 */
 
-  --font-ui: "Inter", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
-  --font-display: "Source Serif 4", "Noto Serif TC", "Songti TC", "PMingLiU", serif;
+  --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", system-ui, sans-serif;
+  --font-display: "Iowan Old Style", Charter, Georgia, "Songti TC", "Noto Serif CJK TC", "PMingLiU", serif;
   --font-sign: "Mrs Saint Delafield";
-  --font-code: "JetBrains Mono", ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
+  --font-code: ui-monospace, "SF Mono", "Cascadia Mono", Consolas, monospace;
 
   --t-xs: 0.78rem; --t-sm: 0.875rem; --t-md: 1rem; --t-lg: 1.2rem; --t-xl: 1.5rem; --t-2xl: 2.1rem;
 
