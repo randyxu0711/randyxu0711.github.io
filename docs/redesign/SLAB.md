@@ -34,12 +34,13 @@
 
 | 角色 | token | 字型 | 用在哪 |
 |---|---|---|---|
-| 內容標題 | `--font-display` | Source Serif 4 + Noto Serif TC,600 | 名字、project 名、書名(書脊、封面備用、封底);小標題不用,中文宋黑混在同一段會像兩種字型打架 |
-| 內文與介面 | `--font-ui` | Inter + Noto Sans TC | 段落、導覽、按鍵、卡片(share 是別人的文章,標題也用這個) |
-| 資料與程式 | `--font-code` | JetBrains Mono | 程式碼、計數(`02 / 05`)、日期、版本號 |
-| 簽名 | `--font-sign` | Mrs Saint Delafield | 只有導覽列的站名 |
+| 內容標題 | `--font-display` | 系統襯線(Iowan / Charter / Georgia)+ 系統宋體(宋體-繁 / 新細明體),600 | 名字、project 名、書名(書脊、封面備用、封底);小標題不用,中文宋黑混在同一段會像兩種字型打架 |
+| 內文與介面 | `--font-ui` | 系統字(San Francisco / Segoe UI)+ 蘋方 / 微軟正黑體 | 段落、導覽、按鍵、保底清單的卡片(3D 剪報卡的標題例外,用 `--font-display` 畫,像報紙標題) |
+| 資料與程式 | `--font-code` | 系統等寬(SF Mono / Cascadia Mono / Consolas) | 程式碼、計數(`02 / 05`)、日期、版本號 |
+| 簽名 | `--font-sign` | Mrs Saint Delafield(自架,`assets/fonts/`) | 只有導覽列的站名 |
 
-- 英文字型排在中文前面:英文字母由 Inter / Source Serif 畫,中文退回思源。
+- 全部用系統字型,不下載(2026-10 PageSpeed:Google Fonts 的中文字型 CSS 170KB、字型檔約 600KB,手機首次繪製被擋 3 秒以上)。
+- 英文字型排在中文前面:英文字母由西文字型畫,中文退回系統的中文字型。
 - 一個畫面最多三種字型(簽名不算)。宋體只給「內容的名字」,不用在介面與長段落。
 - 數字一律 `tabular-nums`;大的數字(About 的 `83.6s → 20.3s`)用 `--font-ui` 粗體,不用等寬。
 - 配色三層:冷色桌面 → 暖中性板材 → 琥珀訊號。不新增語意色(沒有成功綠、錯誤紅);
