@@ -19,11 +19,21 @@
 
 .as-row { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 1.5rem; margin-bottom: 5rem; align-items: start; }
 .as-row:last-child { margin-bottom: 0; }
+.as-row { scroll-margin-top: var(--stick); }
+.as-sheet-tabs { position: absolute; bottom: 100%; right: clamp(1rem, 4vw, 2.5rem); display: flex; gap: 0.35rem; }
+.as-sheet-tabs a {
+  padding: 0.45rem 1.1rem 0.4rem; border-radius: 6px 6px 0 0; font-size: var(--t-xs); font-weight: 700; color: var(--unlit); text-decoration: none;
+  background: var(--c); transform: translateY(3px); transition: transform 200ms cubic-bezier(.2,.7,.2,1);
+}
+.as-sheet-tabs a:nth-child(1) { --c: var(--tag-6); }
+.as-sheet-tabs a:nth-child(2) { --c: var(--tag-3); }
+.as-sheet-tabs a:nth-child(3) { --c: var(--tag-8); }
+.as-sheet-tabs a:hover, .as-sheet-tabs a:focus-visible { transform: translateY(0); }
 .as-h { margin: 0; font-size: var(--t-sm); font-weight: 700; color: var(--ink-3); letter-spacing: 0.04em; position: sticky; top: var(--stick); }
 .as-content { display: grid; gap: 1.5rem; max-width: 46rem; min-width: 0; }
 
 .as-sheet {
-  margin-bottom: 8rem; padding: clamp(1.5rem, 5vw, 3.5rem);
+  position: relative; margin: 2.5rem 0 8rem; padding: clamp(1.5rem, 5vw, 3.5rem);
   background: var(--face); border-radius: 6px;
   box-shadow: inset 0 1.5px 0 var(--spec), inset 0 0 0 1px var(--line), 0 2px 6px var(--drop-near), 0 30px 60px -30px var(--drop-far);
 }
@@ -96,7 +106,9 @@
 .as-now > .as-h { position: static; margin-bottom: 1.5rem; }
 .as-now-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
 .as-now h3 { margin: 0 0 1rem; font-size: var(--t-sm); font-weight: 700; color: var(--ink-2); }
-.as-note { padding: 1.5rem 1.6rem 1.75rem; background: var(--sticky); color: var(--unlit); transform: rotate(-0.8deg); box-shadow: 0 2px 6px var(--drop-near), 0 18px 30px -18px var(--drop-far); }
+.as-note { position: relative; padding: 1.75rem 1.6rem 1.75rem; background: color-mix(in srgb, var(--sticky) 85%, var(--desk)); color: var(--unlit); box-shadow: 0 2px 6px var(--drop-near), 0 18px 30px -18px var(--drop-far); }
+.as-note::before { content: ""; position: absolute; top: -0.65rem; left: 50%; width: 6.5rem; height: 1.4rem; transform: translateX(-50%) rotate(-2deg);
+  background: color-mix(in srgb, var(--paper) 55%, transparent); box-shadow: 0 1px 2px var(--drop-near); }
 .as-note h3, .as-note strong, .as-note p { color: var(--unlit); }
 .as-note ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
 .as-note strong { display: block; font-size: var(--t-md); line-height: 1.45; }
@@ -142,6 +154,8 @@
   html.js .as-item[data-in]:not(.in) { opacity: 0.2; transform: none; }
 
   @supports (animation-timeline: view()) {
+    .as-cover, .as-sheet, .as-now-grid > * { animation: slab-place linear both; animation-timeline: view(); animation-range: entry 5% entry 85%; }
+
     .as-tl { view-timeline: --tl; }
     .as-tl-fill { animation: as-grow linear both; animation-timeline: --tl; animation-range: cover 50vh cover calc(100% - 50vh); }
     @keyframes as-grow { to { transform: scaleY(1); } }

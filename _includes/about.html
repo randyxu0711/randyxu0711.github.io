@@ -66,8 +66,13 @@
 {%- endif %}
 
 <div class="as-sheet">
+  <nav class="as-sheet-tabs">
+    {%- if pf.experience.size > 0 %}<a href="#experience-{{ L }}">{{ pf.headings.experience[L] }}</a>{% endif %}
+    {%- if pf.skills.size > 0 %}<a href="#skills-{{ L }}">{{ pf.headings.skills[L] }}</a>{% endif %}
+    {%- if pf.education.size > 0 %}<a href="#education-{{ L }}">{{ pf.headings.education[L] }}</a>{% endif %}
+  </nav>
 {%- if pf.experience.size > 0 %}
-<section class="as-row">
+<section class="as-row" id="experience-{{ L }}">
   <h2 class="as-h">{{ pf.headings.experience[L] }}</h2>
   <div class="as-content as-tl">
     <span class="as-tl-fill" aria-hidden="true"></span>
@@ -92,7 +97,7 @@
 {%- endif %}
 
 {%- if pf.skills.size > 0 %}
-<section class="as-row">
+<section class="as-row" id="skills-{{ L }}">
   <h2 class="as-h">{{ pf.headings.skills[L] }}</h2>
   <div class="as-content"><dl class="skills">
     {%- for s in pf.skills %}
@@ -105,7 +110,7 @@
 {%- endif %}
 
 {%- if pf.education.size > 0 %}
-<section class="as-row">
+<section class="as-row" id="education-{{ L }}">
   <h2 class="as-h">{{ pf.headings.education[L] }}</h2>
   <div class="as-content">
     {%- for ed in pf.education %}
@@ -120,7 +125,7 @@
   <h2 class="as-h">{{ pf.headings.now[L] }}</h2>
   <div class="as-now-grid">
     {%- if pf.exploring.size > 0 %}
-    <div class="as-note" data-in>
+    <div class="as-note">
       <h3>{{ pf.headings.exploring[L] }}</h3>
       <ol>
         {%- for x in pf.exploring %}
@@ -130,7 +135,7 @@
     </div>
     {%- endif %}
     {%- if site.posts.size > 0 %}
-    <div class="as-list" data-in>
+    <div class="as-list">
       <h3>{{ pf.headings.shares[L] }}</h3>
       <ul>
         {%- for p in site.posts limit: 3 %}
@@ -146,7 +151,7 @@
     {%- endif %}
     {%- assign read = site.data.books | where_exp: "b", "b.read" | sort: "read" | reverse %}
     {%- if site.modules.books and read.size > 0 %}
-    <div class="as-list" data-in>
+    <div class="as-list">
       <h3>{{ pf.headings.books[L] }}</h3>
       <ul>
         {%- for b in read limit: 3 %}
