@@ -11,7 +11,7 @@
       {%- for para in pf.intro[L] %}
       <p class="as-bio">{{ para }}</p>
       {%- endfor %}
-      <p class="as-contact"><a href="mailto:{{ site.author.email }}">{{ site.author.email }}</a><a href="https://github.com/{{ site.github.username }}" target="_blank" rel="noopener">GitHub ↗</a></p>
+      <p class="as-contact"><a href="mailto:{{ site.author.email }}">{{ site.author.email }}</a><a href="https://github.com/{{ site.github.username }}" target="_blank" rel="noopener">GitHub ↗</a>{% if pf.goodreads %}<a href="{{ pf.goodreads }}" target="_blank" rel="noopener">Goodreads ↗</a>{% endif %}</p>
     </div>
   </div>
 </header>
@@ -159,7 +159,7 @@
         <li><a href="{{ '/books/' | relative_url }}">{% if L == 'zh' and zh.title %}{{ zh.title }}{% else %}{{ b.title }}{% endif %}</a><small>{% if L == 'zh' and zh.author %}{{ zh.author }}{% else %}{{ b.author }}{% endif %}</small></li>
         {%- endfor %}
       </ul>
-      <p class="as-more"><a class="as-all" href="{{ '/books/' | relative_url }}">{{ pf.headings.all[L] }} →</a>{% if pf.goodreads %}<a class="as-all" href="{{ pf.goodreads }}" target="_blank" rel="noopener">Goodreads ↗</a>{% endif %}</p>
+      <a class="as-all" href="{{ '/books/' | relative_url }}">{{ pf.headings.all[L] }} →</a>
     </div>
     {%- endif %}
   </div>

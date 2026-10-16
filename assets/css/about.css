@@ -121,7 +121,6 @@
 .as-list li a:hover { text-decoration: underline; }
 .as-list small, .as-all { font-size: var(--t-xs); color: var(--ink-3); }
 .as-list small { font-family: var(--font-code); }
-.as-more { margin: 0; display: flex; gap: 1.25rem; }
 
 @media (max-width: 860px) {
   .as-row { grid-template-columns: 1fr; gap: 1rem; margin-bottom: 4rem; }
