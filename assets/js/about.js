@@ -5,6 +5,32 @@
   setNav();
   window.addEventListener('resize', setNav);
 
+  document.querySelectorAll('.as-rail').forEach(function (rail) {
+    var links = [].slice.call(rail.querySelectorAll('a'));
+    var secs = links.map(function (a) { return document.getElementById(a.getAttribute('data-rail')); });
+    var tops = [];
+    var measure = function () {
+      var max = document.documentElement.scrollHeight - innerHeight;
+      tops = secs.map(function (el) { return el ? el.getBoundingClientRect().top + scrollY : 0; });
+      links.forEach(function (a, i) { a.style.setProperty('--at', Math.min(100, Math.max(0, tops[i] / max * 100)) + '%'); });
+      update();
+    };
+    var update = function () {
+      var max = document.documentElement.scrollHeight - innerHeight;
+      rail.style.setProperty('--p', max > 0 ? Math.min(1, scrollY / max) : 0);
+      var line = scrollY + innerHeight * 0.4, cur = -1;
+      tops.forEach(function (t, i) { if (t <= line) cur = i; });
+      links.forEach(function (a, i) { a.classList.toggle('on', i === cur); a.classList.toggle('past', i < cur); });
+    };
+    rail.hidden = false;
+    measure();
+    addEventListener('scroll', update, { passive: true });
+    addEventListener('resize', measure);
+    addEventListener('load', measure);
+    document.addEventListener('langchange', measure);
+    if ('ResizeObserver' in window) new ResizeObserver(measure).observe(document.body);
+  });
+
   if (!('IntersectionObserver' in window)) {
     document.querySelectorAll('[data-in]').forEach(function (el) { el.classList.add('in'); });
     return;

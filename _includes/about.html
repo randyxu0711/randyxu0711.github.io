@@ -1,6 +1,12 @@
 {%- assign pf = site.data.profile -%}
 {%- assign L = include.lang -%}
 <div class="as lang-{{ L }}" lang="{% if L == 'en' %}en{% else %}zh-Hant{% endif %}">
+<nav class="as-rail" hidden>
+  <span class="as-rail-fill" aria-hidden="true"></span>
+  {%- if site.data.projects.size > 0 %}<a href="#projects-{{ L }}" data-rail="projects-{{ L }}">{{ pf.headings.projects[L] }}</a>{% endif %}
+  <a href="#resume-{{ L }}" data-rail="resume-{{ L }}">{{ pf.headings.resume[L] }}</a>
+  <a href="#now-{{ L }}" data-rail="now-{{ L }}">{{ pf.headings.now[L] }}</a>
+</nav>
 <header class="as-cover">
   <div class="as-card">
     <svg class="as-seal" viewBox="0 0 32 32" aria-hidden="true"><path fill-rule="evenodd" d="M5.5 2.5h21a3 3 0 0 1 3 3v21a3 3 0 0 1-3 3h-21a3 3 0 0 1-3-3v-21a3 3 0 0 1 3-3z M8.14 8.44 10.28 8.65C10.31 10.95 10.31 13.22 10.31 15.52V16.61C10.31 18.93 10.31 21.23 10.28 23.46L8.14 23.66V24.41H15.7V23.66L13.53 23.46C13.46 21.21 13.46 18.91 13.46 16.54H14.77C16.6 16.54 17.16 17.37 17.54 19.22L18.36 22.58C18.58 24.16 19.55 24.7 21.42 24.7C22.46 24.7 23.07 24.59 23.86 24.41V23.66L21.78 23.53L20.9 19.67C20.48 17.6 19.73 16.47 17.18 16.11C20.52 15.57 21.81 13.86 21.81 11.94C21.81 9.26 19.69 7.7 15.85 7.7H8.14ZM13.53 8.53H15.11C17.57 8.53 18.78 9.77 18.78 12.01C18.78 14.06 17.63 15.75 15.11 15.75H13.46C13.46 13.11 13.46 10.81 13.53 8.53Z"/></svg>
@@ -17,7 +23,7 @@
 </header>
 
 {%- if site.data.projects.size > 0 %}
-<section class="as-projects">
+<section class="as-projects" id="projects-{{ L }}">
   <h2 class="as-h">{{ pf.headings.projects[L] }}</h2>
   {%- for pr in site.data.projects %}
   {%- assign img = pr.image | default: '' -%}
@@ -65,7 +71,7 @@
 </section>
 {%- endif %}
 
-<div class="as-sheet">
+<div class="as-sheet" id="resume-{{ L }}">
   <nav class="as-sheet-tabs">
     {%- if pf.experience.size > 0 %}<a href="#experience-{{ L }}">{{ pf.headings.experience[L] }}</a>{% endif %}
     {%- if pf.skills.size > 0 %}<a href="#skills-{{ L }}">{{ pf.headings.skills[L] }}</a>{% endif %}
@@ -121,7 +127,7 @@
 {%- endif %}
 </div>
 
-<section class="as-now">
+<section class="as-now" id="now-{{ L }}">
   <h2 class="as-h">{{ pf.headings.now[L] }}</h2>
   <div class="as-now-grid">
     {%- if pf.exploring.size > 0 %}

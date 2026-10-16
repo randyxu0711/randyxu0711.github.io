@@ -24,6 +24,7 @@ headings:
   experience: { zh: 經歷, en: Experience }
   skills:     { zh: 技能, en: Skills }
   education:  { zh: 學歷, en: Education }
+  resume:     { zh: 履歷, en: Résumé }
   now:        { zh: 書房近況, en: From the study }
   shares:     { zh: 最近轉發, en: Recently shared }
   books:      { zh: 最近讀完, en: Recently read }
