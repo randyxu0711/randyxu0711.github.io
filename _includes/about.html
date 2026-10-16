@@ -159,7 +159,7 @@
         <li><a href="{{ '/books/' | relative_url }}">{% if L == 'zh' and zh.title %}{{ zh.title }}{% else %}{{ b.title }}{% endif %}</a><small>{% if L == 'zh' and zh.author %}{{ zh.author }}{% else %}{{ b.author }}{% endif %}</small></li>
         {%- endfor %}
       </ul>
-      <a class="as-all" href="{{ '/books/' | relative_url }}">{{ pf.headings.all[L] }} →</a>
+      <p class="as-more"><a class="as-all" href="{{ '/books/' | relative_url }}">{{ pf.headings.all[L] }} →</a>{% if pf.goodreads %}<a class="as-all" href="{{ pf.goodreads }}" target="_blank" rel="noopener">Goodreads ↗</a>{% endif %}</p>
     </div>
     {%- endif %}
   </div>
