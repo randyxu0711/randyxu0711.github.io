@@ -120,7 +120,7 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 
 /* 精選:最厚、表面與側面都是琥珀;橫放,直接顯示心得 / 摘要、日期與 tag */
 .share-card.feature {
-  --th: var(--th-feature); --r: 20px; --face-c: var(--face-amber); --side: var(--edge); --side-2: var(--edge-deep);
+  --th: var(--th-feature); --r: 20px; --face-c: var(--face-sig); --side: var(--edge); --side-2: var(--edge-deep);
   grid-template-rows: none; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
 }
 .share-card.feature .shot { aspect-ratio: auto; min-height: 17rem; }

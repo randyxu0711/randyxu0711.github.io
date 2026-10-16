@@ -22,7 +22,15 @@ export function mainName(host) {
   return p[Math.max(0, p.length - 2)] || String(host);
 }
 
-export const hueOf = (s) => hash(s) % 360;
+export const TAGS = 8;
+export const tagOf = (s) => (hash(s) % TAGS) + 1;
+
+export function tagSlots(items) {
+  const n = new Map();
+  items.forEach((it) => it.g.forEach((g) => n.set(g, (n.get(g) || 0) + 1)));
+  const order = [...n.keys()].sort((a, b) => n.get(b) - n.get(a) || (a < b ? -1 : 1));
+  return new Map(order.map((g, i) => [g, (i % TAGS) + 1]));
+}
 
 export function seeded(seed) {
   let a = seed >>> 0;

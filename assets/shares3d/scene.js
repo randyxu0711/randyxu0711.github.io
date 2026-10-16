@@ -478,7 +478,7 @@ export function createScene(n) {
     paint(body, body.count, tint.body);
     paint(stickies, stickies.count, tint.sticky);
     paint(tray, tray.count, tint.handle);
-    common.uLampColor.value.setRGB(t.edge[0], t.edge[1], t.edge[2]).lerp(new THREE.Color(1, 1, 1), 0.45);
+    common.uLampColor.value.setRGB(t.lamp[0], t.lamp[1], t.lamp[2]);
     unlitColor.setRGB(t.unlit[0], t.unlit[1], t.unlit[2]);
     colors.uUnlit.value.set(unlitColor.r, unlitColor.g, unlitColor.b, view.unlit);
     applyClear();
