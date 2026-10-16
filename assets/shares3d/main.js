@@ -1,8 +1,8 @@
-import { readTokens, rgba, watchTheme } from 'scene3d/colors.js';
+import { readTokens, watchTheme } from 'scene3d/colors.js';
 import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
-  CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, hueOf,
+  CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
   drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
@@ -27,7 +27,7 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
 const GROUP_KEY = 'shares3d-group';
 const MODES = ['tag', 'source', 'year'];
-const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit'];
+const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit', 'lamp', 'tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5', 'tag-6', 'tag-7', 'tag-8'];
 const SEEN_KEY = 'seen-links';
 const MISS = 0.6;
 const SLIDE = 380;
@@ -96,6 +96,7 @@ function run(gl, canvas) {
   } catch (e) {}
   const desk = recent(items);
   const tags = [...new Set(items.flatMap((it) => it.g))].sort();
+  const slots = tagSlots(items);
   let drawers = groups(items, mode);
   const isNarrow = () => canvas.clientWidth / Math.max(1, canvas.clientHeight) < 1;
   let narrow = isNarrow();
@@ -168,9 +169,10 @@ function run(gl, canvas) {
   function tint(kind, key) {
     const id = kind + key;
     if (!tints.has(id)) {
-      const h = hueOf(key);
-      const css = kind === 'stamp' ? (dark ? `oklch(0.74 0.1 ${h})` : `oklch(0.5 0.13 ${h})`) : (dark ? `oklch(0.56 0.1 ${h})` : `oklch(0.78 0.11 ${h})`);
-      tints.set(id, { css, rgb: rgba(css).slice(0, 3) });
+      tokens = tokens || readTokens(TOKENS);
+      const c = tokens['tag-' + (slots.get(key) || tagOf(key))];
+      const rgb = kind === 'stamp' ? c.slice(0, 3).map((v, i) => v * 0.7 + tokens.ink[i] * 0.3) : c.slice(0, 3);
+      tints.set(id, { css: `rgb(${rgb.map((v) => Math.round(v * 255)).join(' ')})`, rgb });
     }
     return tints.get(id);
   }

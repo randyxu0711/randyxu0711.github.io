@@ -430,7 +430,7 @@ export function createScene(books, dims) {
     desk.setRGB(...t.desk);
     unlit.setRGB(...t.unlit);
     setUnlit(colors.uUnlit.value.w);
-    common.uLampColor.value.setRGB(...t.edge).lerp(new THREE.Color(1, 1, 1), 0.45);
+    common.uLampColor.value.setRGB(...t.lamp);
   }
 
   function setSketch(r) {

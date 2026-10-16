@@ -11,9 +11,6 @@
 
 /* ── 第 1 層:原始值 ── */
 :root {
-  --h: {{ site.appearance.hue | default: 72 }};      /* 琥珀色相 */
-  --desk-h: 250;                                      /* 桌面偏冷,讓琥珀的側面更明顯 */
-
   --font-ui: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Microsoft JhengHei", "Noto Sans CJK TC", system-ui, sans-serif;
   --font-display: "Iowan Old Style", Charter, Georgia, "Songti TC", "Noto Serif CJK TC", "PMingLiU", serif;
   --font-sign: "Mrs Saint Delafield";
@@ -26,70 +23,72 @@
   --th-key: 2px;
 }
 
-/* ── 第 2 層:語意 token(晝) ── */
+/* ── 第 2 層:語意 token(晝) ──
+   配色:和田三造《配色事典》#249(Hay's Russet + Ecru + Olive Ocher + Dark Medici Blue)
+   夜:#113 Vandyke Brown 的皮革棕;比較樣本 docs/redesign/mockups/palette.html */
 :root {
-  --desk:         oklch(0.925 0.007 var(--desk-h));   /* 桌面 */
-  --desk-2:       oklch(0.89 0.009 var(--desk-h));    /* 刻進桌面的凹槽 */
-  --face:         oklch(0.985 0.004 85);              /* 板材表面 */
-  --face-amber:   oklch(0.955 0.045 80);              /* 精選卡、按下的鍵 */
-  --edge:         oklch(0.76 0.13 var(--h));          /* 琥珀側面 */
-  --edge-deep:    oklch(0.6 0.12 62);
-  --edge-n:       oklch(0.83 0.018 75);               /* 平常的側面:暖中性 */
-  --edge-n-deep:  oklch(0.71 0.022 70);
-  --shelf:        oklch(0.86 0.012 75);               /* 書架層板:比板材暗,白色太亮 */
-  --paper:        oklch(0.94 0.025 85);               /* 書口 */
-  --paper-deep:   oklch(0.82 0.03 80);
-  --ink:          oklch(0.15 0.01 70);
-  --ink-2:        oklch(0.27 0.012 70);
-  --ink-3:        oklch(0.38 0.012 70);               /* 文字一律接近黑色,層次靠字級與粗細 */
-  --accent:       oklch(0.47 0.12 65);                /* 當成文字用的琥珀 */
-  --line:         oklch(0.45 0.03 70 / 0.14);
-  --spec:         oklch(1 0 0 / 0.95);                /* 上緣反光 */
-  --sheen:        oklch(1 0 0 / 0.55);                /* 跟著游標的光澤 */
-  --drop-near:    oklch(0.25 0.03 var(--desk-h) / 0.24);
-  --drop-far:     oklch(0.25 0.03 var(--desk-h) / 0.22);
-  --unlit:        oklch(0.14 0.012 var(--desk-h));
-  --rule:         oklch(0.86 0.035 240);
-  --redline:      oklch(0.68 0.13 25);
-  --sticky:       oklch(0.94 0.075 100);
+  --desk:         #e9dfcb;                 /* 桌面:Ecru 奶油 */
+  --desk-2:       #ddd1b9;                 /* 刻進桌面的凹槽 */
+  --face:         #f7f0e1;                 /* 板材表面 */
+  --face-sig:   #efdcd6;                 /* 精選卡、按下的鍵 */
+  --edge:         #a8574a;                 /* 訊號側面:Russet */
+  --edge-deep:    #793327;
+  --edge-n:       #cdb999;                 /* 平常的側面、櫃子 */
+  --edge-n-deep:  #a8957a;
+  --shelf:        #c2ae8f;                 /* 書架層板 */
+  --paper:        #f0e6cf;                 /* 書口 */
+  --paper-deep:   #d6c6a6;
+  --ink:          #2a1f19;
+  --ink-2:        #4a3d35;
+  --ink-3:        #5c4f45;                 /* 文字一律接近黑色,層次靠字級與粗細 */
+  --accent:       #793327;                 /* 當成文字用的訊號色 */
+  --line:         rgb(42 31 25 / 0.14);
+  --spec:         rgb(255 255 255 / 0.9);  /* 上緣反光 */
+  --sheen:        rgb(255 255 255 / 0.5);  /* 跟著游標的光澤 */
+  --drop-near:    rgb(60 40 25 / 0.24);
+  --drop-far:     rgb(60 40 25 / 0.2);
+  --unlit:        #0c0806;                 /* 夜間開場的暗幕 */
+  --lamp:         #e6bc8a;                 /* 夜間檯燈 */
+  --rule:         #bcc9cb;
+  --redline:      #a2402f;
+  --sticky:       #ecd791;
+  --tag-1: #c55347; --tag-2: #547076; --tag-3: #d6b43e; --tag-4: #5f7f4f;  /* 標籤:色相與深淺都拉開,依出現次數分配 */
+  --tag-5: #8a5a78; --tag-6: #97acc8; --tag-7: #793327; --tag-8: #c27544;
   color-scheme: light;
 }
 
 /* ── 第 2 層:語意 token(夜) ── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --desk: oklch(0.165 0.008 var(--desk-h)); --desk-2: oklch(0.135 0.008 var(--desk-h));
-    --face: oklch(0.235 0.008 75); --face-amber: oklch(0.28 0.04 70);
-    --edge: oklch(0.6 0.13 66); --edge-deep: oklch(0.4 0.09 60);
-    --edge-n: oklch(0.37 0.012 75); --edge-n-deep: oklch(0.28 0.01 70);
-    --paper: oklch(0.8 0.03 85); --paper-deep: oklch(0.62 0.03 80);
+    --desk: #221812; --desk-2: #1a120d;
+    --face: #30241b; --face-sig: #3d2a1f;
+    --edge: #a8623c; --edge-deep: #6e3a22;
+    --edge-n: #4b3827; --edge-n-deep: #3a2b1f;
+    --paper: #cdbb9c; --paper-deep: #9a8668;
     --shelf: var(--face);
-    --ink: oklch(0.93 0.012 80); --ink-2: oklch(0.72 0.015 80); --ink-3: oklch(0.58 0.012 80);
-    --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
-    --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
-    --drop-near: oklch(0 0 0 / 0.55); --drop-far: oklch(0 0 0 / 0.6); --unlit: oklch(0.05 0.004 var(--desk-h));
-    --rule: oklch(0.33 0.025 240); --redline: oklch(0.55 0.12 25); --sticky: oklch(0.72 0.08 100);
+    --ink: #f0e3cc; --ink-2: #c9b8a0; --ink-3: #a8957d;
+    --accent: #e3a07c; --line: rgb(240 227 204 / 0.08);
+    --spec: rgb(255 230 200 / 0.22); --sheen: rgb(255 210 150 / 0.3);
+    --drop-near: rgb(0 0 0 / 0.55); --drop-far: rgb(0 0 0 / 0.6); --unlit: #0c0806; --lamp: #e6bc8a;
+    --rule: #3e3a33; --redline: #e08a74; --sticky: #c9a95a;
+    --tag-1: #e07a68; --tag-2: #7fa3b3; --tag-3: #e0c25a; --tag-4: #8fae78;
+    --tag-5: #b88aa6; --tag-6: #b4c6de; --tag-7: #b8584a; --tag-8: #e09a62;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --desk: oklch(0.165 0.008 var(--desk-h)); --desk-2: oklch(0.135 0.008 var(--desk-h));
-  --face: oklch(0.235 0.008 75); --face-amber: oklch(0.28 0.04 70);
-  --edge: oklch(0.6 0.13 66); --edge-deep: oklch(0.4 0.09 60);
-  --edge-n: oklch(0.37 0.012 75); --edge-n-deep: oklch(0.28 0.01 70);
-  --paper: oklch(0.8 0.03 85); --paper-deep: oklch(0.62 0.03 80);
+  --desk: #221812; --desk-2: #1a120d;
+  --face: #30241b; --face-sig: #3d2a1f;
+  --edge: #a8623c; --edge-deep: #6e3a22;
+  --edge-n: #4b3827; --edge-n-deep: #3a2b1f;
+  --paper: #cdbb9c; --paper-deep: #9a8668;
   --shelf: var(--face);
-  --ink: oklch(0.93 0.012 80); --ink-2: oklch(0.72 0.015 80); --ink-3: oklch(0.58 0.012 80);
-  --accent: oklch(0.8 0.14 var(--h)); --line: oklch(0.9 0.03 80 / 0.08);
-  --spec: oklch(0.95 0.04 80 / 0.30); --sheen: oklch(0.95 0.08 var(--h) / 0.30);
-  --drop-near: oklch(0 0 0 / 0.55); --drop-far: oklch(0 0 0 / 0.6); --unlit: oklch(0.05 0.004 var(--desk-h));
-  --rule: oklch(0.33 0.025 240); --redline: oklch(0.55 0.12 25); --sticky: oklch(0.72 0.08 100);
+  --ink: #f0e3cc; --ink-2: #c9b8a0; --ink-3: #a8957d;
+  --accent: #e3a07c; --line: rgb(240 227 204 / 0.08);
+  --spec: rgb(255 230 200 / 0.22); --sheen: rgb(255 210 150 / 0.3);
+  --drop-near: rgb(0 0 0 / 0.55); --drop-far: rgb(0 0 0 / 0.6); --unlit: #0c0806; --lamp: #e6bc8a;
+  --rule: #3e3a33; --redline: #e08a74; --sticky: #c9a95a;
+  --tag-1: #e07a68; --tag-2: #7fa3b3; --tag-3: #e0c25a; --tag-4: #8fae78;
+  --tag-5: #b88aa6; --tag-6: #b4c6de; --tag-7: #b8584a; --tag-8: #e09a62;
   color-scheme: dark;
-}
-
-@supports not (color: oklch(0.5 0.1 70)) {
-  :root { --desk: #e6e9ee; --face: #fbfaf8; --face-amber: #f6ead2; --edge: #d9a24a; --edge-deep: #a8742c;
-    --edge-n: #d8d2c8; --edge-n-deep: #b8afa2; --shelf: #d6d0c9; --paper: #f2ebdc; --paper-deep: #d6ccb8;
-    --ink: #0e0a07; --ink-2: #2a2520; --ink-3: #47413c; --accent: #874900; --unlit: #16181c;
-    --rule: #c9d6ea; --redline: #d9534f; --sticky: #f6eaa0; }
 }

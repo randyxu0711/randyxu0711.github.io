@@ -21,7 +21,6 @@ nav:
   - { title: 關於, key: nav.about, url: /about/ }
 
 appearance:
-  hue: 72          # 琥珀色相
   mode: system     # system / light / dark,訪客可再切換
   thickness: 4px   # 一般卡片的厚度(精選 7px、按鍵 2px)
 

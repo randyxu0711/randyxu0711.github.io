@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG,
-  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, hueOf,
+  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots,
 } from 'shares3d/layout.js';
 
 const share = (d, extra = {}) => ({ d, s: 'example.com', g: [], ...extra });
@@ -188,8 +188,16 @@ test('來源主名稱與色相是穩定的', () => {
   assert.equal(mainName('blog.bytebytego.com'), 'bytebytego');
   assert.equal(mainName('github.com'), 'github');
   assert.equal(mainName('localhost'), 'localhost');
-  assert.equal(hueOf('bytebytego'), hueOf('bytebytego'));
-  assert.ok(hueOf('a') >= 0 && hueOf('a') < 360);
+  assert.equal(tagOf('bytebytego'), tagOf('bytebytego'));
+  assert.ok(['a', 'b', 'c', 'Frontend', 'AI/LLM'].every((s) => tagOf(s) >= 1 && tagOf(s) <= 8));
+});
+
+test('tag 依出現次數分色,最常見的幾個不撞色', () => {
+  const items = [{ g: ['B', 'A'] }, { g: ['A', 'C'] }, { g: ['A', 'B'] }, { g: ['D'] }];
+  const s = tagSlots(items);
+  assert.deepEqual([s.get('A'), s.get('B'), s.get('C'), s.get('D')], [1, 2, 3, 4]);
+  const many = Array.from({ length: 10 }, (_, i) => ({ g: ['t' + i] }));
+  assert.equal(new Set([...tagSlots(many).values()]).size, 8);
 });
 
 test('空:分組不出錯', () => {
