@@ -3,19 +3,18 @@
 
 name: Randy Xu
 avatar: /assets/img/avatar.jpg
+goodreads: https://www.goodreads.com/user/show/178569619-randy-xu   # 卷宗封面的聯絡列
 
 role:
   zh: 軟體工程師，探索可驗證的 AI agent 應用
   en: Software engineer exploring verifiable AI agent applications
 
-intro:   # 一段一個重點:你是誰、現在在做什麼、工作之外
+intro:   # 卷宗封面上的自介:你是誰、現在在做什麼、工作之外。細節交給 projects 與經歷,不在這裡重複
   zh:
-    - 我是 Randy，軟體工程師。在 Openfind 的兩年半，負責企業郵件系統 Mail2000 的核心開發：把既有功能轉到共用的後端、讓伺服器出事時由備援機自動接手，也做了雙因素登入，以及讓企業換系統後員工照樣用 Outlook 的同步工具。
-    - 現在專注在 AI agent，關心的是怎麼讓 AI 的輸出可以驗證、可以測試，而不只是看起來對。hyenovel 用兩個隔離的 agent 分析與評論短篇小說，每條論點都要通過程式的原文比對。
+    - 我是 Randy，軟體工程師。在 Openfind 做了兩年半企業郵件系統 Mail2000 的核心開發；現在專注在 AI agent，讓 AI 的輸出可以驗證、可以測試，而不只是看起來對。
     - 工作之外，我讀世界經典文學，偶爾也寫短篇。這個網站收錄我的 projects、值得一讀的技術文章，以及讀過的書。
   en:
-    - I'm Randy, a software engineer. For two and a half years at Openfind I worked on the core of Mail2000, an enterprise email system — moving existing features onto a shared backend, automatic failover to a standby server, two-factor sign-in, and a sync tool that lets employees keep using Outlook after their company switches over.
-    - These days I focus on AI agents, and on making their output verifiable and testable rather than merely plausible. hyenovel has two isolated agents analyze and critique short fiction, and every claim must pass a programmatic check against the original text.
+    - I'm Randy, a software engineer. I spent two and a half years on the core of Mail2000, Openfind's enterprise email system; these days I focus on AI agents, and on making their output verifiable and testable rather than merely plausible.
     - Outside of work I read world classic literature and occasionally write short stories. This site collects my projects, technical articles worth reading, and the books I've read.
 
 # 每一節的小標
@@ -25,32 +24,29 @@ headings:
   experience: { zh: 經歷, en: Experience }
   skills:     { zh: 技能, en: Skills }
   education:  { zh: 學歷, en: Education }
+  resume:     { zh: 履歷, en: Résumé }
+  now:        { zh: 書房近況, en: From the study }
+  shares:     { zh: 最近轉發, en: Recently shared }
+  books:      { zh: 最近讀完, en: Recently read }
+  all:        { zh: 全部, en: All }
 
-exploring:
-  - title:
-      zh: 讓 AI agent 可控、可驗證
-      en: Making AI agents controllable and verifiable
+exploring:   # 書房近況裡的研究方向,一項一句
+  - title: { zh: 讓 AI agent 可控、可驗證, en: Making AI agents controllable and verifiable }
     text:
-      zh: 把 LLM 的判斷和確定性的程式分開：LLM 只輸出符合 schema 的 JSON，由程式驗證格式與引用，沒過就帶著錯誤明細重試；權限用工具白名單加 hook 兩層擋，不只靠模型自律。
-      en: Keep LLM judgment apart from deterministic code. The model only emits JSON that fits a schema; code validates the shape and every citation, and failures go back with the error details for a retry. Permissions are enforced twice — a tool allowlist plus hooks — instead of trusting the model to behave.
-  - title:
-      zh: 用 Claude Agent SDK 打造多 agent 執行框架
-      en: A multi-agent harness on the Claude Agent SDK
+      zh: LLM 只負責判斷；格式、引用與權限交給程式驗證，沒過就帶著錯誤明細重試。
+      en: "The LLM only makes judgment calls; code checks the format, the citations and the permissions, and failures go back with the errors for a retry."
+  - title: { zh: 用 Claude Agent SDK 打造多 agent 執行框架, en: A multi-agent harness on the Claude Agent SDK }
     text:
-      zh: hyenovel 的後端直接用 ClaudeSDKClient 自己做編排：每個 agent 各開一個 client，工具白名單、可寫入的路徑與輪數上限分開設定；流程控制交給確定性的程式，負責派工、跑閘門、遇到服務過載就退避重試。認證走 Claude 訂閱而不是 API key，每一輪的 token 與快取用量都記進帳本，介面上看得到每一篇、每個階段花了多少。
-      en: hyenovel's backend orchestrates agents directly with ClaudeSDKClient. Each agent gets its own client with its own tool allowlist, writable paths and turn limit; deterministic code owns the control flow — dispatching work, running the gates, and backing off when the service is overloaded. It authenticates through a Claude subscription rather than an API key, and every turn's token and cache usage goes into a ledger, so the UI shows what each story and each phase cost.
-  - title:
-      zh: 資訊不完全遊戲的 AI 教練
-      en: An AI coach for imperfect-information games
+      zh: 每個 agent 各有工具白名單、可寫路徑與輪數上限，流程交給確定性的程式，每一輪的用量都記進帳本。
+      en: "Each agent has its own tool allowlist, writable paths and turn limit; deterministic code runs the flow, and every turn's usage goes into a ledger."
+  - title: { zh: 資訊不完全遊戲的 AI 教練, en: An AI coach for imperfect-information games }
     text:
-      zh: 以日本麻將為題，讓 agent 輔助玩家互動討論、學習每一手背後的策略邏輯：在規則之下，哪個選擇的期望收益比較高。程式先重放牌局、逐步核對，再把資訊切成「當下看得到的」與「事後才揭曉的」；負責解說的 agent 只拿得到前者，避免拿結果倒推道理。
-      en: Using Japanese mahjong, an agent helps players discuss and learn the strategy behind each move — which choice has the higher expected value under the rules. Code first replays the game and checks every step, then splits information into what was visible at the time and what was only revealed later; the explaining agent only ever sees the former, so it can't reason backwards from the outcome.
-  - title:
-      zh: Hermes Agent
-      en: Hermes Agent
+      zh: 以日本麻將為題，解說的 agent 只看得到當下可見的資訊，不能拿結果倒推道理。
+      en: "Japanese mahjong as the subject: the explaining agent only sees what was visible at the time, so it can't reason backwards from the outcome."
+  - title: { zh: Hermes Agent, en: Hermes Agent }
     text:
-      zh: 讀過 Hermes Agent 的原始碼，研究它的上下文壓縮、技能系統與自主學習機制，也替它寫了文學分析與故事管理的技能：先用 SQLite 全文檢索，後來改接 MemPalace 的語意記憶與知識圖譜。這是 hyenovel 的前身；後來改用 Claude Agent SDK 的 client 重寫，走 Claude 訂閱，並自己記錄與管理每一輪的用量。
-      en: I read through Hermes Agent's source, covering its context compression, skill system and self-learning, and wrote literary-analysis and story-management skills for it, first on SQLite full-text search and later on MemPalace's semantic memory and knowledge graph. That work was hyenovel's predecessor, which I later rewrote on the Claude Agent SDK client, running on a Claude subscription and tracking the usage of every turn myself.
+      zh: 讀過它的原始碼，替它寫文學分析技能、接 MemPalace 語意記憶與 Spotify 的 MCP server；這是 hyenovel 的前身。
+      en: "Read its source, wrote literary-analysis skills for it on MemPalace's semantic memory, and hooked it up to Spotify's MCP server; it was hyenovel's predecessor."
 
 experience:
   - org:   { zh: Openfind 網擎資訊, en: Openfind }
@@ -73,14 +69,14 @@ experience:
         - "**Seamless migration**: Built the Outlook sync tool. After a company moves to Mail2000, employees keep using Outlook for mail, calendars and contacts."
 
 skills:
-  - name:  { zh: AI, en: AI }
-    items:
-      zh: [Claude Agent SDK, 多 agent 工作流程, 上下文管理, 輸出驗證]
-      en: [Claude Agent SDK, Multi-agent workflows, Context management, Output verification]
-  - name:  { zh: 後端 / 全端, en: Backend / full-stack }
-    items: [Python, FastAPI, React, TypeScript, C, C#, PostgreSQL]
+  - name:  { zh: LLM / Agents, en: LLM / Agents }
+    items: [Claude Agent SDK, Tool use & hooks, Structured output (JSON Schema), Evals & validation gates, MCP, "RAG (SQLite FTS, MemPalace)", Token / cost tracking]
+  - name:  { zh: 後端, en: Backend }
+    items: [Python, FastAPI, PostgreSQL, C, C#, Perl]
+  - name:  { zh: 前端, en: Frontend }
+    items: [React, TypeScript]
   - name:  { zh: 維運, en: Ops }
-    items: [Linux, Docker, Shell, Perl, GitHub Actions]
+    items: [Linux, Git, Docker, Shell, GitHub Actions]
 
 education:
   - school: { zh: 國立政治大學 資訊科學系, en: "B.S. in Computer Science, National Chengchi University" }

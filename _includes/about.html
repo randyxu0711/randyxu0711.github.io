@@ -1,36 +1,29 @@
 {%- assign pf = site.data.profile -%}
 {%- assign L = include.lang -%}
 <div class="as lang-{{ L }}" lang="{% if L == 'en' %}en{% else %}zh-Hant{% endif %}">
-<header class="as-hero">
-  <div class="as-hero-in">
+<nav class="as-rail" hidden>
+  <span class="as-rail-fill" aria-hidden="true"></span>
+  {%- if site.data.projects.size > 0 %}<a href="#projects-{{ L }}" data-rail="projects-{{ L }}">{{ pf.headings.projects[L] }}</a>{% endif %}
+  <a href="#resume-{{ L }}" data-rail="resume-{{ L }}">{{ pf.headings.resume[L] }}</a>
+  <a href="#now-{{ L }}" data-rail="now-{{ L }}">{{ pf.headings.now[L] }}</a>
+</nav>
+<header class="as-cover">
+  <div class="as-card">
+    <svg class="as-seal" viewBox="0 0 32 32" aria-hidden="true"><path fill-rule="evenodd" d="M5.5 2.5h21a3 3 0 0 1 3 3v21a3 3 0 0 1-3 3h-21a3 3 0 0 1-3-3v-21a3 3 0 0 1 3-3z M8.14 8.44 10.28 8.65C10.31 10.95 10.31 13.22 10.31 15.52V16.61C10.31 18.93 10.31 21.23 10.28 23.46L8.14 23.66V24.41H15.7V23.66L13.53 23.46C13.46 21.21 13.46 18.91 13.46 16.54H14.77C16.6 16.54 17.16 17.37 17.54 19.22L18.36 22.58C18.58 24.16 19.55 24.7 21.42 24.7C22.46 24.7 23.07 24.59 23.86 24.41V23.66L21.78 23.53L20.9 19.67C20.48 17.6 19.73 16.47 17.18 16.11C20.52 15.57 21.81 13.86 21.81 11.94C21.81 9.26 19.69 7.7 15.85 7.7H8.14ZM13.53 8.53H15.11C17.57 8.53 18.78 9.77 18.78 12.01C18.78 14.06 17.63 15.75 15.11 15.75H13.46C13.46 13.11 13.46 10.81 13.53 8.53Z"/></svg>
     <img class="coin" src="{{ pf.avatar | relative_url }}" alt="{{ pf.name }}" width="120" height="120" decoding="async">
-    <div>
+    <div class="as-id">
       <h1>{{ pf.name }}</h1>
       <p class="as-role">{{ pf.role[L] }}</p>
+      {%- for para in pf.intro[L] %}
+      <p class="as-bio">{{ para }}</p>
+      {%- endfor %}
+      <p class="as-contact"><a href="mailto:{{ site.author.email }}">{{ site.author.email }}</a><a href="https://github.com/{{ site.github.username }}" target="_blank" rel="noopener">GitHub ↗</a>{% if pf.goodreads %}<a href="{{ pf.goodreads }}" target="_blank" rel="noopener">Goodreads ↗</a>{% endif %}</p>
     </div>
   </div>
-  <p class="as-cue" aria-hidden="true">{% if L == 'en' %}Scroll{% else %}往下捲{% endif %} ↓</p>
 </header>
 
-<section class="as-intro">
-  {%- for para in pf.intro[L] %}
-  <p>{{ para }}</p>
-  {%- endfor %}
-</section>
-
-{%- if pf.exploring.size > 0 %}
-<section class="as-row">
-  <h2 class="as-h">{{ pf.headings.exploring[L] }}</h2>
-  <ol class="as-content as-now">
-    {%- for x in pf.exploring %}
-    <li data-in><h3>{{ x.title[L] }}</h3><p>{{ x.text[L] }}</p></li>
-    {%- endfor %}
-  </ol>
-</section>
-{%- endif %}
-
 {%- if site.data.projects.size > 0 %}
-<section class="as-projects">
+<section class="as-projects" id="projects-{{ L }}">
   <h2 class="as-h">{{ pf.headings.projects[L] }}</h2>
   {%- for pr in site.data.projects %}
   {%- assign img = pr.image | default: '' -%}
@@ -50,13 +43,15 @@
         {%- endif %}
         {%- endfor %}
       </div>
-      <p class="as-count"><span data-cur>01</span> / {% if total < 10 %}0{% endif %}{{ total }}</p>
+      <div class="as-foot">
+        <p class="as-count"><span data-cur>01</span> / {% if total < 10 %}0{% endif %}{{ total }}</p>
+        <ul class="as-tabs">{% for s in pr.stack %}<li>{{ s | escape }}</li>{% endfor %}</ul>
+      </div>
     </div>
     <div class="as-steps">
       <div class="as-step" data-step="0" data-shot="0">
         <h3>{{ pr.name }}</h3>
         <p>{{ pr.summary[L] }}</p>
-        <div class="as-stack-tags">{% for s in pr.stack %}<span class="tag">{{ s | escape }}</span>{% endfor %}</div>
         <a href="https://github.com/{{ pr.repo }}" target="_blank" rel="noopener">GitHub ↗</a>
       </div>
       {%- assign k = 0 %}{% assign prev = '' %}
@@ -76,8 +71,14 @@
 </section>
 {%- endif %}
 
+<div class="as-sheet" id="resume-{{ L }}">
+  <nav class="as-sheet-tabs">
+    {%- if pf.experience.size > 0 %}<a href="#experience-{{ L }}">{{ pf.headings.experience[L] }}</a>{% endif %}
+    {%- if pf.skills.size > 0 %}<a href="#skills-{{ L }}">{{ pf.headings.skills[L] }}</a>{% endif %}
+    {%- if pf.education.size > 0 %}<a href="#education-{{ L }}">{{ pf.headings.education[L] }}</a>{% endif %}
+  </nav>
 {%- if pf.experience.size > 0 %}
-<section class="as-row">
+<section class="as-row" id="experience-{{ L }}">
   <h2 class="as-h">{{ pf.headings.experience[L] }}</h2>
   <div class="as-content as-tl">
     <span class="as-tl-fill" aria-hidden="true"></span>
@@ -102,20 +103,20 @@
 {%- endif %}
 
 {%- if pf.skills.size > 0 %}
-<section class="as-row">
+<section class="as-row" id="skills-{{ L }}">
   <h2 class="as-h">{{ pf.headings.skills[L] }}</h2>
   <div class="as-content"><dl class="skills">
     {%- for s in pf.skills %}
     {%- assign items = s.items -%}
     {%- if s.items[L] %}{% assign items = s.items[L] %}{% endif %}
-    <dt>{{ s.name[L] }}</dt><dd data-in>{% for it in items %}<span class="key as-key" style="--i:{{ forloop.index0 }}">{{ it }}</span>{% endfor %}</dd>
+    <dt>{{ s.name[L] }}</dt><dd data-in>{% for it in items %}{% assign bits = it | split: " (" %}<span class="as-tool" style="--i:{{ forloop.index0 }}">{{ bits[0] }}{% if bits[1] %}<small>{{ bits[1] | remove: ")" }}</small>{% endif %}</span>{% endfor %}</dd>
     {%- endfor %}
   </dl></div>
 </section>
 {%- endif %}
 
 {%- if pf.education.size > 0 %}
-<section class="as-row">
+<section class="as-row" id="education-{{ L }}">
   <h2 class="as-h">{{ pf.headings.education[L] }}</h2>
   <div class="as-content">
     {%- for ed in pf.education %}
@@ -124,4 +125,49 @@
   </div>
 </section>
 {%- endif %}
+</div>
+
+<section class="as-now" id="now-{{ L }}">
+  <h2 class="as-h">{{ pf.headings.now[L] }}</h2>
+  <div class="as-now-grid">
+    {%- if pf.exploring.size > 0 %}
+    <div class="as-note">
+      <h3>{{ pf.headings.exploring[L] }}</h3>
+      <ol>
+        {%- for x in pf.exploring %}
+        <li><strong>{{ x.title[L] }}</strong><p>{{ x.text[L] }}</p></li>
+        {%- endfor %}
+      </ol>
+    </div>
+    {%- endif %}
+    {%- if site.posts.size > 0 %}
+    <div class="as-list">
+      <h3>{{ pf.headings.shares[L] }}</h3>
+      <ul>
+        {%- for p in site.posts limit: 3 %}
+        {%- capture lc_key %}{{ p.issue }}{% endcapture %}
+        {%- assign lc = site.data.linkcheck[lc_key] %}
+        {%- assign href = p.link %}
+        {%- if site.modules.archive and lc.dead and p.archive %}{% assign href = p.archive %}{% endif %}
+        <li><a href="{{ href | escape }}" target="_blank" rel="noopener">{{ p.title | escape }}</a><small>{{ p.source }}</small></li>
+        {%- endfor %}
+      </ul>
+      <a class="as-all" href="{{ '/' | relative_url }}">{{ pf.headings.all[L] }} →</a>
+    </div>
+    {%- endif %}
+    {%- assign read = site.data.books | where_exp: "b", "b.read" | sort: "read" | reverse %}
+    {%- if site.modules.books and read.size > 0 %}
+    <div class="as-list">
+      <h3>{{ pf.headings.books[L] }}</h3>
+      <ul>
+        {%- for b in read limit: 3 %}
+        {%- assign zh = site.data.books_zh[b.id] %}
+        <li><a href="{{ '/books/' | relative_url }}">{% if L == 'zh' and zh.title %}{{ zh.title }}{% else %}{{ b.title }}{% endif %}</a><small>{% if L == 'zh' and zh.author %}{{ zh.author }}{% else %}{{ b.author }}{% endif %}</small></li>
+        {%- endfor %}
+      </ul>
+      <a class="as-all" href="{{ '/books/' | relative_url }}">{{ pf.headings.all[L] }} →</a>
+    </div>
+    {%- endif %}
+  </div>
+</section>
 </div>

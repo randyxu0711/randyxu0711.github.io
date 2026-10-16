@@ -25,6 +25,9 @@
   右邊一步一則 `story`。截圖嵌在板子裡(裱框),連續幾步用同一張圖時不換板子,只移動鏡頭(`focus: x y 倍率`);
   程式碼放文字欄的 `.groove`,數字放標題上方的大字,展示台只放真畫面。首頁卡片捲進畫面時「放上桌」、換頁有 View Transition,
   都只動 transform / opacity,書架不套(3D 會被壓平)。
+  整頁是「書房主人的卷宗」(求職讀者優先):封面紙板(自介、email / GitHub / Goodreads、白文印)→ Projects → 履歷紙(經歷、技能、學歷,上緣索引標籤)
+  → 書房近況(研究方向便利貼 + 最近轉發 3 篇 + 最近讀完 3 本)。寬螢幕(≥ 85rem)左側有段落捲軸(閱讀進度 + 跳轉),手機不做。
+  技能只寫認得出的工具與業界術語(Tool use、Structured output、MCP、Evals、RAG…),做法交給 project 敘事證明。
 - **版面不寫個人資料**:名字、自介、導覽在 `_config.yml`,projects 在 `_data/projects.yml`,自介全文在 `_tabs/about.md`。
 - 沒有 JS 時卡片與連結照樣能用;模組的控制項先 `hidden`,JS 啟動後才顯示(全站有 `[hidden] { display: none !important }`)。
   控制項加 `data-reserve` 的話,有 JS 時(head 給 `<html>` 加 `.js`)先看不見但佔好位置,啟動時版面不會跳。
