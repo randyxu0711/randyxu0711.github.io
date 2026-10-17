@@ -14,6 +14,8 @@ author:
   email: randy970711@gmail.com
 github:
   username: randyxu0711
+twitter:
+  card: summary      # 分享預覽用方形頭像,不用大圖
 
 nav:
   - { title: 分享, key: nav.shares, url: / }
@@ -44,7 +46,9 @@ collections:              # share 不產生內部頁:見 _plugins/no-post-output
 
 defaults:
   - scope: { path: "", type: tabs }
-    values: { layout: page, permalink: /:title/ }
+    values: { layout: page, permalink: /:title/, image: /assets/img/avatar.jpg }
+  - scope: { path: "", type: pages }
+    values: { image: /assets/img/avatar.jpg }
 
 exclude:
   - docs
