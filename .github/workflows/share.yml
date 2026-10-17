@@ -57,6 +57,8 @@ jobs:
             needs_fix)
               gh label create needs-fix --color d93f0b --description "分享沒發布,要修" --force
               gh issue edit "$N" --add-label needs-fix ;;
+            duplicate)
+              if [ "$STATE" = open ]; then gh issue close "$N" --reason "not planned"; fi ;;
           esac
 
   # GITHUB_TOKEN 的 push 不會觸發 pages-deploy.yml,所以直接呼叫它

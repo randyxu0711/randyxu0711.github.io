@@ -46,7 +46,7 @@ Issue(分享文章表單)
 | --- | --- | --- |
 | 網址 | 是 | 原文連結,需為 `http(s)://` |
 | 心得 | | 有填時取代 og 描述,以引言樣式顯示 |
-| 分類 | | 多選,對應站上 tags;清單只定義在 `.github/ISSUE_TEMPLATE/share.yml` |
+| 分類 | 是 | 至少選一個,可多選,對應站上 tags;清單只定義在 `.github/ISSUE_TEMPLATE/share.yml` |
 | 標題 | | 覆蓋自動抓到的 og:title |
 
 ### Issue 事件與行為
@@ -54,7 +54,8 @@ Issue(分享文章表單)
 | 事件 | 結果 |
 | --- | --- |
 | opened / edited | 抓 og、寫入(或覆蓋)post、部署、留言回報抓到的內容、issue 標題改成文章標題並關閉 |
-| 網址格式錯誤 | 不發布,留言並加上 `needs-fix` label;修正後編輯 issue 即重跑 |
+| 網址格式錯誤 / 沒選分類 | 不發布,留言並加上 `needs-fix` label;修正後編輯 issue 即重跑 |
+| 網址已經分享過 | 不發布,留言指出是哪個 issue,關成 not planned(比對時忽略 www、結尾斜線、`#` 錨點、`utm_*` 等追蹤參數) |
 | og 抓取失敗 | 照常發布,以網址當標題,留言提醒可用「標題」欄位覆蓋 |
 | closed as **not planned** | 撤下該則 post 並重新部署 |
 | closed as completed | 不動作(Action 發布後自己關的) |

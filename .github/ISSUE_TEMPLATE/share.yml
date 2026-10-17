@@ -20,7 +20,7 @@ body:
     id: tags
     attributes:
       label: 分類
-      description: 選填,可多選。要加分類就在這裡加一行。
+      description: 至少選一個,可多選。要加分類就在這裡加一行。
       multiple: true
       options:
         - AI/LLM
@@ -36,6 +36,8 @@ body:
         - Open Source
         - Tooling
         - Career
+    validations:
+      required: true
   - type: input
     id: title
     attributes:
