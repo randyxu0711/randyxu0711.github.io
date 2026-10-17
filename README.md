@@ -1,7 +1,24 @@
 # randyxu0711.github.io
 
-個人頁 + 技術文章轉發站,部署於 <https://randyxu0711.github.io>。
+個人頁 + 技術文章轉發站 + 書單,部署於 <https://randyxu0711.github.io>。
 站上不放原創文章,只轉發他人文章(連結、縮圖、選填心得),credit 屬於原作者。
+
+## 頁面
+
+| 頁面 | 內容 |
+| --- | --- |
+| 分享(首頁) | WebGL 剪報桌:最新 6 張平放在桌上,往上看是依 tag / 來源 / 年份分組的目錄櫃,`/` 搜尋;點卡片開原文 |
+| 書架 | WebGL 3D 書架,書的厚度就是頁數;五種排序,夜間有跟著游標的檯燈 |
+| 關於 | 卷宗式的捲動敘事:自介 → Projects → 履歷 → 書房近況 |
+
+全站可切換中英文與晝夜主題。沒有 JS 或 WebGL 開不起來時,分享與書架都會改顯示一般的 HTML 清單。
+
+## 配色:老書房
+
+![老書房配色:晝夜兩套](docs/redesign/palette.svg)
+
+白天取自和田三造《配色事典》#249(Ecru 奶油 + Hay's Russet 赤褐),夜間是皮革棕。
+赤褐是訊號色,只用在精選卡、游標停留 / 鍵盤聚焦、按下的狀態。數值在 `assets/css/tokens.css`,規則見 [`docs/redesign/SLAB.md`](docs/redesign/SLAB.md)。
 
 ## 架構
 
@@ -11,6 +28,8 @@
 | 建置/部署 | GitHub Actions(`.github/workflows/pages-deploy.yml`);本機用 Docker 建置,不需要 Ruby |
 | 發文 | GitHub Issue Form → `share.yml` workflow → `tools/share/share.py`(純 stdlib) |
 | 資料 | 每則分享一個 `_posts/<date>-share-<issue#>.md`,縮圖 hotlink 不存 repo |
+| 3D 場景 | three.js(`assets/vendor/three/`);首頁 `assets/shares3d/`、書架 `assets/books3d/`,共用零件 `assets/scene3d/`(規格見 `docs/shares-webgl.md`、`docs/books-webgl.md`) |
+| 中英文 | 介面文字在 `_data/i18n.yml`,`assets/js/i18n.js` 切換 |
 
 ```
 Issue(分享文章表單)
@@ -95,13 +114,14 @@ javascript:(()=>{const u='https://github.com/randyxu0711/randyxu0711.github.io/i
 
 ## 開關功能與外觀
 
-- `_config.yml` 的 `modules:` 一行一個功能(篩選、已開過、封存版、書單),註解掉就關掉。
-- `_config.yml` 的 `appearance:` 改主色色相(`hue`,琥珀 = 72)、彩度、預設主題與卡片框厚。
+- `_config.yml` 的 `modules:` 一行一個功能(已開過、封存版、書單),註解掉就關掉。
+- `_config.yml` 的 `appearance:` 改預設主題(`system` / `light` / `dark`)與卡片厚度;顏色在 `assets/css/tokens.css`。
 
 ## 開發
 
 ```bash
-uvx --with pillow pytest tools -q   # 所有 Python 工具的測試(發文、遷移、連結檢查、書單)
+uvx --with pillow --with pyyaml pytest tools -q   # Python 工具的測試(發文、遷移、連結檢查、書單)
+node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/*.test.mjs tools/shares3d/*.test.mjs   # 3D 場景的純函式
 
 # 本機建置 + 檢查連結
 docker run --rm -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -w /srv ruby:3.4 bash -c \
@@ -112,4 +132,4 @@ docker run --rm -p 4000:4000 -v "$PWD":/srv -v jekyll-bundle:/usr/local/bundle -
   "bundle install --quiet && bundle exec jekyll serve -H 0.0.0.0 -l"
 ```
 
-push 到 `tools/**` 時 CI 也會跑同一組測試(`.github/workflows/test.yml`)。設計決策與約束見 [`CLAUDE.md`](CLAUDE.md)。
+push 到 `tools/**`、`assets/scene3d/**`、`assets/shares3d/**` 時 CI 也會跑這兩組測試(`.github/workflows/test.yml`)。設計決策與約束見 [`CLAUDE.md`](CLAUDE.md)。

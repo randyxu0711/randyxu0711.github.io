@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="880" height="500" viewBox="0 0 880 500">
+<rect x="0" y="0" width="880" height="250" fill="#e9dfcb"/>
+<text x="24" y="36" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="18" font-weight="600" fill="#2a1f19">老書房 · 晝</text>
+<text x="24" y="58" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#5c4f45">和田三造《配色事典》#249:Ecru 奶油 + Hay's Russet 赤褐</text>
+<rect x="24" y="76" width="84" height="60" rx="6" fill="#e9dfcb" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="24" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">桌面 Ecru</text>
+<text x="24" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#e9dfcb</text>
+<rect x="118" y="76" width="84" height="60" rx="6" fill="#f7f0e1" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="118" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">板面</text>
+<text x="118" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#f7f0e1</text>
+<rect x="212" y="76" width="84" height="60" rx="6" fill="#efdcd6" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="212" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">精選板面</text>
+<text x="212" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#efdcd6</text>
+<rect x="306" y="76" width="84" height="60" rx="6" fill="#a8574a" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="306" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">訊號 Russet</text>
+<text x="306" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#a8574a</text>
+<rect x="400" y="76" width="84" height="60" rx="6" fill="#cdb999" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="400" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">平常側面</text>
+<text x="400" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#cdb999</text>
+<rect x="494" y="76" width="84" height="60" rx="6" fill="#f0e6cf" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="494" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">書口</text>
+<text x="494" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#f0e6cf</text>
+<rect x="588" y="76" width="84" height="60" rx="6" fill="#2a1f19" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="588" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">墨</text>
+<text x="588" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#2a1f19</text>
+<rect x="682" y="76" width="84" height="60" rx="6" fill="#793327" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="682" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">訊號文字</text>
+<text x="682" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#793327</text>
+<rect x="776" y="76" width="84" height="60" rx="6" fill="#ecd791" stroke="#a8957a" stroke-opacity="0.6"/>
+<text x="776" y="154" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#2a1f19">便利貼</text>
+<text x="776" y="170" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#ecd791</text>
+<text x="24" y="216" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#5c4f45">標籤</text>
+<rect x="68" y="202" width="22" height="18" rx="3" fill="#c55347"/>
+<text x="96" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#c55347</text>
+<rect x="168" y="202" width="22" height="18" rx="3" fill="#547076"/>
+<text x="196" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#547076</text>
+<rect x="268" y="202" width="22" height="18" rx="3" fill="#d6b43e"/>
+<text x="296" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#d6b43e</text>
+<rect x="368" y="202" width="22" height="18" rx="3" fill="#5f7f4f"/>
+<text x="396" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#5f7f4f</text>
+<rect x="468" y="202" width="22" height="18" rx="3" fill="#8a5a78"/>
+<text x="496" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#8a5a78</text>
+<rect x="568" y="202" width="22" height="18" rx="3" fill="#97acc8"/>
+<text x="596" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#97acc8</text>
+<rect x="668" y="202" width="22" height="18" rx="3" fill="#793327"/>
+<text x="696" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#793327</text>
+<rect x="768" y="202" width="22" height="18" rx="3" fill="#c27544"/>
+<text x="796" y="215" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#5c4f45">#c27544</text>
+<rect x="0" y="250" width="880" height="250" fill="#221812"/>
+<text x="24" y="286" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="18" font-weight="600" fill="#f0e3cc">老書房 · 夜</text>
+<text x="24" y="308" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#a8957d">#113 Vandyke Brown 的皮革棕;檯燈之外壓暗</text>
+<rect x="24" y="326" width="84" height="60" rx="6" fill="#221812" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="24" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">桌面</text>
+<text x="24" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#221812</text>
+<rect x="118" y="326" width="84" height="60" rx="6" fill="#30241b" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="118" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">皮革板面</text>
+<text x="118" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#30241b</text>
+<rect x="212" y="326" width="84" height="60" rx="6" fill="#3d2a1f" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="212" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">精選板面</text>
+<text x="212" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#3d2a1f</text>
+<rect x="306" y="326" width="84" height="60" rx="6" fill="#a8623c" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="306" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">訊號側面</text>
+<text x="306" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#a8623c</text>
+<rect x="400" y="326" width="84" height="60" rx="6" fill="#4b3827" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="400" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">平常側面</text>
+<text x="400" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#4b3827</text>
+<rect x="494" y="326" width="84" height="60" rx="6" fill="#cdbb9c" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="494" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">書口</text>
+<text x="494" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#cdbb9c</text>
+<rect x="588" y="326" width="84" height="60" rx="6" fill="#f0e3cc" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="588" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">墨</text>
+<text x="588" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#f0e3cc</text>
+<rect x="682" y="326" width="84" height="60" rx="6" fill="#e3a07c" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="682" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">訊號文字</text>
+<text x="682" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#e3a07c</text>
+<rect x="776" y="326" width="84" height="60" rx="6" fill="#e6bc8a" stroke="#3a2b1f" stroke-opacity="0.6"/>
+<text x="776" y="404" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#f0e3cc">檯燈</text>
+<text x="776" y="420" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#e6bc8a</text>
+<text x="24" y="466" font-family="-apple-system,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC',sans-serif" font-size="12" fill="#a8957d">標籤</text>
+<rect x="68" y="452" width="22" height="18" rx="3" fill="#e07a68"/>
+<text x="96" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#e07a68</text>
+<rect x="168" y="452" width="22" height="18" rx="3" fill="#7fa3b3"/>
+<text x="196" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#7fa3b3</text>
+<rect x="268" y="452" width="22" height="18" rx="3" fill="#e0c25a"/>
+<text x="296" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#e0c25a</text>
+<rect x="368" y="452" width="22" height="18" rx="3" fill="#8fae78"/>
+<text x="396" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#8fae78</text>
+<rect x="468" y="452" width="22" height="18" rx="3" fill="#b88aa6"/>
+<text x="496" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#b88aa6</text>
+<rect x="568" y="452" width="22" height="18" rx="3" fill="#b4c6de"/>
+<text x="596" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#b4c6de</text>
+<rect x="668" y="452" width="22" height="18" rx="3" fill="#b8584a"/>
+<text x="696" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#b8584a</text>
+<rect x="768" y="452" width="22" height="18" rx="3" fill="#e09a62"/>
+<text x="796" y="465" font-family="ui-monospace,'SF Mono',Consolas,monospace" font-size="11" fill="#a8957d">#e09a62</text>
+</svg>
