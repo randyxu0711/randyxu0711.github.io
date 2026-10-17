@@ -2,7 +2,7 @@
 
 用法: python share.py <posts_dir>
 讀 GITHUB_EVENT_PATH;把留言寫到 $RUNNER_TEMP/share-comment.md,
-把 status(published / needs_fix / removed / skip)寫進 GITHUB_OUTPUT。
+把 status(published / needs_fix / duplicate / removed / skip)寫進 GITHUB_OUTPUT。
 """
 
 import json
@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from html.parser import HTMLParser
 from pathlib import Path
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qsl, urlencode, urljoin, urlparse
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Asia/Taipei")
@@ -170,6 +170,30 @@ def post_paths_for_issue(posts_dir, issue_number):
     return sorted(Path(posts_dir).glob(f"*-share-{issue_number}.md"))
 
 
+TRACKING_PARAMS = {"ref", "via", "fbclid", "gclid"}
+
+
+def normalize_url(url):
+    """比對重複用:同一頁的網址常差在 www、結尾斜線、#錨點、追蹤參數。"""
+    p = urlparse(url.strip())
+    query = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True)
+             if not k.lower().startswith("utm_") and k.lower() not in TRACKING_PARAMS]
+    return f"{_domain(url)}{p.path.rstrip('/')}" + (f"?{urlencode(query)}" if query else "")
+
+
+def find_duplicate(posts_dir, url, issue_number):
+    """回傳已經分享過同一個網址的 issue 編號;自己這個 issue 不算。"""
+    key = normalize_url(url)
+    for path in sorted(Path(posts_dir).glob("*-share-*.md")):
+        n = int(path.stem.rsplit("-", 1)[1])
+        if n == issue_number:
+            continue
+        m = re.search(r"^link: (.+)$", path.read_text(encoding="utf-8"), flags=re.M)
+        if m and normalize_url(json.loads(m.group(1))) == key:
+            return n
+    return None
+
+
 @dataclass
 class Result:
     status: str
@@ -196,6 +220,11 @@ def handle(event, posts_dir, fetch=fetch):
     error = validate_url(fields["url"])
     if error:
         return Result("needs_fix", f"沒有發布。{error}\n\n編輯這個 issue 修正後會自動重跑。")
+    if not fields["tags"]:
+        return Result("needs_fix", "沒有發布。至少要選一個分類。\n\n編輯這個 issue 修正後會自動重跑。")
+    dup = find_duplicate(posts_dir, fields["url"], n)
+    if dup is not None:
+        return Result("duplicate", f"沒有發布。這篇在 #{dup} 分享過了。")
 
     meta, fetch_error = fetch(fields["url"])
     name, content = build_post(fields, meta, n, issue["created_at"])

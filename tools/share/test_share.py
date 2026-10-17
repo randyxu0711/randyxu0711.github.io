@@ -215,6 +215,57 @@ def test_handle_ignores_other_events(tmp_path, action, reason):
     assert len(list(tmp_path.iterdir())) == 1
 
 
+def test_handle_without_tags_needs_fix(tmp_path):
+    body = FORM_BODY.replace("AI/LLM, Tooling", "_No response_")
+    r = share.handle(event("opened", body=body), tmp_path, fetch=lambda u: pytest.fail("must not fetch"))
+    assert r.status == "needs_fix"
+    assert "分類" in r.comment
+    assert list(tmp_path.iterdir()) == []
+
+
+# --- 重複網址 -------------------------------------------------------------------
+
+@pytest.mark.parametrize("a, b", [
+    ("https://example.com/post", "https://example.com/post/"),
+    ("https://example.com/post", "https://www.example.com/post"),
+    ("https://example.com/post", "http://example.com/post#intro"),
+    ("https://example.com/post", "https://EXAMPLE.com/post?utm_source=x&utm_medium=y"),
+    ("https://blobatar.dev/?via=dailydev", "https://blobatar.dev"),
+    ("https://a.com/p?id=1&ref=hn", "https://a.com/p?id=1"),
+])
+def test_normalize_url_treats_variants_as_same(a, b):
+    assert share.normalize_url(a) == share.normalize_url(b)
+
+
+@pytest.mark.parametrize("a, b", [
+    ("https://a.com/p?id=1", "https://a.com/p?id=2"),
+    ("https://a.com/Post", "https://a.com/post"),
+    ("https://a.com/p", "https://b.com/p"),
+])
+def test_normalize_url_keeps_different_pages_apart(a, b):
+    assert share.normalize_url(a) != share.normalize_url(b)
+
+
+def _existing(tmp_path, number, link):
+    fields = dict(share.parse_issue_body(FORM_BODY), url=link)
+    name, content = share.build_post(fields, META, number, "2026-10-01T00:00:00Z")
+    (tmp_path / name).write_text(content, encoding="utf-8")
+
+
+def test_handle_duplicate_link_is_not_published(tmp_path):
+    _existing(tmp_path, 3, "https://example.com/post/?utm_source=rss")
+    r = share.handle(event("opened"), tmp_path, fetch=lambda u: pytest.fail("must not fetch"))
+    assert r.status == "duplicate"
+    assert "#3" in r.comment
+    assert [f.name for f in tmp_path.iterdir()] == ["2026-10-01-share-3.md"]
+
+
+def test_handle_edit_of_same_issue_is_not_a_duplicate(tmp_path):
+    _existing(tmp_path, 7, "https://example.com/post")
+    r = share.handle(event("edited"), tmp_path, fetch=lambda u: (META, None))
+    assert r.status == "published"
+
+
 # --- 守門:表單 label 改了,解析會整個靜默失效 -------------------------------------
 
 def test_issue_form_labels_match_parser():
