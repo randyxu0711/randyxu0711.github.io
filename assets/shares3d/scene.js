@@ -106,10 +106,20 @@ void main() {
 
 const TAB_FRAG = /* glsl */ `
 uniform sampler2D uLabels;
+uniform vec3 uFace;
 ${INST_HEAD}
+float luma(vec3 c) {
+  return dot(pow(c, vec3(2.2)), vec3(0.2126, 0.7152, 0.0722)) + 0.05;
+}
+float contrast(vec3 a, vec3 b) {
+  float x = luma(a);
+  float y = luma(b);
+  return max(x, y) / min(x, y);
+}
 void main() {
   vec3 c = vColor;
-  if (int(vFace + 0.5) == 4) c = mix(c, uInk, texture2D(uLabels, vTile.xy + vUv * vTile.zw).r * step(0.0001, vTile.z) * 0.85);
+  vec3 ink = contrast(uInk, c) >= contrast(uFace, c) ? uInk : uFace;
+  if (int(vFace + 0.5) == 4) c = mix(c, ink, texture2D(uLabels, vTile.xy + vUv * vTile.zw).r * step(0.0001, vTile.z));
   ${FINISH}
 }
 `;
