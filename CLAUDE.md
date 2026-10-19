@@ -44,14 +44,14 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 `description`(og:description)/ `image`(og:image,hotlink 不存 repo)/ `note`(心得,選填)/ `tags` / `issue`。
 - **所有列出 share 的地方都直接開原文、另開分頁**。
 - **首頁是 WebGL 剪報桌與目錄櫃**(規格 `docs/shares-webgl.md`,開頭的 v2.1、v2 段優先;版面 `_layouts/shares.html`,程式 `assets/shares3d/`,共用 `assets/scene3d/`):
-  **不捲動,分三層**:剪報桌(俯角 55°,最新 6 張平放、全部看得到,點一下就拿起)→ `↑` / 往上滾 / 手機往下拉 抬頭看目錄櫃(依 tag / 來源(最多 7 格 + 其他)/ 年份分組,抽屜不拆格,超過 60 張只放翻到附近的 60 張、跟著滑;格子不要多,細找靠搜尋)→
+  **不捲動,分三層**:剪報桌(俯角 55°,最新 6 張平放、全部看得到,點一下就拿起)→ `↑` / 往上滾 / 手機往下拉 抬頭看目錄櫃(只依 tag 分組,抽屜不拆格,超過 60 張只放翻到附近的 60 張、跟著滑;格子不要多,細找靠搜尋)→
   點抽屜拉開撥卡(前面的往前倒,滾輪撥)。`Esc` / `↓` / 瀏覽器上一頁退一層(`pushState`,tag 抽屜網址 `#tag-名稱`)。
   **操作要單純**(本質是讀卡片):點一下就拿起(抽屜與卡疊的觸控兩段),點空白處退一層,點標籤 = 直接讀這張、同 tag 的卡疊在後面(拿著時 ← → / 滾輪在這個 tag 裡換,放回去就回桌面);
-  提示列一句話,鍵盤操作收在 `?` 鍵。點擊層 `.sh3d-stage` 必須鋪滿畫面(以前只有內容欄寬,寬螢幕兩側點不到)。
+  **不放提示句**(介面自己說清楚;撥卡靠拉開抽屜時的示範動畫),提示列只留第幾張 / 共幾張,鍵盤操作收在 `?` 鍵。點擊層 `.sh3d-stage` 必須鋪滿畫面(以前只有內容欄寬,寬螢幕兩側點不到)。
   - **剪報卡**:上方 og:image 經 wsrv.nl 轉 webp(帶 CORS)貼進第二張拼貼貼圖,圖到了才淡入,場景不等;下方標題兩行、來源章、日期、編號
     畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色。上緣每個 tag 一片標籤(最多 3 片),抽屜面的色條同色(`--tag-1`～`--tag-8`,依出現次數分配,程式不列 tag;來源章用名稱雜湊)。
     心得便利貼、已開過的勾、封存的紅章。
-  - 頁面不捲動(舞台一個畫面高),footer 固定成提示列下面的一行。桌面是頁面底色,櫃子與抽屜同書架的暖中性色。
+  - 頁面不捲動(舞台一個畫面高),footer 固定成工具列下面的一行(後面有 `--desk` 漸層底)。桌面是頁面底色,櫃子與抽屜同書架的暖中性色。
   - 拿起 = 3D 卡飛到 `held.js` 的 HTML 卡位置後換手(同版面的剪報卡);翻面看心得 / 摘要;← → / 左右滑換一張。
   - 主角之外淡出、夜間檯燈跟著主角走;底部提示列(`hint.js`)與換層按鈕。`/` 搜尋:背景霧化,符合的卡疊成牌疊左右翻。
   - 純函式在 `layout.js`(桌上 / 分組 / 櫃子 / 鏡頭 / 撥卡 / 搜尋 / 縮圖網址),用 `node:test` 測(`tools/shares3d/`)。窄螢幕(直立)桌面與櫃子改 2 欄。
@@ -62,7 +62,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 
 ## 發文 = 開 GitHub Issue
 - Issue Form `.github/ISSUE_TEMPLATE/share.yml`:網址(必填)/ 心得 / tags(多選,至少一個)/ 標題覆蓋。
-  **tag 清單只有這一份**,加 tag = 加一行。
+  **tag 清單只有這一份**,最多 8 種(目錄櫃 4 欄 / 手機 2 欄排滿、`--tag-1`～`--tag-8` 一色一類),加 tag 要先拿掉一個。
 - Workflow `.github/workflows/share.yml` → `tools/share/share.py`(純 stdlib):
   作者≠owner 略過 → 網址格式不對或沒選 tag:不發布、留言 + `needs-fix` → 網址分享過(`normalize_url` 比對):不發布、留言指出 issue、關成 not planned → 抓 og(失敗不擋,退回用網址當標題並在留言提醒)
   → 寫 md(含 `archive`)、commit → 送存 Wayback(失敗不擋,只在留言提醒)→ 呼叫部署 → 留言列出抓到的內容並關 issue。
@@ -89,12 +89,16 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
     跟其他場景頁共用的零件在 `assets/scene3d/`(`anim.js`、`colors.js`、`intro.js` 開場亮度曲線、`glsl.js` 打光 / 素描 / 暗房 shader 片段、
     `geometry.js` 的 `box()`、`scene3d.css` 開場幕);版面 front matter 的 `shared:` 列出要載入的共用模組,import 一律用裸名稱 `scene3d/…`。
   books 模組設 `assets: false`,不在每頁載入 `assets/modules/books/`。
-  - 檔案:`layout.js`(五種排序與分組 → 每本書的位置,純函式)、`scene.js`(場景、shader、鏡頭、點擊判定)、
+  - 檔案:`layout.js`(四種排序(星等、年份、顏色、作者;頁數拿掉了)與分組 → 每本書的位置、索引軌段落、層裡看得到哪幾本,純函式,`tools/books3d/` 測)、`scene.js`(場景、shader、鏡頭、點擊判定)、
     `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)。
   - 書是一個 InstancedMesh,一次繪製;厚度 = 頁數 ÷ 11、高度 = 封面寬 ÷ `ratio`。顏色從 token 讀(1px canvas 填色再讀像素),主題切換時重讀。
     夜間模式自動開檯燈(跟著游標,拿起書時移到書前上方)。
-  - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑。
-    陳列時鏡頭比直立遠。換排法 / 排序以畫面中央那本書為錨點。**靜止時不重畫**(`invalidate()` 才排下一格)。
+  - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑,
+    層標題顯示畫面裡是第幾本到第幾本 / 共幾本(`inView`)與一條細線。年份不到 12 本的跟相鄰的小年份併成區間。
+    右緣有索引軌:目前排序的段落(`sections`),每段長度與本數成比例,點 / 拖曳就捲過去,標籤只在停留、拖曳、聚焦時浮出。
+    陳列時鏡頭比直立遠(`viewSpan`,手機一層 3 本封面)。換排法 / 排序以畫面中央那本書為錨點。**靜止時不重畫**(`invalidate()` 才排下一格)。
+  - 工具列固定在畫面下方;窄螢幕(≤ 640px)收成一行兩個鍵:排法圖示鍵(直立 ↔ 陳列)+「星等 ▾」排序選單(Esc / 點外面收起),
+    不然兩行鍵會一直蓋住約 1/4 的書。寬螢幕一行全部的鍵,排法與排序之間有分隔線。
   - **純 HTML 書單**:有 JS 時從首次繪製就藏起來,WebGL 啟動後改成視覺隱藏、給螢幕閱讀器與鍵盤(Tab 到一本 = 場景裡高亮);
     WebGL 開不起來、模組抓不到或執行丟錯(`.fail`,`books.html` 的行內 script 接 `error` 事件)才顯示;
     網路慢就一直蓋著幕等,**不用計時器猜**(以前 4 秒放棄,慢網路會先閃書單再跳成 3D)。
@@ -122,7 +126,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 `uvx --with pillow --with pyyaml pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。
 解析 issue body、驗證、抽 og、產 md、遷移、strike 規則、CSV 篩選與私人資料不外洩,這些我們的政策都要測;
 GitHub API 與網路本身不測。前端沒有測試框架,靠建置 + htmlproofer + 手動檢查。
-場景的純函式用 Node 內建測試:`node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/*.test.mjs tools/shares3d/*.test.mjs`(CI 也跑,列出每個檔案)。
+場景的純函式用 Node 內建測試:`node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/*.test.mjs tools/shares3d/*.test.mjs tools/books3d/*.test.mjs`(CI 也跑,列出每個檔案)。
 
 ## 之後再說
 書的分類維度、同步 Goodreads 心得、IG 舊書搬到 Goodreads、⌘K 快捷面板、專題、相關轉發、閱讀足跡、常讀來源、

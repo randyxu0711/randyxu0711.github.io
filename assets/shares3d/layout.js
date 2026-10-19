@@ -5,8 +5,8 @@ export const DRAWER = { W: 150, H: 75, GAP: 6, D: 8 };
 export const CAB = { Z: -480, DEPTH: 240, SIDE: 10, BASE: 24, TOP: 12 };
 export const WINDOW = 60;
 export const AHEAD = 8;
-export const SOURCES = 7;
 export const LABEL = { W: 140, H: 17.5 };
+export const PLATE = { LO: -6, HI: 29 };
 export const FOV = 35;
 export const PITCH = { DESK: (55 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
 export const THUMB = 'https://wsrv.nl/?url=';
@@ -52,29 +52,19 @@ export function thumb(url) {
   return url ? `${THUMB}${encodeURIComponent(url)}&w=640&h=336&fit=cover&output=webp` : null;
 }
 
-export function groups(items, mode) {
+export function groups(items) {
   const map = new Map();
   const add = (key, i) => {
     if (!map.has(key)) map.set(key, []);
     map.get(key).push(i);
   };
   items.forEach((it, i) => {
-    if (mode === 'source') add(it.s, i);
-    else if (mode === 'year') add(it.d.slice(0, 4), i);
-    else if (it.g.length) it.g.forEach((g) => add(g, i));
+    if (it.g.length) it.g.forEach((g) => add(g, i));
     else add('', i);
   });
-  let list = [...map].map(([key, ids]) => ({ key, kind: mode === 'tag' && key === '' ? 'untagged' : mode, ids }));
-  if (mode === 'source') {
-    list.sort((a, b) => b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
-    const keep = (d, k) => d.ids.length >= 2 && k < SOURCES;
-    const other = list.filter((d, k) => !keep(d, k)).flatMap((d) => d.ids).sort((a, b) => a - b);
-    list = list.filter(keep);
-    if (other.length) list.push({ key: '', kind: 'other', ids: other });
-  }
-  const last = (d) => (d.kind === 'other' || d.kind === 'untagged' ? 1 : 0);
-  if (mode === 'year') list.sort((a, b) => (a.key < b.key ? 1 : -1));
-  else list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  const list = [...map].map(([key, ids]) => ({ key, kind: key === '' ? 'untagged' : 'tag', ids }));
+  const last = (d) => (d.kind === 'untagged' ? 1 : 0);
+  list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   return list;
 }
 
@@ -187,7 +177,7 @@ export function deskAll(poses, aspect, a = BASE, bottom = -1, top = 1) {
   const pts = [];
   for (const x of [box.x0, box.x1]) for (const y of [0, CARD.T + 4]) for (const z of [box.z0, box.z1]) pts.push([x, y, z]);
   const mx = a.narrow ? FIT.NARROW : FIT.X;
-  const at = (d) => view(look, d, PITCH.DESK, (top + bottom) / 4);
+  const at = (d, s = (top + bottom) / 4) => view(look, d, PITCH.DESK, s);
   const ok = (d) => {
     const c = at(d);
     return pts.every((pt) => {
@@ -206,14 +196,71 @@ export function deskAll(poses, aspect, a = BASE, bottom = -1, top = 1) {
     if (ok(mid)) hi = mid;
     else lo = mid;
   }
-  return at(hi);
+  if (!a.narrow) return at(hi);
+  const low = (s) => {
+    const c = at(hi, s);
+    return Math.min(...pts.map((pt) => ndc(c.pos, c.look, aspect, pt)[1]));
+  };
+  let s0 = (top + bottom) / 4 - 1;
+  let s1 = (top + bottom) / 4;
+  for (let k = 0; k < 20; k++) {
+    const mid = (s0 + s1) / 2;
+    if (low(mid) >= bottom) s1 = mid;
+    else s0 = mid;
+  }
+  const rows = [...new Set(a.cab.slots.map((p) => p.y))];
+  const cut = (s) => {
+    const c = at(hi, s);
+    return rows.some((y) => {
+      const y0 = ndc(c.pos, c.look, aspect, [0, y + PLATE.LO, a.cab.z])[1];
+      const y1 = ndc(c.pos, c.look, aspect, [0, y + PLATE.HI, a.cab.z])[1];
+      return y1 > top - 0.015 && y0 < top + 0.015;
+    });
+  };
+  for (let k = 0; k < 40 && cut(s1); k++) s1 += 0.005;
+  return at(hi, s1);
 }
 
-export function cabCam(aspect, a = BASE) {
+export function cabCam(aspect, a = BASE, bottom = -1, top = 1) {
   const cab = a.cab;
-  const wide = (cab.width / 2 + 24) / (TAN * aspect * (a.narrow ? 0.96 : 0.92));
-  const tall = (cab.height / 2 + 24) / (TAN * (a.narrow ? 0.7 : 0.8));
-  return view([0, cab.height / 2, cab.z], Math.max(wide, tall), PITCH.CAB, a.narrow ? 0.12 : 0.06);
+  const look = [0, cab.height / 2, cab.z];
+  if (!a.narrow) {
+    const wide = (cab.width / 2 + 24) / (TAN * aspect * 0.92);
+    const tall = (cab.height / 2 + 24) / (TAN * 0.8);
+    return view(look, Math.max(wide, tall), PITCH.CAB, 0.06);
+  }
+  const pts = [-1, 1].flatMap((sx) => [0, cab.height].map((y) => [sx * cab.width / 2, y, cab.z]));
+  const lo = bottom + 0.03;
+  const hi = top - 0.03;
+  const at = (d, anchor) => {
+    let s = (lo + hi) / 4;
+    for (let k = 0; k < 6; k++) {
+      const c = view(look, d, PITCH.CAB, s);
+      const ys = pts.map((pt) => ndc(c.pos, c.look, aspect, pt)[1]);
+      const y = anchor ? Math.max(...ys) : (Math.max(...ys) + Math.min(...ys)) / 2;
+      s += ((anchor ? hi : (lo + hi) / 2) - y) / 2;
+    }
+    return view(look, d, PITCH.CAB, s);
+  };
+  const ok = (d) => {
+    const c = at(d);
+    return pts.every((pt) => {
+      const [x, y] = ndc(c.pos, c.look, aspect, pt);
+      return Math.abs(x) <= FIT.NARROW && y >= lo && y <= hi;
+    });
+  };
+  let near = 100;
+  let far = 400;
+  for (let k = 0; k < 24 && !ok(far); k++) {
+    near = far;
+    far *= 1.25;
+  }
+  for (let k = 0; k < 20; k++) {
+    const mid = (near + far) / 2;
+    if (ok(mid)) far = mid;
+    else near = mid;
+  }
+  return at(far, true);
 }
 
 export const PULL = CAB.DEPTH - 60;

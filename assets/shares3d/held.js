@@ -27,21 +27,23 @@ export function createHeld(t) {
   flipper.append(front, back);
   slide.append(flipper);
   card.append(slide);
-  stage.append(card);
+  const frame = el('div', 'h-frame');
+  stage.append(frame);
 
   const bar = el('div', 'h-bar');
-  const prevBtn = el('button', 'key', '‹');
+  const prevBtn = el('button', 'key h-side h-prev', '‹');
   const flipBtn = el('button', 'key', t('shares3d.flip'));
   const openLink = el('a', 'key', `${t('shares3d.open')} ↗`);
   const arch = el('span', 'h-arch');
   const closeBtn = el('button', 'key', t('shares3d.put_back'));
-  const nextBtn = el('button', 'key', '›');
+  const nextBtn = el('button', 'key h-side h-next', '›');
   [prevBtn, flipBtn, closeBtn, nextBtn].forEach((b) => { b.type = 'button'; });
   flipBtn.setAttribute('aria-pressed', 'false');
   openLink.target = '_blank';
   openLink.rel = 'noopener';
   arch.hidden = true;
-  bar.append(prevBtn, flipBtn, openLink, arch, closeBtn, nextBtn);
+  frame.append(card, prevBtn, nextBtn);
+  bar.append(flipBtn, openLink, arch, closeBtn);
   root.append(stage, bar);
   document.body.append(root);
 
@@ -239,7 +241,7 @@ export function createHeld(t) {
 
   document.addEventListener('keydown', (e) => {
     if (shown && e.key === 'Tab') {
-      const stops = [card, ...card.querySelectorAll('.h-tabs button'), ...bar.querySelectorAll('button, a')].filter((n) => !n.hidden);
+      const stops = [card, ...card.querySelectorAll('.h-tabs button'), prevBtn, nextBtn, ...bar.querySelectorAll('button, a')].filter((n) => !n.hidden);
       const i = stops.indexOf(document.activeElement);
       const next = e.shiftKey ? (i <= 0 ? stops.length - 1 : i - 1) : (i < 0 || i === stops.length - 1 ? 0 : i + 1);
       stops[next].focus({ preventScroll: true });

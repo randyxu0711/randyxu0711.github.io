@@ -1,4 +1,4 @@
-import { layout, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
+import { layout, viewSpan, inView, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'scene3d/colors.js';
 import { createScene } from 'books3d/scene.js';
 import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf } from 'books3d/textures.js';
@@ -8,8 +8,13 @@ import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 const root = document.getElementById('b3d');
 const stage = document.getElementById('b3d-scene');
 const bar = document.getElementById('b3d-bar');
+const viewKey = document.getElementById('b3d-view');
+const sortKey = document.getElementById('b3d-sort');
 const tier = document.getElementById('b3d-tier');
 const arrows = document.getElementById('b3d-arrows');
+const rail = document.getElementById('b3d-rail');
+const track = rail.querySelector('.b3d-rail-track');
+const tip = rail.querySelector('.b3d-rail-tip');
 const heldEl = document.getElementById('b3d-held');
 const heldText = document.getElementById('b3d-held-text');
 const grLink = document.getElementById('b3d-gr');
@@ -85,9 +90,7 @@ async function start() {
 
   function metrics() {
     const vw = canvas.clientWidth;
-    const k = clamp((vw - 480) / (1024 - 480), 0, 1);
-    const across = state.view === 'covers' ? (3 + 5 * k) * 150 : (10.5 + 9 * k) * 28;
-    const sp = Math.max(across, 320 * vw / window.innerHeight);
+    const sp = viewSpan(state.view, vw, window.innerHeight);
     const ppu = vw / sp;
     return { vw, span: sp, ppu, gutter: 16 / ppu, head: (tier.offsetHeight + 24) / ppu + 12 };
   }
@@ -172,6 +175,7 @@ async function start() {
       home();
     }
     buildArrows();
+    buildRail();
     dirty = true;
   }
 
@@ -664,6 +668,8 @@ async function start() {
       liveT0 = now;
       root.classList.add('live');
       bar.hidden = false;
+      rail.hidden = false;
+      navHeight();
       if (intro) busy = true;
       else {
         lit = true;
@@ -680,7 +686,10 @@ async function start() {
     if (l.kind === 'stars') return t('books.stars', l.n) + count;
     if (l.kind === 'unrated') return t('books.unrated') + count;
     if (l.kind === 'year') return l.year + count;
+    if (l.kind === 'years') return t('books3d.years', l.year) + count;
     if (l.kind === 'undated') return t('books3d.undated') + count;
+    if (l.kind === 'letters') return l.text + count;
+    if (l.kind === 'hue') return t('books3d.hue_' + l.hue) + count;
     return '';
   }
 
@@ -793,39 +802,155 @@ async function start() {
     });
   }
 
-  let tierKey = null;
-  function updateTier(force) {
-    const line = cam.yTop - window.innerHeight * 0.5 / m.ppu;
-    let s = null;
-    state.L.shelves.forEach((x) => { if (!s || x.y + x.tallest >= line) s = x; });
-    const key = s ? s.key : null;
-    if (key === tierKey && !force) return;
-    tierKey = key;
-    const l = s && s.label;
-    tier.classList.toggle('empty', !l);
-    if (!l) {
-      tier.textContent = '';
-      return;
-    }
-    const count = l.count ? '<span class="n">' + t('books.count', l.count) + '</span>' : '';
+  function headHtml(l) {
     let head = '';
     if (l.kind === 'stars') {
       for (let k = 1; k <= 5; k++) head += STAR.replace('%', k <= l.n ? 'on' : 'off');
       head = '<span class="stars">' + head + '</span>';
     } else if (l.kind === 'unrated') head = t('books.unrated');
     else if (l.kind === 'year') head = l.year;
+    else if (l.kind === 'years') head = t('books3d.years', l.year);
     else if (l.kind === 'undated') head = t('books3d.undated');
     else if (l.kind === 'letters') head = l.text;
-    else if (l.kind === 'pages') head = t('books.pages', l.text);
-    else if (l.kind === 'nopages') head = t('books3d.nopages');
-    tier.innerHTML = '<span class="h">' + head + '</span>' + count;
+    else if (l.kind === 'hue') head = '<span class="sw" style="background:' + l.c + '"></span>' + t('books3d.hue_' + l.hue);
+    return '<span class="h">' + head + '</span>';
   }
+
+  let tierKey = null;
+  function updateTier(force) {
+    const line = cam.yTop - window.innerHeight * 0.5 / m.ppu;
+    let k = -1;
+    state.L.shelves.forEach((x, j) => { if (k < 0 || x.y + x.tallest >= line) k = j; });
+    const s = state.L.shelves[k];
+    const v = s ? inView(state.L, k, offsetOf(s), cam.cx, cam.span) : null;
+    updateRail(s, v);
+    const l = s && s.label;
+    const key = (s ? s.key : '') + (v ? ':' + v.a + '-' + v.z : '');
+    if (key === tierKey && !force) return;
+    tierKey = key;
+    tier.classList.toggle('empty', !l);
+    if (!l) {
+      tier.textContent = '';
+      return;
+    }
+    const span = v ? (v.a === v.z ? v.a : v.a + '–' + v.z) + ' / ' + v.count : l.count;
+    const count = l.count ? '<span class="n">' + t('books.count', span) + '</span>' : '';
+    const at = v ? '<span class="at" style="--a:' + (v.a - 1) / v.count + ';--b:' + v.z / v.count + '"></span>' : '';
+    tier.innerHTML = headHtml(l) + count + at;
+  }
+
+  let railSort = null;
+  let railP = -1;
+  let railCur = -1;
+  let railDrag = null;
+  function buildRail(force) {
+    if (railSort === state.sort && !force) return;
+    railSort = state.sort;
+    track.textContent = '';
+    state.L.sections.forEach((s, k) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'b3d-seg';
+      b.dataset.k = k;
+      b.style.top = s.at * 100 + '%';
+      b.style.height = s.size * 100 + '%';
+      if (s.label.kind === 'hue') b.style.setProperty('--seg', s.label.c);
+      b.setAttribute('aria-label', labelText(s.label));
+      track.appendChild(b);
+    });
+    railP = -1;
+    railCur = -1;
+    tip.classList.remove('show');
+  }
+
+  function sectionAt(ord) {
+    const S = state.L.sections;
+    let k = 0;
+    while (k < S.length - 1 && S[k + 1].from <= ord) k++;
+    return k;
+  }
+
+  function updateRail(s, v) {
+    if (!s) return;
+    const mid = v ? (v.a + v.z) / 2 - 1 : (s.count - 1) / 2;
+    const p = (s.first + mid + 0.5) / n;
+    if (Math.abs(p - railP) > 0.0005) {
+      railP = p;
+      rail.style.setProperty('--p', p.toFixed(4));
+    }
+    const cur = sectionAt(Math.floor(p * n));
+    if (cur === railCur) return;
+    railCur = cur;
+    track.querySelectorAll('.b3d-seg').forEach((b, k) => {
+      b.classList.toggle('on', k === cur);
+      b.classList.toggle('past', k < cur);
+    });
+  }
+
+  function showTip(k, y) {
+    const sec = state.L.sections[k];
+    if (!sec) return;
+    tip.innerHTML = headHtml(sec.label) + '<span class="n">' + t('books.count', sec.count) + '</span>';
+    tip.style.top = y + 'px';
+    tip.classList.add('show');
+  }
+
+  function jump(ord) {
+    const L = state.L;
+    const i = L.order[clamp(ord, 0, n - 1)];
+    const s = L.shelves[L.items[i].shelf];
+    const py = (scrollTarget() - (s.y + s.tallest / 2)) * m.ppu;
+    window.scrollTo(0, Math.max(0, Math.round(window.scrollY + py - window.innerHeight / 2)));
+  }
+
+  function railTo(clientY) {
+    const r = track.getBoundingClientRect();
+    const f = clamp((clientY - r.top) / r.height, 0, 0.9999);
+    const ord = Math.floor(f * n);
+    jump(ord);
+    showTip(sectionAt(ord), clientY - r.top);
+  }
+
+  rail.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0 || !lit) return;
+    e.preventDefault();
+    railDrag = e.pointerId;
+    rail.setPointerCapture(e.pointerId);
+    rail.classList.add('drag');
+    railTo(e.clientY);
+  });
+  rail.addEventListener('pointermove', (e) => {
+    if (railDrag === e.pointerId) railTo(e.clientY);
+    else if (e.pointerType === 'mouse') {
+      const b = e.target.closest('.b3d-seg');
+      if (b) showTip(Number(b.dataset.k), e.clientY - track.getBoundingClientRect().top);
+    }
+  });
+  const endRail = (e) => {
+    if (railDrag !== e.pointerId) return;
+    railDrag = null;
+    rail.classList.remove('drag');
+    tip.classList.remove('show');
+  };
+  rail.addEventListener('pointerup', endRail);
+  rail.addEventListener('pointercancel', endRail);
+  rail.addEventListener('pointerleave', () => { if (railDrag === null) tip.classList.remove('show'); });
+  rail.addEventListener('click', (e) => {
+    const b = e.target.closest('.b3d-seg');
+    if (b && !e.detail) jump(state.L.sections[Number(b.dataset.k)].from);
+  });
+  rail.addEventListener('focusin', (e) => {
+    const b = e.target.closest('.b3d-seg');
+    if (b && b.matches(':focus-visible')) showTip(Number(b.dataset.k), b.offsetTop + b.offsetHeight / 2);
+  });
+  rail.addEventListener('focusout', () => { if (railDrag === null) tip.classList.remove('show'); });
 
   const viewBtns = bar.querySelectorAll('[data-view-set]');
   function setView(v) {
     if (v === state.view) return;
     state.view = v;
     viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewSet === v)));
+    viewKey.setAttribute('aria-pressed', String(v === 'covers'));
     try { localStorage.setItem(VIEW_KEY, v); } catch (e) {}
     setHover(-1);
     relayout('turn');
@@ -837,6 +962,7 @@ async function start() {
     if (v === state.sort || !SORT_NAMES.includes(v)) return;
     state.sort = v;
     sortBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sortSet === v)));
+    showSort();
     try { localStorage.setItem(SORT_KEY, v); } catch (e) {}
     setHover(-1);
     relayout('shuffle');
@@ -846,12 +972,48 @@ async function start() {
   }
   sortBtns.forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.sortSet === state.sort));
-    b.addEventListener('click', () => setSort(b.dataset.sortSet));
+    b.addEventListener('click', () => {
+      setSort(b.dataset.sortSet);
+      if (sortKey.getAttribute('aria-expanded') === 'true') closeSorts(true);
+    });
   });
   viewBtns.forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.viewSet === state.view));
     b.addEventListener('click', () => setView(b.dataset.viewSet));
   });
+  viewKey.setAttribute('aria-pressed', String(state.view === 'covers'));
+  viewKey.addEventListener('click', () => setView(state.view === 'covers' ? 'spines' : 'covers'));
+
+  function showSort() {
+    const cur = sortKey.querySelector('.cur');
+    cur.dataset.i18n = 'books3d.sort_' + state.sort;
+    cur.textContent = t(cur.dataset.i18n);
+  }
+  function closeSorts(refocus) {
+    sortKey.setAttribute('aria-expanded', 'false');
+    bar.classList.remove('open');
+    if (refocus) sortKey.focus();
+  }
+  showSort();
+  sortKey.addEventListener('click', () => {
+    if (sortKey.getAttribute('aria-expanded') === 'true') return closeSorts(false);
+    sortKey.setAttribute('aria-expanded', 'true');
+    bar.classList.add('open');
+    (bar.querySelector('[data-sort-set][aria-pressed="true"]') || sortBtns[0]).focus();
+  });
+  bar.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !bar.classList.contains('open')) return;
+    e.preventDefault();
+    closeSorts(true);
+  });
+  bar.addEventListener('focusout', (e) => {
+    if (bar.classList.contains('open') && e.relatedTarget && !bar.contains(e.relatedTarget)) closeSorts(false);
+  });
+  window.addEventListener('pointerdown', (e) => {
+    if (!bar.classList.contains('open') || bar.contains(e.target)) return;
+    e.stopPropagation();
+    closeSorts(false);
+  }, true);
 
   const isScene = (el) => el === stage || el === canvas || el === document.body || el === document.documentElement || el === root || el.id === 'main';
 
@@ -996,6 +1158,7 @@ async function start() {
   const nav = document.querySelector('.nav');
   function navHeight() {
     if (nav) root.style.setProperty('--nav-h', nav.offsetHeight + 'px');
+    root.style.setProperty('--bar-h', bar.offsetHeight + 'px');
   }
 
   let width = 0;
@@ -1058,6 +1221,8 @@ async function start() {
     drawText();
   });
   document.addEventListener('langchange', () => {
+    navHeight();
+    buildRail(true);
     updateTier(true);
     scheduleList(0);
     if (held && held.phase !== 'down') {

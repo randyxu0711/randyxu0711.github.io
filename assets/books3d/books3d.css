@@ -1,6 +1,10 @@
 .b3d-list-head { display: flex; align-items: center; gap: 0.75rem; margin: 2rem 0 0.5rem; font-size: var(--t-md); font-weight: 500; line-height: 1; }
 .b3d-list-head .stars-label { color: var(--ink-2); }
 .b3d-list-head .n { color: var(--ink-3); font-size: var(--t-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
+.stars { display: inline-flex; gap: 0.12em; vertical-align: middle; }
+.stars svg { width: 1.05em; height: 1.05em; display: block; }
+.stars .on { fill: var(--accent); }
+.stars .off { fill: none; stroke: var(--ink-3); stroke-width: 1.4; stroke-linejoin: round; }
 .b3d-list ol { margin: 0; padding-left: 1.5rem; }
 .b3d-list li { color: var(--ink-2); }
 .b3d-list .au { color: var(--ink-3); font-size: var(--t-sm); margin-left: 0.4rem; }
@@ -14,17 +18,54 @@
 .b3d-tier.empty { visibility: hidden; }
 .b3d-tier .h { color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .b3d-tier .n { color: var(--ink-3); font-size: var(--t-sm); font-weight: 400; font-variant-numeric: tabular-nums; }
+.b3d-tier .at { position: absolute; left: 0.8rem; right: 0.8rem; bottom: 3px; height: 2px; border-radius: 1px; background: var(--edge-n); }
+.b3d-tier .at::before { content: ""; position: absolute; top: 0; bottom: 0; left: calc(var(--a) * 100%); right: calc(100% - var(--b) * 100%); border-radius: 1px; background: var(--ink-3); }
 .b3d-arrows { position: absolute; top: 0; height: 0; }
 .b3d-arrow { position: absolute; transform: translateY(-50%); }
 .b3d-arrow.prev { left: 12px; }
-.b3d-arrow.next { right: 12px; }
+.b3d-arrow.next { right: 30px; }
 .b3d-arrow:hover { transform: translateY(calc(-50% - 1px)); }
+
+.b3d-rail { position: fixed; z-index: 30; right: 0; top: calc(var(--nav-h, 4rem) + 1rem); bottom: calc(var(--bar-h, 3.5rem) + 2rem + env(safe-area-inset-bottom, 0px)); width: 22px;
+  touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+.b3d-rail-track { position: absolute; inset: 0; }
+.b3d-seg { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; outline: none; }
+.b3d-seg::before { content: ""; position: absolute; right: 7px; top: 1px; bottom: 1px; min-height: 2px; width: 3px; border-radius: 2px;
+  background: var(--seg, var(--edge-n)); transition: background-color 200ms, width 200ms; }
+.b3d-seg.past::before { background: var(--seg, var(--ink-3)); }
+.b3d-seg.on::before { width: 5px; background: var(--seg, var(--ink-2)); }
+.b3d-seg:hover::before, .b3d-seg:focus-visible::before { width: 5px; background: var(--seg, var(--edge)); }
+.b3d-seg:focus-visible::before { box-shadow: 0 0 0 2px var(--edge); }
+.b3d-rail-thumb { position: absolute; right: 4px; top: calc(var(--p, 0) * 100%); width: 11px; height: 2px; border-radius: 1px; background: var(--ink); transform: translateY(-50%); pointer-events: none; }
+.b3d-rail-tip { position: absolute; right: 26px; display: inline-flex; align-items: center; gap: 0.6rem; padding: 0.35rem 0.8rem; border-radius: 999px; background: var(--desk);
+  box-shadow: inset 0 0 0 1px var(--line); font-size: var(--t-sm); font-weight: 500; line-height: 1; white-space: nowrap; transform: translateY(-50%);
+  opacity: 0; transition: opacity 150ms; pointer-events: none; }
+.b3d-rail-tip.show { opacity: 1; }
+.b3d-rail-tip .h, .b3d-tier .h { display: inline-flex; align-items: center; gap: 0.4rem; }
+.b3d-rail-tip .h { color: var(--ink-2); }
+.b3d-rail-tip .n { color: var(--ink-3); font-weight: 400; font-variant-numeric: tabular-nums; }
+.b3d-rail-tip .sw { width: 0.7rem; height: 0.7rem; border-radius: 50%; }
+@media (prefers-reduced-motion: reduce) { .b3d-seg::before, .b3d-rail-tip { transition: none; } }
 
 .b3d-bar { position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 30; transform: translateX(-50%);
   display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 0.4rem 1rem; width: max-content; max-width: calc(100vw - 32px);
   padding: 0.45rem 0.6rem 0.55rem; border-radius: 22px; background: var(--face);
   box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 4px 0 0 var(--edge-n), 0 5.5px 0 0 var(--edge-n-deep), 0 16px 30px -12px var(--drop-far); }
 .b3d-keys { display: flex; gap: 0.35rem; }
+.b3d-sorts { padding-left: 1rem; border-left: 1px solid var(--line); }
+.b3d-view-key, .b3d-sort-key { display: none; }
+.b3d-view-key svg { width: 1.1rem; height: 1.1rem; display: block; }
+.b3d-view-key[aria-pressed="true"] .g-spines, .b3d-view-key[aria-pressed="false"] .g-covers { display: none; }
+.b3d-sort-key .cur { margin-right: 0.35rem; }
+@media (max-width: 640px) {
+  .b3d-bar { flex-wrap: nowrap; gap: 0.5rem; }
+  .b3d-views { display: none; }
+  .b3d-view-key { display: inline-grid; place-items: center; align-self: stretch; padding: 0 0.85rem; }
+  .b3d-sort-key { display: inline-block; }
+  .b3d-sorts { display: none; position: absolute; right: 0; bottom: calc(100% + 0.75rem); flex-direction: column; align-items: stretch;
+    padding: 0.5rem; border: 0; border-radius: 16px; background: var(--face); box-shadow: 0 0 0 1px var(--line), 0 6px 18px var(--drop-far); }
+  .b3d-bar.open .b3d-sorts { display: flex; }
+}
 .main:has(> .b3d.on) { touch-action: pan-y pinch-zoom; padding-bottom: 0; }
 
 .b3d-held { position: fixed; inset: 0; z-index: 40; outline: none; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -33,7 +74,7 @@
 @media (prefers-reduced-motion: reduce) { .b3d-gr { transition: none; } }
 
 html.js .b3d:not(.on):not(.fail) .b3d-list { visibility: hidden; }
-.b3d.on:not(.lit) :is(.b3d-bar, .b3d-tier, .b3d-arrows) { opacity: 0; visibility: hidden; pointer-events: none; }
+.b3d.on:not(.lit) :is(.b3d-bar, .b3d-tier, .b3d-arrows, .b3d-rail) { opacity: 0; visibility: hidden; pointer-events: none; }
 
-.b3d-bar, .b3d-tier, .b3d-arrows { transition: opacity 200ms, visibility 200ms; }
-.b3d.holding :is(.b3d-bar, .b3d-tier, .b3d-arrows) { opacity: 0; visibility: hidden; pointer-events: none; }
+.b3d-bar, .b3d-tier, .b3d-arrows, .b3d-rail { transition: opacity 200ms, visibility 200ms; }
+.b3d.holding :is(.b3d-bar, .b3d-tier, .b3d-arrows, .b3d-rail) { opacity: 0; visibility: hidden; pointer-events: none; }

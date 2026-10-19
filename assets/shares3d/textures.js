@@ -404,12 +404,12 @@ export function createLabels(onTexture) {
       g.fillRect(x + 43, y + 15, 170, 58);
       g.fillStyle = '#00f';
       g.fillRect(x + 46, y + 18, 164, 52);
-      fitFont(g, name, 600, 28, display, 140, 12);
+      fitFont(g, name, 600, 26, display, 140, 12);
       g.fillStyle = '#f00';
-      g.fillText(name, x + LW / 2 + 4, y + 39);
+      g.fillText(name, x + LW / 2 + 4, y + 34);
       g.fillStyle = '#0f0';
-      g.font = `400 16px ${code}`;
-      g.fillText(count, x + LW / 2 + 4, y + 60);
+      g.font = `400 15px ${code}`;
+      g.fillText(count, x + LW / 2 + 4, y + 61);
     });
     tags.forEach((name, k) => {
       const x = (k % LCOLS) * TW;

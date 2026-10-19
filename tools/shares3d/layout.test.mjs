@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG,
+  CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG, PLATE,
   recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots,
 } from 'shares3d/layout.js';
 
@@ -138,6 +138,52 @@ test('桌面全景:6 張都在畫面裡、工具列上面,俯角不變', () => {
   }
 });
 
+const PHONES = [[390, 844, true], [430, 932, true], [375, 667, false]];
+const band = (w, h) => ({ aspect: w / h, top: 1 - 166 / h, bottom: 1 - (2 * (h - 101)) / h, cab: 1 - (2 * (h - 132)) / h });
+
+test('直立螢幕的桌面全景:卡片貼著工具列上方,上面露出完整的抽屜,標籤不被 nav 切到', () => {
+  for (const [w, h, tall] of PHONES) {
+    const { aspect, top, bottom } = band(w, h);
+    for (const n of [3, 8, 9, 13]) {
+      const a = arrange(DESK.N, n, true);
+      const poses = Array.from({ length: DESK.N }, (_, k) => deskPose(k, k + 1, a));
+      const cam = deskAll(poses, aspect, a, bottom, top);
+      const ys = poses.flatMap((p) => [-1, 1].map((s) => project(cam, aspect, [p.x, p.y, p.z + s * CARD.H / 2])[1]));
+      assert.ok(Math.min(...ys) - bottom < 0.12, `${w}x${h} n=${n} anchored`);
+      assert.ok(Math.max(...ys) <= top, `${w}x${h} n=${n} under nav`);
+      const at = (y) => project(cam, aspect, [0, y, a.cab.z])[1];
+      const rows = [...new Set(a.cab.slots.map((s) => s.y))];
+      rows.forEach((y) => {
+        const lo = at(y + PLATE.LO);
+        const hi = at(y + PLATE.HI);
+        assert.ok(hi < top || lo > top, `${w}x${h} n=${n} plate ${y} cut by nav`);
+      });
+      if (tall) {
+        const y = Math.min(...rows);
+        assert.ok(at(y + DRAWER.H / 2) < top && at(y - DRAWER.H / 2) > Math.max(...ys), `${w}x${h} n=${n} full drawer row`);
+      }
+    }
+  }
+});
+
+test('直立螢幕的櫃子鏡頭:整個櫃子在 nav 與工具列之間,桌上的卡可以藏到工具列後面', () => {
+  for (const [w, h] of [...PHONES, [390, 664], [375, 548]]) {
+    const { aspect, top, cab } = band(w, h);
+    for (const n of [1, 8, 9, 13]) {
+      const a = arrange(DESK.N, n, true);
+      const c = a.cab;
+      const cam = cabCam(aspect, a, cab, top);
+      const pts = [-1, 1].flatMap((sx) => [0, c.height].map((y) => [sx * c.width / 2, y, c.z]));
+      const ps = pts.map((pt) => project(cam, aspect, pt));
+      ps.forEach(([x, y]) => assert.ok(Math.abs(x) <= 1 && y <= top && y >= cab, `${w}x${h} n=${n}`));
+      const xs = ps.map(([x]) => x);
+      const ys = ps.map(([, y]) => y);
+      assert.ok(Math.max(...xs) - Math.min(...xs) > 1.7 || Math.max(...ys) - Math.min(...ys) > 0.85 * (top - cab), `${w}x${h} n=${n} fills`);
+      assert.ok(top - Math.max(...ys) < 0.08, `${w}x${h} n=${n} hangs under the nav`);
+    }
+  }
+});
+
 test('相關卡:同 tag 的卡,點的那張排第一,其餘照原本順序接在後面(循環)', () => {
   const items = [{ g: ['A', 'B'] }, { g: ['B'] }, { g: [] }, { g: ['A'] }, { g: ['A'] }];
   assert.deepEqual(tagged(items, 'A', 0), [0, 3, 4]);
@@ -201,12 +247,12 @@ test('tag 依出現次數分色,最常見的幾個不撞色', () => {
 });
 
 test('空:分組不出錯', () => {
-  for (const mode of ['tag', 'source', 'year']) assert.deepEqual(groups([], mode), []);
+  assert.deepEqual(groups([]), []);
 });
 
 test('分組:tag 每個 tag 一份,張數多的在前,未分類最後', () => {
   const items = [share('2026-10-13', { g: ['AI/LLM', 'Security'] }), share('2026-10-12', { g: ['AI/LLM'] }), share('2026-10-11'), share('2026-10-10', { g: ['Backend'] })];
-  const out = groups(items, 'tag');
+  const out = groups(items);
   assert.deepEqual(out.map((d) => [d.key, d.kind, d.ids]), [
     ['AI/LLM', 'tag', [0, 1]],
     ['Backend', 'tag', [3]],
@@ -215,34 +261,16 @@ test('分組:tag 每個 tag 一份,張數多的在前,未分類最後', () => {
   ]);
 });
 
-test('分組:只有 1 張的來源併成其他來源,放最後', () => {
-  const items = [share('2026-10-13', { s: 'a.com' }), share('2026-10-12', { s: 'b.com' }), share('2026-10-11', { s: 'a.com' }), share('2026-10-10', { s: 'c.com' })];
-  assert.deepEqual(groups(items, 'source').map((d) => [d.key, d.kind, d.ids]), [
-    ['a.com', 'source', [0, 2]],
-    ['', 'other', [1, 3]],
-  ]);
-});
-
-test('分組:來源最多 7 格,張數少的併進其他來源', () => {
-  const items = [];
-  for (let k = 0; k < 9; k++) for (let j = 0; j <= 9 - k; j++) items.push(share('2026-10-01', { s: `s${k}.com` }));
-  const out = groups(items, 'source');
-  assert.deepEqual(out.map((d) => d.key), ['s0.com', 's1.com', 's2.com', 's3.com', 's4.com', 's5.com', 's6.com', '']);
-  assert.equal(out[7].kind, 'other');
-  assert.equal(out[7].ids.length, 3 + 2);
-  assert.deepEqual(out[7].ids, [...out[7].ids].sort((a, b) => a - b));
-});
-
-test('分組:年份新到舊', () => {
-  const items = [share('2026-10-13'), share('2026-01-01'), share('2025-12-31'), share('2024-05-01')];
-  assert.deepEqual(groups(items, 'year').map((d) => [d.key, d.kind, d.ids]), [['2026', 'year', [0, 1]], ['2025', 'year', [2]], ['2024', 'year', [3]]]);
+test('分組:只依 tag,不看來源與年份', () => {
+  const items = [share('2026-10-13', { s: 'a.com', g: ['AI/LLM'] }), share('2025-01-02', { s: 'b.com', g: ['AI/LLM'] }), share('2024-05-01', { s: 'a.com' })];
+  const out = groups(items);
+  assert.deepEqual(out.map((d) => [d.key, d.kind]), [['AI/LLM', 'tag'], ['', 'untagged']]);
+  assert.ok(out.every((d) => d.kind === 'tag' || d.kind === 'untagged'));
 });
 
 test('分組:張數再多也不拆格', () => {
   const tagged = Array.from({ length: WINDOW * 3 }, () => share('2026-10-01', { g: ['AI/LLM'] }));
-  assert.deepEqual(groups(tagged, 'tag').map((d) => d.ids.length), [WINDOW * 3]);
-  const singles = Array.from({ length: WINDOW + 1 }, (_, i) => share('2026-10-01', { s: `site${i}.com` }));
-  assert.deepEqual(groups(singles, 'source').map((d) => [d.kind, d.ids.length]), [['other', WINDOW + 1]]);
+  assert.deepEqual(groups(tagged).map((d) => d.ids.length), [WINDOW * 3]);
 });
 
 test('抽屜窗口:張數不超過窗口時整格都在', () => {

@@ -15,9 +15,17 @@
 .h-stage { flex: 1; min-height: 0; width: 100%; display: flex; align-items: center; justify-content: center; padding-top: 2.5rem; }
 .h-card {
   container-type: inline-size; position: relative; flex: none; pointer-events: auto; cursor: pointer;
-  width: min(36rem, calc(100vw - 32px), calc((100vh - 12rem) * 127 / 104)); aspect-ratio: 127 / 104;
+  width: min(36rem, calc(100vw - 32px - 2.5rem), calc((100vh - 12rem) * 127 / 104)); aspect-ratio: 127 / 104;
   touch-action: pan-y; outline: none; -webkit-tap-highlight-color: transparent;
 }
+.h-frame { position: relative; flex: none; }
+.h-side {
+  position: absolute; top: 50%; z-index: 1; width: 2.5rem; height: 2.5rem; margin-top: -1.25rem; padding: 0;
+  display: grid; place-items: center; font: 400 1.25rem / 1 var(--font-ui); pointer-events: auto;
+}
+.h-prev { left: -1.25rem; }
+.h-next { right: -1.25rem; }
+.h-side:focus-visible { outline: 2px solid var(--edge); outline-offset: 3px; }
 .h-card:focus-visible .h-flip { outline: 2px solid var(--edge); outline-offset: 6px; }
 .h-slide { position: absolute; inset: 0; perspective: 160cqw; }
 .h-flip {

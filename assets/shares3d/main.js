@@ -2,8 +2,8 @@ import { readTokens, watchTheme } from 'scene3d/colors.js';
 import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
-  CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
-  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, tagged, trailDepth, trailPose, trailShown,
+  CARD, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
+  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -18,20 +18,15 @@ const hintEl = document.getElementById('sh3d-hint');
 const qEl = document.getElementById('sh3d-q');
 const found = document.getElementById('sh3d-found');
 const goBtn = document.getElementById('sh3d-go');
-const findBtn = document.getElementById('sh3d-find');
 const helpBtn = document.getElementById('sh3d-help');
 const helpEl = document.getElementById('sh3d-keyhelp');
 const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
-const GROUP_KEY = 'shares3d-group';
-const MODES = ['tag', 'source', 'year'];
 const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit', 'lamp', 'tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5', 'tag-6', 'tag-7', 'tag-8'];
 const SEEN_KEY = 'seen-links';
 const MISS = 0.6;
-const SLIDE = 380;
-const STAGGER = 45;
 const LIFT = 4;
 const TUG = 10;
 const HELD_DIST = 300;
@@ -41,6 +36,7 @@ const TRAIL_OUT = 500;
 const SETTLE = 12;
 const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
+const NUDGE = { WAIT: 500, LEN: 1100, LEAN: 0.45 };
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
 const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 1 }, cab: { desk: 0.85, held: 0.35, trail: 0.5 }, other: 0.5 };
@@ -51,8 +47,7 @@ const gap = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a
 const moved = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z) + Math.abs(a.q[0] - b.q[0]) + Math.abs(a.q[1] - b.q[1]) + Math.abs(a.q[2] - b.q[2]) + Math.abs((a.s || 1) - (b.s || 1));
 
 function drawerName(d) {
-  const name = d.kind === 'other' ? t('shares3d.other') : d.kind === 'untagged' ? t('shares3d.untagged') : d.key;
-  return name;
+  return d.kind === 'untagged' ? t('shares3d.untagged') : d.key;
 }
 
 function start() {
@@ -89,15 +84,10 @@ function run(gl, canvas) {
   stage.hidden = false;
   bar.hidden = false;
 
-  let mode = 'tag';
-  try {
-    const m = localStorage.getItem(GROUP_KEY);
-    if (MODES.includes(m)) mode = m;
-  } catch (e) {}
   const desk = recent(items);
   const tags = [...new Set(items.flatMap((it) => it.g))].sort();
   const slots = tagSlots(items);
-  let drawers = groups(items, mode);
+  const drawers = groups(items);
   const isNarrow = () => canvas.clientWidth / Math.max(1, canvas.clientHeight) < 1;
   let narrow = isNarrow();
   let a = arrange(desk.length, drawers.length, narrow);
@@ -110,7 +100,6 @@ function run(gl, canvas) {
   let settle = null;
   let bottom = -1;
   let top = 1;
-  let slide = null;
   let dark = false;
   let raf = 0;
   let last = 0;
@@ -123,6 +112,8 @@ function run(gl, canvas) {
   let closing = null;
   let swiped = false;
   let deck = null;
+  let nudge = null;
+  let nudged = false;
   const cam = { pos: null, look: null };
   const lamp = { pos: null };
   const pointer = { x: 0, y: 0, on: false, moved: false };
@@ -264,7 +255,24 @@ function run(gl, canvas) {
     const at = focus && focus.k === e.k ? focus.cur : 0;
     const w = shown(e.k);
     const local = drawerCards(w.n, at - w.start)[e.j - w.start];
-    return { x: f.x, y: f.y + local.y, z: f.z + local.z, q: quat(local.rx, 0) };
+    const r = local.rx + nudgeOf(e, at);
+    const h = CARD.H / 2;
+    return { x: f.x, y: f.y + local.y + (Math.cos(r) - Math.cos(local.rx)) * h, z: f.z + local.z + (Math.sin(r) - Math.sin(local.rx)) * h, q: quat(r, 0) };
+  }
+
+  function nudgeOf(e, at) {
+    if (!nudge || e.k !== nudge.k || e.j !== at) return 0;
+    if (!focus || focus.k !== nudge.k || focus.cur !== nudge.cur) {
+      nudge = null;
+      return 0;
+    }
+    const k = (now - nudge.t0) / NUDGE.LEN;
+    if (k >= 1) {
+      nudge = null;
+      return 0;
+    }
+    fading = true;
+    return k <= 0 ? 0 : Math.sin(Math.PI * k) ** 2 * (LEAN.FORWARD - LEAN.BACK) * NUDGE.LEAN;
   }
 
   function fadeOf(e, matchFade) {
@@ -309,7 +317,7 @@ function run(gl, canvas) {
       photoTile: atlas.photoTile(e.i),
       hero: heroOf(e),
       stamp: it.x && tokens ? tokens.redline.slice(0, 3) : tint('stamp', mainName(it.s)).rgb,
-      tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: labels.tagTile(tags.indexOf(g)) })),
+      tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: narrow ? null : labels.tagTile(tags.indexOf(g)) })),
       sticky: !!it.n,
       fade: fadeOf(e, hits && !hits.has(e.i) ? MISS : 0),
       hidden: (held && held.entry.key === e.key && held.phase === 'dom')
@@ -329,16 +337,14 @@ function run(gl, canvas) {
   }
 
   function drawerColor(d) {
-    return d.kind === 'tag' || d.kind === 'source' ? tint('tab', d.key).rgb : null;
+    return d.kind === 'tag' ? tint('tab', d.key).rgb : null;
   }
 
-  function drawerList(t0) {
+  function drawerList() {
     return drawers.map((d, k) => {
-      let dz = 0;
-      if (slide !== null) dz = -(CAB.DEPTH - 20) * (1 - ease(clamp((t0 - slide - k * STAGGER) / SLIDE, 0, 1)));
       const empty = hits && !d.ids.some((i) => hits.has(i));
       return {
-        x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k] + dz, tile: labels.drawerTile(k), color: drawerColor(d),
+        x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k], tile: labels.drawerTile(k), color: drawerColor(d),
         fade: Math.max(fades.drawers[k] || 0, empty ? 0.5 : 0),
         hot: hover && hover.kind === 'drawer' && hover.k === k && !(focus && focus.k === k) ? 1 : 0,
       };
@@ -355,7 +361,7 @@ function run(gl, canvas) {
 
   function camTarget(aspect) {
     if (focus) return focusDrawer(drawerOut(cab, focus.k), aspect, a);
-    if (view === 'cab') return cabCam(aspect, a);
+    if (view === 'cab') return cabCam(aspect, a, bottom, top);
     if (trail) return deskCam(heroCard(), aspect, a, bottom, top);
     return deskAll(desk.map((i, slot) => deskPose(slot, items[i].i, a)), aspect, a, bottom, top);
   }
@@ -387,7 +393,7 @@ function run(gl, canvas) {
 
   function itemFor(e) {
     const it = items[e.i];
-    const here = e.where === 'x' && mode === 'tag' ? drawers[e.k].key : null;
+    const here = e.where === 'x' ? drawers[e.k].key : null;
     return {
       t: it.t, s: it.s, d: it.d, g: it.g, n: it.n, e: it.e, u: it.u, x: it.x, i: it.i,
       m: thumb(it.m), m0: it.m, cached: !!atlas.image(e.i),
@@ -530,7 +536,6 @@ function run(gl, canvas) {
   function clearSearch() {
     qEl.value = '';
     setQuery('');
-    qEl.classList.remove('open');
     qEl.blur();
   }
 
@@ -558,6 +563,10 @@ function run(gl, canvas) {
     if (focus && (!f || f.k !== focus.k)) closing = { k: focus.k };
     focus = f ? Object.assign({}, f) : null;
     if (focus && closing && closing.k === focus.k) closing = null;
+    if (focus && !nudged && !reduce.matches && drawers[focus.k].ids.length > 1) {
+      nudged = true;
+      nudge = { k: focus.k, cur: focus.cur, t0: performance.now() + NUDGE.WAIT };
+    }
     pointer.moved = true;
     peek.hidden = true;
     hover = null;
@@ -595,7 +604,7 @@ function run(gl, canvas) {
     const st = window.history.state;
     const back = push ? true : !!(st && st.sh3d && st.back);
     const d = v === 'drawer' ? drawers[k] : null;
-    const next = { sh3d: v, back, mode, key: d ? d.key : null };
+    const next = { sh3d: v, back, key: d ? d.key : null };
     try {
       if (push) window.history.pushState(next, '', urlFor(v, k));
       else window.history.replaceState(next, '', urlFor(v, k));
@@ -731,12 +740,13 @@ function run(gl, canvas) {
   }
 
   function syncGo() {
-    goBtn.textContent = view === 'desk' ? `↑ ${t('shares3d.to_cab')}` : view === 'cab' ? `↓ ${t('shares3d.to_desk')}` : t('shares3d.hint.close_drawer');
+    goBtn.textContent = view === 'desk' ? `↑ ${t('shares3d.to_cab')}` : view === 'cab' ? '↓' : t('shares3d.hint.close_drawer');
+    goBtn.setAttribute('aria-label', view === 'desk' ? t('shares3d.to_cab') : view === 'cab' ? t('shares3d.to_desk') : t('shares3d.hint.close_drawer'));
   }
 
   function resolve(hit) {
     if (!hit) return null;
-    if (hit.kind === 'body') return view === 'cab' ? hit : null;
+    if (hit.kind === 'body') return view === 'cab' || view === 'desk' ? hit : null;
     if (hit.kind === 'drawer') return { kind: 'drawer', k: hit.index };
     const e = entries[hit.index];
     if (!e || e.where === 'o' || (e.where === 'x' && !(focus && focus.k === e.k))) return null;
@@ -753,7 +763,10 @@ function run(gl, canvas) {
       if (view !== 'desk') back();
       return;
     }
-    if (hit.kind === 'body') return;
+    if (hit.kind === 'body') {
+      if (view === 'desk') enter('cab');
+      return;
+    }
     if (hit.kind === 'drawer') {
       if (view === 'desk') enter('cab');
       else if (focus && focus.k === hit.k) back();
@@ -909,15 +922,9 @@ function run(gl, canvas) {
       dirty = true;
     }
 
-    if (slide !== null) {
-      if (t0 - slide > SLIDE + STAGGER * drawers.length) slide = null;
-      busy = true;
-      dirty = true;
-    }
-
     if (dirty) {
       gl.setCards(out);
-      gl.setDrawers(drawerList(t0));
+      gl.setDrawers(drawerList());
       gl.setShadows(shadowList());
       gl.setCabinet(cab, fades.cab);
       const ok = openDrawerIndex();
@@ -934,12 +941,11 @@ function run(gl, canvas) {
     gl.setLamp(dark && lit, lamp.pos[0], lamp.pos[1], lamp.pos[2], lt.reach);
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
-    bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
     const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
       return `${place(sibs, held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
     })() : '';
-    hint.set(s, count, coarse.matches);
+    hint.set(s, count);
 
     gl.render(cam);
     if (!liveT0) {
@@ -1039,34 +1045,6 @@ function run(gl, canvas) {
     return entries.find((e) => e.where === 'x' && e.k === k && e.i === i);
   }
 
-  function pressKeys() {
-    bar.querySelectorAll('[data-group-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.groupSet === mode)));
-  }
-
-  function setMode(m, keep = true, nav = true) {
-    if (m === mode || !MODES.includes(m)) return;
-    mode = m;
-    if (keep) {
-      try { localStorage.setItem(GROUP_KEY, m); } catch (e) {}
-    }
-    pressKeys();
-    release();
-    const wasDrawer = view === 'drawer';
-    if (focus) setFocus(null);
-    closing = null;
-    drawers = groups(items, mode);
-    slide = reduce.matches ? null : performance.now();
-    rearrange();
-    if (wasDrawer) {
-      view = 'cab';
-      syncGo();
-      const st = window.history.state;
-      if (nav && st && st.sh3d === 'drawer' && st.back) window.history.back();
-      else if (nav) remember('cab', -1, false);
-    }
-    invalidate();
-  }
-
   function rearrange() {
     a = arrange(desk.length, drawers.length, narrow);
     cab = a.cab;
@@ -1083,23 +1061,17 @@ function run(gl, canvas) {
     return stage.getBoundingClientRect().bottom > window.innerHeight * 0.5;
   }
 
-  bar.querySelectorAll('[data-group-set]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.groupSet)));
   goBtn.addEventListener('click', () => {
     if (!lit) return;
     if (view === 'desk') enter('cab');
     else back();
   });
   qEl.addEventListener('input', () => setQuery(qEl.value));
-  qEl.addEventListener('blur', () => { if (!qEl.value) qEl.classList.remove('open'); });
   function toggleHelp(on = helpEl.hidden) {
     helpEl.hidden = !on;
     helpBtn.setAttribute('aria-expanded', String(on));
   }
   helpBtn.addEventListener('click', () => toggleHelp());
-  findBtn.addEventListener('click', () => {
-    qEl.classList.add('open');
-    qEl.focus();
-  });
   qEl.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') clearSearch();
     else if ((e.key === 'ArrowDown' || e.key === 'Enter') && deck) card.focus();
@@ -1246,7 +1218,6 @@ function run(gl, canvas) {
       return;
     }
     if (e.key === '/') {
-      qEl.classList.add('open');
       qEl.focus();
       e.preventDefault();
       return;
@@ -1286,7 +1257,6 @@ function run(gl, canvas) {
       show(st.sh3d);
       return;
     }
-    if (st.mode !== mode && MODES.includes(st.mode)) setMode(st.mode, false, false);
     const k = drawers.findIndex((d) => d.key === st.key);
     show(k >= 0 ? 'drawer' : 'cab', k, 0);
   });
@@ -1321,7 +1291,6 @@ function run(gl, canvas) {
   });
   new ResizeObserver(measureTop).observe(document.documentElement);
 
-  pressKeys();
   measureTop();
   syncGo();
   gl.resize(canvas.clientWidth, canvas.clientHeight);
@@ -1346,7 +1315,6 @@ function run(gl, canvas) {
       } catch (e) {}
     }
     if (name !== null) {
-      if (mode !== 'tag') setMode('tag', false);
       const k = drawers.findIndex((d) => d.kind === 'tag' && d.key === name);
       if (k >= 0) show('drawer', k, 0);
     }

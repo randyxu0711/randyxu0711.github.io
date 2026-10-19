@@ -52,15 +52,18 @@ books3d.sort_rating: { zh: "星等", en: "Rating" }
 books3d.sort_year:   { zh: "年份", en: "Year" }
 books3d.sort_color:  { zh: "顏色", en: "Color" }
 books3d.sort_author: { zh: "作者", en: "Author" }
-books3d.sort_pages:  { zh: "頁數", en: "Pages" }
 books3d.undated: { zh: "沒有日期", en: "Undated" }
-books3d.nopages: { zh: "沒有頁數", en: "No page count" }
+books3d.years:   { zh: "{n} 年", en: "{n}" }
+books3d.index:   { zh: "書架索引", en: "Shelf index" }
+books3d.hue_red:    { zh: "紅", en: "Red" }
+books3d.hue_orange: { zh: "橙", en: "Orange" }
+books3d.hue_yellow: { zh: "黃", en: "Yellow" }
+books3d.hue_green:  { zh: "綠", en: "Green" }
+books3d.hue_blue:   { zh: "藍", en: "Blue" }
+books3d.hue_purple: { zh: "紫", en: "Purple" }
+books3d.hue_pink:   { zh: "粉紅", en: "Pink" }
+books3d.hue_grey:   { zh: "黑白灰", en: "Neutrals" }
 
-shares3d.group:     { zh: "分組", en: "Group by" }
-shares3d.by_tag:    { zh: "依 tag", en: "By tag" }
-shares3d.by_source: { zh: "依來源", en: "By source" }
-shares3d.by_year:   { zh: "依年份", en: "By year" }
-shares3d.other:     { zh: "其他來源", en: "Other sources" }
 shares3d.untagged:  { zh: "未分類", en: "Untagged" }
 shares3d.cards:     { zh: "{n} 張", en: "{n} cards", en_one: "{n} card" }
 shares3d.note:      { zh: "心得", en: "Note" }
@@ -75,14 +78,6 @@ shares3d.put_back:  { zh: "放回去", en: "Put back" }
 shares3d.search:    { zh: "搜尋分享", en: "Search shares" }
 shares3d.search_ph: { zh: "搜尋標題、來源、心得", en: "Search titles, sources, notes" }
 shares3d.matches:   { zh: "{n} 張符合", en: "{n} matching", en_one: "{n} match" }
-shares3d.hint.desk:         { zh: "點卡片拿起,點標籤看相關的卡,往上滾看目錄櫃", en: "Click a card to read · a tag for related cards · scroll up for the catalog" }
-shares3d.hint.desk_touch:   { zh: "點卡片拿起來,往下拉看目錄櫃", en: "Tap a card to read it · pull down for the catalog" }
-shares3d.hint.cab:          { zh: "點抽屜拉開,往下滾回桌面", en: "Click a drawer to open it · scroll down for the desk" }
-shares3d.hint.cab_touch:    { zh: "點抽屜拉開,往上滑回桌面", en: "Tap a drawer to open it · swipe up for the desk" }
-shares3d.hint.drawer:       { zh: "滾輪撥卡,點外面關上", en: "Scroll to flip · click outside to close" }
-shares3d.hint.drawer_touch: { zh: "左右滑撥卡,點外面關上", en: "Swipe to flip · tap outside to close" }
-shares3d.hint.held:         { zh: "滾輪換下一張,點卡片翻面", en: "Scroll for the next card · click to flip it" }
-shares3d.hint.tap_card:     { zh: "點卡片翻面", en: "Tap the card to flip it" }
 shares3d.hint.next:         { zh: "換一張", en: "Next card" }
 shares3d.hint.pick_up:      { zh: "拿起來", en: "Pick up" }
 shares3d.hint.look_up:      { zh: "抬頭看目錄櫃", en: "Look up at the catalog" }
