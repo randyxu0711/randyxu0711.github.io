@@ -62,7 +62,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 
 ## 發文 = 開 GitHub Issue
 - Issue Form `.github/ISSUE_TEMPLATE/share.yml`:網址(必填)/ 心得 / tags(多選,至少一個)/ 標題覆蓋。
-  **tag 清單只有這一份**,加 tag = 加一行。
+  **tag 清單只有這一份**,最多 8 種(目錄櫃 4 欄 / 手機 2 欄排滿、`--tag-1`～`--tag-8` 一色一類),加 tag 要先拿掉一個。
 - Workflow `.github/workflows/share.yml` → `tools/share/share.py`(純 stdlib):
   作者≠owner 略過 → 網址格式不對或沒選 tag:不發布、留言 + `needs-fix` → 網址分享過(`normalize_url` 比對):不發布、留言指出 issue、關成 not planned → 抓 og(失敗不擋,退回用網址當標題並在留言提醒)
   → 寫 md(含 `archive`)、commit → 送存 Wayback(失敗不擋,只在留言提醒)→ 呼叫部署 → 留言列出抓到的內容並關 issue。

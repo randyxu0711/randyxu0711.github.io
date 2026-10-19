@@ -20,22 +20,17 @@ body:
     id: tags
     attributes:
       label: 分類
-      description: 至少選一個,可多選。要加分類就在這裡加一行。
+      description: 至少選一個,可多選。分類最多 8 種(目錄櫃一排 4 格、色票 8 色),要加新的就先拿掉一個。
       multiple: true
       options:
         - AI/LLM
         - Frontend
         - Backend
-        - Database
         - DevOps/Infra
         - Architecture
         - Security
-        - Testing
         - Performance
-        - Programming Languages
         - Open Source
-        - Tooling
-        - Career
     validations:
       required: true
   - type: input
