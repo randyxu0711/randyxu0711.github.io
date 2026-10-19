@@ -18,7 +18,6 @@ const hintEl = document.getElementById('sh3d-hint');
 const qEl = document.getElementById('sh3d-q');
 const found = document.getElementById('sh3d-found');
 const goBtn = document.getElementById('sh3d-go');
-const findBtn = document.getElementById('sh3d-find');
 const helpBtn = document.getElementById('sh3d-help');
 const helpEl = document.getElementById('sh3d-keyhelp');
 const list = document.getElementById('sh3d-list');
@@ -537,7 +536,6 @@ function run(gl, canvas) {
   function clearSearch() {
     qEl.value = '';
     setQuery('');
-    qEl.classList.remove('open');
     qEl.blur();
   }
 
@@ -1069,16 +1067,11 @@ function run(gl, canvas) {
     else back();
   });
   qEl.addEventListener('input', () => setQuery(qEl.value));
-  qEl.addEventListener('blur', () => { if (!qEl.value) qEl.classList.remove('open'); });
   function toggleHelp(on = helpEl.hidden) {
     helpEl.hidden = !on;
     helpBtn.setAttribute('aria-expanded', String(on));
   }
   helpBtn.addEventListener('click', () => toggleHelp());
-  findBtn.addEventListener('click', () => {
-    qEl.classList.add('open');
-    qEl.focus();
-  });
   qEl.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') clearSearch();
     else if ((e.key === 'ArrowDown' || e.key === 'Enter') && deck) card.focus();
@@ -1225,7 +1218,6 @@ function run(gl, canvas) {
       return;
     }
     if (e.key === '/') {
-      qEl.classList.add('open');
       qEl.focus();
       e.preventDefault();
       return;
