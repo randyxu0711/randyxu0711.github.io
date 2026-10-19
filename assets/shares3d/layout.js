@@ -7,6 +7,7 @@ export const WINDOW = 60;
 export const AHEAD = 8;
 export const SOURCES = 7;
 export const LABEL = { W: 140, H: 17.5 };
+export const PLATE = { LO: -6, HI: 29 };
 export const FOV = 35;
 export const PITCH = { DESK: (55 * Math.PI) / 180, CAB: (8 * Math.PI) / 180 };
 export const THUMB = 'https://wsrv.nl/?url=';
@@ -187,7 +188,7 @@ export function deskAll(poses, aspect, a = BASE, bottom = -1, top = 1) {
   const pts = [];
   for (const x of [box.x0, box.x1]) for (const y of [0, CARD.T + 4]) for (const z of [box.z0, box.z1]) pts.push([x, y, z]);
   const mx = a.narrow ? FIT.NARROW : FIT.X;
-  const at = (d) => view(look, d, PITCH.DESK, (top + bottom) / 4);
+  const at = (d, s = (top + bottom) / 4) => view(look, d, PITCH.DESK, s);
   const ok = (d) => {
     const c = at(d);
     return pts.every((pt) => {
@@ -206,7 +207,29 @@ export function deskAll(poses, aspect, a = BASE, bottom = -1, top = 1) {
     if (ok(mid)) hi = mid;
     else lo = mid;
   }
-  return at(hi);
+  if (!a.narrow) return at(hi);
+  const low = (s) => {
+    const c = at(hi, s);
+    return Math.min(...pts.map((pt) => ndc(c.pos, c.look, aspect, pt)[1]));
+  };
+  let s0 = (top + bottom) / 4 - 1;
+  let s1 = (top + bottom) / 4;
+  for (let k = 0; k < 20; k++) {
+    const mid = (s0 + s1) / 2;
+    if (low(mid) >= bottom) s1 = mid;
+    else s0 = mid;
+  }
+  const rows = [...new Set(a.cab.slots.map((p) => p.y))];
+  const cut = (s) => {
+    const c = at(hi, s);
+    return rows.some((y) => {
+      const y0 = ndc(c.pos, c.look, aspect, [0, y + PLATE.LO, a.cab.z])[1];
+      const y1 = ndc(c.pos, c.look, aspect, [0, y + PLATE.HI, a.cab.z])[1];
+      return y1 > top - 0.015 && y0 < top + 0.015;
+    });
+  };
+  for (let k = 0; k < 40 && cut(s1); k++) s1 += 0.005;
+  return at(hi, s1);
 }
 
 export function cabCam(aspect, a = BASE) {

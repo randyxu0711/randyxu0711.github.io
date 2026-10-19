@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG,
+  CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG, PLATE,
   recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots,
 } from 'shares3d/layout.js';
 
@@ -135,6 +135,43 @@ test('桌面全景:6 張都在畫面裡、工具列上面,俯角不變', () => {
       const dir = cam.look.map((v, i) => v - cam.pos[i]);
       assert.ok(Math.abs(Math.atan2(-dir[1], Math.hypot(dir[0], dir[2])) - PITCH.DESK) < 1e-6);
     }
+  }
+});
+
+const PHONES = [[390, 844, true], [430, 932, true], [375, 667, false]];
+const band = (w, h) => ({ aspect: w / h, top: 1 - 166 / h, bottom: 1 - (2 * (h - 101)) / h, cab: 1 - (2 * (h - 132)) / h });
+
+test('直立螢幕的桌面全景:卡片貼著工具列上方,上面露出完整的抽屜,標籤不被 nav 切到', () => {
+  for (const [w, h, tall] of PHONES) {
+    const { aspect, top, bottom } = band(w, h);
+    for (const n of [3, 8, 9, 13]) {
+      const a = arrange(DESK.N, n, true);
+      const poses = Array.from({ length: DESK.N }, (_, k) => deskPose(k, k + 1, a));
+      const cam = deskAll(poses, aspect, a, bottom, top);
+      const ys = poses.flatMap((p) => [-1, 1].map((s) => project(cam, aspect, [p.x, p.y, p.z + s * CARD.H / 2])[1]));
+      assert.ok(Math.min(...ys) - bottom < 0.12, `${w}x${h} n=${n} anchored`);
+      assert.ok(Math.max(...ys) <= top, `${w}x${h} n=${n} under nav`);
+      const at = (y) => project(cam, aspect, [0, y, a.cab.z])[1];
+      const rows = [...new Set(a.cab.slots.map((s) => s.y))];
+      rows.forEach((y) => {
+        const lo = at(y + PLATE.LO);
+        const hi = at(y + PLATE.HI);
+        assert.ok(hi < top || lo > top, `${w}x${h} n=${n} plate ${y} cut by nav`);
+      });
+      if (tall) {
+        const y = Math.min(...rows);
+        assert.ok(at(y + DRAWER.H / 2) < top && at(y - DRAWER.H / 2) > Math.max(...ys), `${w}x${h} n=${n} full drawer row`);
+      }
+    }
+  }
+});
+
+test('直立螢幕的櫃子鏡頭:桌上的卡不跑到底部工具列後面', () => {
+  for (const [w, h] of PHONES.filter(([, , tall]) => tall)) {
+    const { aspect, cab } = band(w, h);
+    const a = arrange(DESK.N, 9, true);
+    const front = Math.max(...Array.from({ length: DESK.N }, (_, k) => deskPose(k, k + 1, a).z)) + CARD.H / 2;
+    assert.ok(project(cabCam(aspect, a), aspect, [0, 0, front])[1] > cab, `${w}x${h}`);
   }
 });
 
