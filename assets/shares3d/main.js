@@ -309,7 +309,7 @@ function run(gl, canvas) {
       photoTile: atlas.photoTile(e.i),
       hero: heroOf(e),
       stamp: it.x && tokens ? tokens.redline.slice(0, 3) : tint('stamp', mainName(it.s)).rgb,
-      tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: labels.tagTile(tags.indexOf(g)) })),
+      tabs: it.g.slice(0, TABS).map((g) => ({ color: tint('tab', g).rgb, tile: narrow ? null : labels.tagTile(tags.indexOf(g)) })),
       sticky: !!it.n,
       fade: fadeOf(e, hits && !hits.has(e.i) ? MISS : 0),
       hidden: (held && held.entry.key === e.key && held.phase === 'dom')
