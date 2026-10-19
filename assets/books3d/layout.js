@@ -4,6 +4,10 @@ export const PAD = 18;
 export const LIP = 14;
 export const ROW_GAP = 64;
 export const GROUP_GAP = 90;
+export const MERGE_YEARS = 12;
+const PAGE_STEPS = [200, 300, 400, 500];
+const HUES = [[45, 'red'], [80, 'orange'], [120, 'yellow'], [180, 'green'], [285, 'blue'], [330, 'purple'], [361, 'pink']];
+const GREY = 0.035;
 
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -58,48 +62,112 @@ const SORTS = {
       if (!years.has(y)) years.set(y, []);
       years.get(y).push(i);
     });
-    return [...years.keys()].sort((a, b) => (!a ? 1 : !b ? -1 : b.localeCompare(a))).map((y) => ({
-      key: 'year:' + (y || 'none'),
-      label: y ? { kind: 'year', year: y } : { kind: 'undated' },
-      list: years.get(y).sort(byDate(books, -1)),
+    const runs = [];
+    [...years.keys()].sort((a, b) => (!a ? 1 : !b ? -1 : b.localeCompare(a))).forEach((y) => {
+      const list = years.get(y).sort(byDate(books, -1));
+      const small = !!y && list.length < MERGE_YEARS;
+      const prev = runs[runs.length - 1];
+      if (small && prev && prev.small) {
+        prev.list.push(...list);
+        prev.from = y;
+      } else runs.push({ small, from: y, to: y, list });
+    });
+    return runs.map((g) => ({
+      key: 'year:' + (g.from === g.to ? g.to || 'none' : g.from + '-' + g.to),
+      label: !g.to ? { kind: 'undated' } : g.from === g.to ? { kind: 'year', year: g.to } : { kind: 'years', year: g.from + '–' + g.to },
+      list: g.list,
     }));
   },
   color(books) {
     const c = books.map((b) => oklch(b.c));
-    const grey = (i) => c[i].c < 0.035;
+    const grey = (i) => c[i].c < GREY;
     const list = books.map((b, i) => i).sort((a, b) => {
       if (grey(a) !== grey(b)) return grey(a) ? 1 : -1;
       return grey(a) ? c[b].l - c[a].l : c[a].h - c[b].h;
     });
-    return { continuous: true, list, rowLabel: () => null };
+    const hue = (i) => (grey(i) ? 'grey' : HUES.find(([top]) => c[i].h < top)[1]);
+    return {
+      continuous: true,
+      list,
+      rowLabel: () => null,
+      section: hue,
+      sectionLabel: (part) => ({ kind: 'hue', hue: hue(part[0]), c: books[part[part.length >> 1]].c }),
+    };
   },
   author(books) {
     const list = books.map((b, i) => i).sort((a, b) => books[a].a.localeCompare(books[b].a) || byDate(books, 1)(a, b));
-    return {
-      continuous: true,
-      list,
-      rowLabel: (row) => {
-        const a = initial(books[row[0]].a);
-        const z = initial(books[row[row.length - 1]].a);
-        return { kind: 'letters', text: a === z ? a : a + '–' + z };
-      },
+    const rowLabel = (row) => {
+      const a = initial(books[row[0]].a);
+      const z = initial(books[row[row.length - 1]].a);
+      return { kind: 'letters', text: a === z ? a : a + '–' + z };
     };
+    const letter = (i) => {
+      const a = initial(books[i].a).normalize('NFD')[0];
+      return /[A-Z]/.test(a) ? a : '#';
+    };
+    const sectionLabel = (part) => (letter(part[0]) === '#' ? rowLabel(part) : { kind: 'letters', text: letter(part[0]) });
+    return { continuous: true, list, rowLabel, section: letter, sectionLabel };
   },
   pages(books) {
     const list = books.map((b, i) => i).sort((a, b) => (books[a].p || Infinity) - (books[b].p || Infinity));
-    return {
-      continuous: true,
-      list,
-      rowLabel: (row) => {
-        const p = row.map((i) => books[i].p).filter(Boolean);
-        if (!p.length) return { kind: 'nopages' };
-        const a = Math.min(...p);
-        const z = Math.max(...p);
-        return { kind: 'pages', text: a === z ? String(a) : a + '–' + z };
-      },
+    const rowLabel = (row) => {
+      const p = row.map((i) => books[i].p).filter(Boolean);
+      if (!p.length) return { kind: 'nopages' };
+      const a = Math.min(...p);
+      const z = Math.max(...p);
+      return { kind: 'pages', text: a === z ? String(a) : a + '–' + z };
     };
+    const step = (i) => (books[i].p ? PAGE_STEPS.filter((v) => books[i].p >= v).length : -1);
+    return { continuous: true, list, rowLabel, section: step, sectionLabel: rowLabel };
   },
 };
+
+function sections(groups, total) {
+  const out = [];
+  const push = (key, label, list) => {
+    const from = out.length ? out[out.length - 1].from + out[out.length - 1].count : 0;
+    out.push({ key, label, from, count: list.length, at: from / total, size: list.length / total });
+  };
+  if (!groups.continuous) {
+    groups.forEach((g) => push(g.key, Object.assign({ count: g.list.length }, g.label), g.list));
+    return out;
+  }
+  let part = [];
+  let id;
+  const flush = () => {
+    if (part.length) push('section:' + out.length, Object.assign({ count: part.length }, groups.sectionLabel(part)), part);
+    part = [];
+  };
+  groups.list.forEach((i) => {
+    const k = groups.section(i);
+    if (part.length && k !== id) flush();
+    id = k;
+    part.push(i);
+  });
+  flush();
+  return out;
+}
+
+export function viewSpan(view, vw, vh) {
+  const k = clamp((vw - 480) / (1024 - 480), 0, 1);
+  const across = view === 'covers' ? (3.5 + 4.5 * k) * 150 : (10.5 + 9 * k) * 28;
+  return Math.max(across, 320 * vw / vh);
+}
+
+export function inView(L, k, offset, cx, span) {
+  const s = L.shelves[k];
+  if (!s || s.minOffset === 0) return null;
+  const left = cx - span / 2 - s.x0 - offset;
+  const right = left + span;
+  let a = 0;
+  let z = -1;
+  s.list.forEach((i, j) => {
+    const x = L.items[i].lx;
+    if (x < left) a = j + 1;
+    if (x <= right) z = j;
+  });
+  return { a: a + 1, z: Math.max(a, z) + 1, count: s.count };
+}
 
 export const SORT_NAMES = Object.keys(SORTS);
 
@@ -123,7 +191,8 @@ export function layout(books, { view, sort, width, gutter, head }) {
     });
     const content = lx - GAP + PAD;
     const length = Math.max(avail, content);
-    shelves.push({ key, label, list, x0, length, avail, tallest, count: list.length, minOffset: Math.min(0, avail - length), y: 0 });
+    const first = shelves.length ? shelves[s - 1].first + shelves[s - 1].count : 0;
+    shelves.push({ key, label, list, x0, length, avail, tallest, count: list.length, first, minOffset: Math.min(0, avail - length), y: 0 });
   };
 
   if (grouped) {
@@ -153,5 +222,5 @@ export function layout(books, { view, sort, width, gutter, head }) {
     cursor = s.y - LIP;
   });
 
-  return { view, sort, grouped, shelves, items, height: -cursor + ROW_GAP };
+  return { view, sort, grouped, shelves, items, order: shelves.flatMap((s) => s.list), sections: sections(groups, books.length), height: -cursor + ROW_GAP };
 }

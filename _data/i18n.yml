@@ -55,6 +55,16 @@ books3d.sort_author: { zh: "作者", en: "Author" }
 books3d.sort_pages:  { zh: "頁數", en: "Pages" }
 books3d.undated: { zh: "沒有日期", en: "Undated" }
 books3d.nopages: { zh: "沒有頁數", en: "No page count" }
+books3d.years:   { zh: "{n} 年", en: "{n}" }
+books3d.index:   { zh: "書架索引", en: "Shelf index" }
+books3d.hue_red:    { zh: "紅", en: "Red" }
+books3d.hue_orange: { zh: "橙", en: "Orange" }
+books3d.hue_yellow: { zh: "黃", en: "Yellow" }
+books3d.hue_green:  { zh: "綠", en: "Green" }
+books3d.hue_blue:   { zh: "藍", en: "Blue" }
+books3d.hue_purple: { zh: "紫", en: "Purple" }
+books3d.hue_pink:   { zh: "粉紅", en: "Pink" }
+books3d.hue_grey:   { zh: "黑白灰", en: "Neutrals" }
 
 shares3d.group:     { zh: "分組", en: "Group by" }
 shares3d.by_tag:    { zh: "依 tag", en: "By tag" }

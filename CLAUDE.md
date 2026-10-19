@@ -89,12 +89,14 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
     跟其他場景頁共用的零件在 `assets/scene3d/`(`anim.js`、`colors.js`、`intro.js` 開場亮度曲線、`glsl.js` 打光 / 素描 / 暗房 shader 片段、
     `geometry.js` 的 `box()`、`scene3d.css` 開場幕);版面 front matter 的 `shared:` 列出要載入的共用模組,import 一律用裸名稱 `scene3d/…`。
   books 模組設 `assets: false`,不在每頁載入 `assets/modules/books/`。
-  - 檔案:`layout.js`(五種排序與分組 → 每本書的位置,純函式)、`scene.js`(場景、shader、鏡頭、點擊判定)、
+  - 檔案:`layout.js`(五種排序與分組 → 每本書的位置、索引軌段落、層裡看得到哪幾本,純函式,`tools/books3d/` 測)、`scene.js`(場景、shader、鏡頭、點擊判定)、
     `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)。
   - 書是一個 InstancedMesh,一次繪製;厚度 = 頁數 ÷ 11、高度 = 封面寬 ÷ `ratio`。顏色從 token 讀(1px canvas 填色再讀像素),主題切換時重讀。
     夜間模式自動開檯燈(跟著游標,拿起書時移到書前上方)。
-  - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑。
-    陳列時鏡頭比直立遠。換排法 / 排序以畫面中央那本書為錨點。**靜止時不重畫**(`invalidate()` 才排下一格)。
+  - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑,
+    層標題顯示畫面裡是第幾本到第幾本 / 共幾本(`inView`)與一條細線。年份不到 12 本的跟相鄰的小年份併成區間。
+    右緣有索引軌:目前排序的段落(`sections`),每段長度與本數成比例,點 / 拖曳就捲過去,標籤只在停留、拖曳、聚焦時浮出。
+    陳列時鏡頭比直立遠(`viewSpan`,手機一層 3 本封面)。換排法 / 排序以畫面中央那本書為錨點。**靜止時不重畫**(`invalidate()` 才排下一格)。
   - **純 HTML 書單**:有 JS 時從首次繪製就藏起來,WebGL 啟動後改成視覺隱藏、給螢幕閱讀器與鍵盤(Tab 到一本 = 場景裡高亮);
     WebGL 開不起來、模組抓不到或執行丟錯(`.fail`,`books.html` 的行內 script 接 `error` 事件)才顯示;
     網路慢就一直蓋著幕等,**不用計時器猜**(以前 4 秒放棄,慢網路會先閃書單再跳成 3D)。
@@ -122,7 +124,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 `uvx --with pillow --with pyyaml pytest tools -q`(本機沒有 pytest;CI 用 pip 裝)。
 解析 issue body、驗證、抽 og、產 md、遷移、strike 規則、CSV 篩選與私人資料不外洩,這些我們的政策都要測;
 GitHub API 與網路本身不測。前端沒有測試框架,靠建置 + htmlproofer + 手動檢查。
-場景的純函式用 Node 內建測試:`node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/*.test.mjs tools/shares3d/*.test.mjs`(CI 也跑,列出每個檔案)。
+場景的純函式用 Node 內建測試:`node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/*.test.mjs tools/shares3d/*.test.mjs tools/books3d/*.test.mjs`(CI 也跑,列出每個檔案)。
 
 ## 之後再說
 書的分類維度、同步 Goodreads 心得、IG 舊書搬到 Goodreads、⌘K 快捷面板、專題、相關轉發、閱讀足跡、常讀來源、

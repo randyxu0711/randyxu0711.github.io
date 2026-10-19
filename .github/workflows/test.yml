@@ -2,7 +2,7 @@ name: Test
 
 on:
   push:
-    paths: [tools/**, assets/scene3d/**, assets/shares3d/**, .github/ISSUE_TEMPLATE/**, .github/workflows/test.yml]
+    paths: [tools/**, assets/scene3d/**, assets/shares3d/**, assets/books3d/**, .github/ISSUE_TEMPLATE/**, .github/workflows/test.yml]
   pull_request:
 
 jobs:
@@ -16,4 +16,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - run: node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/intro.test.mjs tools/scene3d/text.test.mjs tools/shares3d/layout.test.mjs tools/shares3d/interact.test.mjs tools/shares3d/hint.test.mjs
+      - run: node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/intro.test.mjs tools/scene3d/text.test.mjs tools/shares3d/layout.test.mjs tools/shares3d/interact.test.mjs tools/shares3d/hint.test.mjs tools/books3d/layout.test.mjs
