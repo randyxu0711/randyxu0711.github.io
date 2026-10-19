@@ -3,7 +3,7 @@ import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
-  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, tagged, trailDepth, trailPose, trailShown,
+  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -43,6 +43,7 @@ const TRAIL_OUT = 500;
 const SETTLE = 12;
 const WHEEL = { STEP: 50, LEVEL: 80, QUIET: 220 };
 const PHOTO_IN = 450;
+const NUDGE = { WAIT: 500, LEN: 1100, LEAN: 0.45 };
 const TABS = 3;
 const DEPTH = { desk: 0, cab: 1, drawer: 2 };
 const FADE = { desk: { cab: 0.45, drawer: 0.92, held: 0.35, trail: 1 }, cab: { desk: 0.85, held: 0.35, trail: 0.5 }, other: 0.5 };
@@ -125,6 +126,8 @@ function run(gl, canvas) {
   let closing = null;
   let swiped = false;
   let deck = null;
+  let nudge = null;
+  let nudged = false;
   const cam = { pos: null, look: null };
   const lamp = { pos: null };
   const pointer = { x: 0, y: 0, on: false, moved: false };
@@ -266,7 +269,24 @@ function run(gl, canvas) {
     const at = focus && focus.k === e.k ? focus.cur : 0;
     const w = shown(e.k);
     const local = drawerCards(w.n, at - w.start)[e.j - w.start];
-    return { x: f.x, y: f.y + local.y, z: f.z + local.z, q: quat(local.rx, 0) };
+    const r = local.rx + nudgeOf(e, at);
+    const h = CARD.H / 2;
+    return { x: f.x, y: f.y + local.y + (Math.cos(r) - Math.cos(local.rx)) * h, z: f.z + local.z + (Math.sin(r) - Math.sin(local.rx)) * h, q: quat(r, 0) };
+  }
+
+  function nudgeOf(e, at) {
+    if (!nudge || e.k !== nudge.k || e.j !== at) return 0;
+    if (!focus || focus.k !== nudge.k || focus.cur !== nudge.cur) {
+      nudge = null;
+      return 0;
+    }
+    const k = (now - nudge.t0) / NUDGE.LEN;
+    if (k >= 1) {
+      nudge = null;
+      return 0;
+    }
+    fading = true;
+    return k <= 0 ? 0 : Math.sin(Math.PI * k) ** 2 * (LEAN.FORWARD - LEAN.BACK) * NUDGE.LEAN;
   }
 
   function fadeOf(e, matchFade) {
@@ -560,6 +580,10 @@ function run(gl, canvas) {
     if (focus && (!f || f.k !== focus.k)) closing = { k: focus.k };
     focus = f ? Object.assign({}, f) : null;
     if (focus && closing && closing.k === focus.k) closing = null;
+    if (focus && !nudged && !reduce.matches && drawers[focus.k].ids.length > 1) {
+      nudged = true;
+      nudge = { k: focus.k, cur: focus.cur, t0: performance.now() + NUDGE.WAIT };
+    }
     pointer.moved = true;
     peek.hidden = true;
     hover = null;
@@ -733,12 +757,13 @@ function run(gl, canvas) {
   }
 
   function syncGo() {
-    goBtn.textContent = view === 'desk' ? `↑ ${t('shares3d.to_cab')}` : view === 'cab' ? `↓ ${t('shares3d.to_desk')}` : t('shares3d.hint.close_drawer');
+    goBtn.textContent = view === 'desk' ? `↑ ${t('shares3d.to_cab')}` : view === 'cab' ? '↓' : t('shares3d.hint.close_drawer');
+    goBtn.setAttribute('aria-label', view === 'desk' ? t('shares3d.to_cab') : view === 'cab' ? t('shares3d.to_desk') : t('shares3d.hint.close_drawer'));
   }
 
   function resolve(hit) {
     if (!hit) return null;
-    if (hit.kind === 'body') return view === 'cab' ? hit : null;
+    if (hit.kind === 'body') return view === 'cab' || view === 'desk' ? hit : null;
     if (hit.kind === 'drawer') return { kind: 'drawer', k: hit.index };
     const e = entries[hit.index];
     if (!e || e.where === 'o' || (e.where === 'x' && !(focus && focus.k === e.k))) return null;
@@ -755,7 +780,10 @@ function run(gl, canvas) {
       if (view !== 'desk') back();
       return;
     }
-    if (hit.kind === 'body') return;
+    if (hit.kind === 'body') {
+      if (view === 'desk') enter('cab');
+      return;
+    }
     if (hit.kind === 'drawer') {
       if (view === 'desk') enter('cab');
       else if (focus && focus.k === hit.k) back();
@@ -941,7 +969,7 @@ function run(gl, canvas) {
       const sibs = siblings(held.entry);
       return `${place(sibs, held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
     })() : '';
-    hint.set(s, count, coarse.matches);
+    hint.set(s, count);
 
     gl.render(cam);
     if (!liveT0) {
