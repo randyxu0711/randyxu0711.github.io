@@ -14,6 +14,16 @@ test('每個狀態在滑鼠與觸控都只有一句提示', () => {
   assert.deepEqual(hintFor('nowhere', false), []);
 });
 
+test('每句提示最多兩件事:主要動作,加一個往前或退回的方法', () => {
+  for (const s of STAGES) {
+    for (const k of [...hintFor(s, false), ...hintFor(s, true)]) {
+      const line = yaml.split('\n').find((l) => l.startsWith(k + ':'));
+      assert.ok(line.match(/zh: "([^"]+)"/)[1].split(',').length <= 2, k);
+      assert.ok(line.match(/en: "([^"]+)"/)[1].split(' · ').length <= 2, k);
+    }
+  }
+});
+
 test('每個狀態的按鍵說明都收在 ? 裡', () => {
   for (const s of STAGES) assert.ok(keysFor(s).length > 0 && keysFor(s).every(([k]) => k), s);
   assert.deepEqual(keysFor('nowhere'), []);

@@ -21,6 +21,8 @@ const goBtn = document.getElementById('sh3d-go');
 const findBtn = document.getElementById('sh3d-find');
 const helpBtn = document.getElementById('sh3d-help');
 const helpEl = document.getElementById('sh3d-keyhelp');
+const cycleBtn = document.getElementById('sh3d-cycle');
+const cycleNow = document.getElementById('sh3d-cycle-now');
 const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -1041,6 +1043,8 @@ function run(gl, canvas) {
 
   function pressKeys() {
     bar.querySelectorAll('[data-group-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.groupSet === mode)));
+    cycleNow.dataset.i18n = `shares3d.by_${mode}`;
+    cycleNow.textContent = t(cycleNow.dataset.i18n);
   }
 
   function setMode(m, keep = true, nav = true) {
@@ -1084,6 +1088,7 @@ function run(gl, canvas) {
   }
 
   bar.querySelectorAll('[data-group-set]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.groupSet)));
+  cycleBtn.addEventListener('click', () => setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]));
   goBtn.addEventListener('click', () => {
     if (!lit) return;
     if (view === 'desk') enter('cab');

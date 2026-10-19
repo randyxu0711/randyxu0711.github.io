@@ -22,13 +22,19 @@ body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opac
   transition: opacity 250ms, visibility 250ms;
 }
 .sh3d.on:not(.lit) .sh3d-bar, .sh3d-bar.holding { opacity: 0; visibility: hidden; }
+.sh3d-bar::before {
+  content: ""; position: absolute; inset: -1.5rem 0 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--desk) 3rem);
+}
+.sh3d.finding .sh3d-bar::before { display: none; }
 .sh3d-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem 0.75rem; pointer-events: auto; max-width: 100%; }
 .sh3d-keys { display: flex; gap: 0.4rem; }
 .sh3d-bar:not(.at-cab) .sh3d-keys { display: none; }
 .sh3d-q { width: min(16rem, calc(100vw - 32px)); }
-.sh3d-find { display: none; }
+.sh3d-find, .sh3d-cycle { display: none; }
 @media (max-width: 640px) {
-  .sh3d-find { display: inline-flex; }
+  .sh3d-find, .sh3d-cycle { display: inline-flex; }
+  .sh3d-keys [data-group-set] { display: none; }
   .sh3d-q:not(.open) { display: none; }
 }
 .sh3d-found { font: 400 var(--t-xs) / 1 var(--font-code); color: var(--ink-3); }
