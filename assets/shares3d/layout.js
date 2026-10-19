@@ -5,7 +5,6 @@ export const DRAWER = { W: 150, H: 75, GAP: 6, D: 8 };
 export const CAB = { Z: -480, DEPTH: 240, SIDE: 10, BASE: 24, TOP: 12 };
 export const WINDOW = 60;
 export const AHEAD = 8;
-export const SOURCES = 7;
 export const LABEL = { W: 140, H: 17.5 };
 export const PLATE = { LO: -6, HI: 29 };
 export const FOV = 35;
@@ -53,29 +52,19 @@ export function thumb(url) {
   return url ? `${THUMB}${encodeURIComponent(url)}&w=640&h=336&fit=cover&output=webp` : null;
 }
 
-export function groups(items, mode) {
+export function groups(items) {
   const map = new Map();
   const add = (key, i) => {
     if (!map.has(key)) map.set(key, []);
     map.get(key).push(i);
   };
   items.forEach((it, i) => {
-    if (mode === 'source') add(it.s, i);
-    else if (mode === 'year') add(it.d.slice(0, 4), i);
-    else if (it.g.length) it.g.forEach((g) => add(g, i));
+    if (it.g.length) it.g.forEach((g) => add(g, i));
     else add('', i);
   });
-  let list = [...map].map(([key, ids]) => ({ key, kind: mode === 'tag' && key === '' ? 'untagged' : mode, ids }));
-  if (mode === 'source') {
-    list.sort((a, b) => b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
-    const keep = (d, k) => d.ids.length >= 2 && k < SOURCES;
-    const other = list.filter((d, k) => !keep(d, k)).flatMap((d) => d.ids).sort((a, b) => a - b);
-    list = list.filter(keep);
-    if (other.length) list.push({ key: '', kind: 'other', ids: other });
-  }
-  const last = (d) => (d.kind === 'other' || d.kind === 'untagged' ? 1 : 0);
-  if (mode === 'year') list.sort((a, b) => (a.key < b.key ? 1 : -1));
-  else list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
+  const list = [...map].map(([key, ids]) => ({ key, kind: key === '' ? 'untagged' : 'tag', ids }));
+  const last = (d) => (d.kind === 'untagged' ? 1 : 0);
+  list.sort((a, b) => last(a) - last(b) || b.ids.length - a.ids.length || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0));
   return list;
 }
 

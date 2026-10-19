@@ -247,12 +247,12 @@ test('tag 依出現次數分色,最常見的幾個不撞色', () => {
 });
 
 test('空:分組不出錯', () => {
-  for (const mode of ['tag', 'source', 'year']) assert.deepEqual(groups([], mode), []);
+  assert.deepEqual(groups([]), []);
 });
 
 test('分組:tag 每個 tag 一份,張數多的在前,未分類最後', () => {
   const items = [share('2026-10-13', { g: ['AI/LLM', 'Security'] }), share('2026-10-12', { g: ['AI/LLM'] }), share('2026-10-11'), share('2026-10-10', { g: ['Backend'] })];
-  const out = groups(items, 'tag');
+  const out = groups(items);
   assert.deepEqual(out.map((d) => [d.key, d.kind, d.ids]), [
     ['AI/LLM', 'tag', [0, 1]],
     ['Backend', 'tag', [3]],
@@ -261,34 +261,16 @@ test('分組:tag 每個 tag 一份,張數多的在前,未分類最後', () => {
   ]);
 });
 
-test('分組:只有 1 張的來源併成其他來源,放最後', () => {
-  const items = [share('2026-10-13', { s: 'a.com' }), share('2026-10-12', { s: 'b.com' }), share('2026-10-11', { s: 'a.com' }), share('2026-10-10', { s: 'c.com' })];
-  assert.deepEqual(groups(items, 'source').map((d) => [d.key, d.kind, d.ids]), [
-    ['a.com', 'source', [0, 2]],
-    ['', 'other', [1, 3]],
-  ]);
-});
-
-test('分組:來源最多 7 格,張數少的併進其他來源', () => {
-  const items = [];
-  for (let k = 0; k < 9; k++) for (let j = 0; j <= 9 - k; j++) items.push(share('2026-10-01', { s: `s${k}.com` }));
-  const out = groups(items, 'source');
-  assert.deepEqual(out.map((d) => d.key), ['s0.com', 's1.com', 's2.com', 's3.com', 's4.com', 's5.com', 's6.com', '']);
-  assert.equal(out[7].kind, 'other');
-  assert.equal(out[7].ids.length, 3 + 2);
-  assert.deepEqual(out[7].ids, [...out[7].ids].sort((a, b) => a - b));
-});
-
-test('分組:年份新到舊', () => {
-  const items = [share('2026-10-13'), share('2026-01-01'), share('2025-12-31'), share('2024-05-01')];
-  assert.deepEqual(groups(items, 'year').map((d) => [d.key, d.kind, d.ids]), [['2026', 'year', [0, 1]], ['2025', 'year', [2]], ['2024', 'year', [3]]]);
+test('分組:只依 tag,不看來源與年份', () => {
+  const items = [share('2026-10-13', { s: 'a.com', g: ['AI/LLM'] }), share('2025-01-02', { s: 'b.com', g: ['AI/LLM'] }), share('2024-05-01', { s: 'a.com' })];
+  const out = groups(items);
+  assert.deepEqual(out.map((d) => [d.key, d.kind]), [['AI/LLM', 'tag'], ['', 'untagged']]);
+  assert.ok(out.every((d) => d.kind === 'tag' || d.kind === 'untagged'));
 });
 
 test('分組:張數再多也不拆格', () => {
   const tagged = Array.from({ length: WINDOW * 3 }, () => share('2026-10-01', { g: ['AI/LLM'] }));
-  assert.deepEqual(groups(tagged, 'tag').map((d) => d.ids.length), [WINDOW * 3]);
-  const singles = Array.from({ length: WINDOW + 1 }, (_, i) => share('2026-10-01', { s: `site${i}.com` }));
-  assert.deepEqual(groups(singles, 'source').map((d) => [d.kind, d.ids.length]), [['other', WINDOW + 1]]);
+  assert.deepEqual(groups(tagged).map((d) => d.ids.length), [WINDOW * 3]);
 });
 
 test('抽屜窗口:張數不超過窗口時整格都在', () => {

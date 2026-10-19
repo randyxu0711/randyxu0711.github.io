@@ -46,12 +46,6 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
     <p class="sh3d-keyhelp" id="sh3d-keyhelp" hidden></p>
     <div class="sh3d-tools">
       <button type="button" class="key sh3d-go" id="sh3d-go"></button>
-      <div class="sh3d-keys" role="group" aria-label="{% include t.html k="shares3d.group" %}" data-i18n-attr="aria-label:shares3d.group">
-        <button type="button" class="key" data-group-set="tag" aria-pressed="false" data-i18n="shares3d.by_tag">{% include t.html k="shares3d.by_tag" %}</button>
-        <button type="button" class="key" data-group-set="source" aria-pressed="false" data-i18n="shares3d.by_source">{% include t.html k="shares3d.by_source" %}</button>
-        <button type="button" class="key" data-group-set="year" aria-pressed="false" data-i18n="shares3d.by_year">{% include t.html k="shares3d.by_year" %}</button>
-        <button type="button" class="key sh3d-cycle" id="sh3d-cycle"><span class="visually-hidden" data-i18n="shares3d.group">{% include t.html k="shares3d.group" %}</span> <span id="sh3d-cycle-now" data-i18n="shares3d.by_tag">{% include t.html k="shares3d.by_tag" %}</span><span class="n" aria-hidden="true">⇆</span></button>
-      </div>
       <button type="button" class="key sh3d-find" id="sh3d-find" data-i18n="shares3d.hint.search">{% include t.html k="shares3d.hint.search" %}</button>
       <input class="groove sh3d-q" id="sh3d-q" type="search" enterkeyhint="search" autocomplete="off"
         aria-label="{% include t.html k="shares3d.search" %}" placeholder="{% include t.html k="shares3d.search_ph" %}"

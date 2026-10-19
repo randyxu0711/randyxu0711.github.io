@@ -1,7 +1,7 @@
 .sh3d-canvas { transition: filter 300ms, transform 300ms; }
 .sh3d.finding .sh3d-canvas { filter: blur(14px) brightness(0.9); transform: scale(1.04); }
 .sh3d.finding .sh3d-bar { top: var(--sh3d-top, 4.5rem); bottom: auto; padding-top: 0.75rem; }
-.sh3d.finding :is(.sh3d-go, .sh3d-keys, .sh3d-hint, .sh3d-peek, .sh3d-find, .sh3d-help, .sh3d-keyhelp) { display: none; }
+.sh3d.finding :is(.sh3d-go, .sh3d-hint, .sh3d-peek, .sh3d-find, .sh3d-help, .sh3d-keyhelp) { display: none; }
 body:has(.sh3d.finding) .footer { opacity: 0; visibility: hidden; }
 .sh3d-canvas { position: fixed; top: 0; left: 0; right: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; display: block; }
 .sh3d.on .sh3d-list { position: fixed; inset: 0; overflow: hidden; clip-path: inset(50%); pointer-events: none; white-space: nowrap; }
@@ -28,13 +28,10 @@ body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opac
 }
 .sh3d.finding .sh3d-bar::before { display: none; }
 .sh3d-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem 0.75rem; pointer-events: auto; max-width: 100%; }
-.sh3d-keys { display: flex; gap: 0.4rem; }
-.sh3d-bar:not(.at-cab) .sh3d-keys { display: none; }
 .sh3d-q { width: min(16rem, calc(100vw - 32px)); }
-.sh3d-find, .sh3d-cycle { display: none; }
+.sh3d-find { display: none; }
 @media (max-width: 640px) {
-  .sh3d-find, .sh3d-cycle { display: inline-flex; }
-  .sh3d-keys [data-group-set] { display: none; }
+  .sh3d-find { display: inline-flex; }
   .sh3d-q:not(.open) { display: none; }
 }
 .sh3d-found { font: 400 var(--t-xs) / 1 var(--font-code); color: var(--ink-3); }

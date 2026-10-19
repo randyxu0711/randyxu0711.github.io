@@ -2,7 +2,7 @@ import { readTokens, watchTheme } from 'scene3d/colors.js';
 import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
-  CARD, CAB, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
+  CARD, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
   drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
@@ -21,19 +21,13 @@ const goBtn = document.getElementById('sh3d-go');
 const findBtn = document.getElementById('sh3d-find');
 const helpBtn = document.getElementById('sh3d-help');
 const helpEl = document.getElementById('sh3d-keyhelp');
-const cycleBtn = document.getElementById('sh3d-cycle');
-const cycleNow = document.getElementById('sh3d-cycle-now');
 const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
-const GROUP_KEY = 'shares3d-group';
-const MODES = ['tag', 'source', 'year'];
 const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit', 'lamp', 'tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5', 'tag-6', 'tag-7', 'tag-8'];
 const SEEN_KEY = 'seen-links';
 const MISS = 0.6;
-const SLIDE = 380;
-const STAGGER = 45;
 const LIFT = 4;
 const TUG = 10;
 const HELD_DIST = 300;
@@ -54,8 +48,7 @@ const gap = (a, b) => Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a
 const moved = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y) + Math.abs(a.z - b.z) + Math.abs(a.q[0] - b.q[0]) + Math.abs(a.q[1] - b.q[1]) + Math.abs(a.q[2] - b.q[2]) + Math.abs((a.s || 1) - (b.s || 1));
 
 function drawerName(d) {
-  const name = d.kind === 'other' ? t('shares3d.other') : d.kind === 'untagged' ? t('shares3d.untagged') : d.key;
-  return name;
+  return d.kind === 'untagged' ? t('shares3d.untagged') : d.key;
 }
 
 function start() {
@@ -92,15 +85,10 @@ function run(gl, canvas) {
   stage.hidden = false;
   bar.hidden = false;
 
-  let mode = 'tag';
-  try {
-    const m = localStorage.getItem(GROUP_KEY);
-    if (MODES.includes(m)) mode = m;
-  } catch (e) {}
   const desk = recent(items);
   const tags = [...new Set(items.flatMap((it) => it.g))].sort();
   const slots = tagSlots(items);
-  let drawers = groups(items, mode);
+  const drawers = groups(items);
   const isNarrow = () => canvas.clientWidth / Math.max(1, canvas.clientHeight) < 1;
   let narrow = isNarrow();
   let a = arrange(desk.length, drawers.length, narrow);
@@ -113,7 +101,6 @@ function run(gl, canvas) {
   let settle = null;
   let bottom = -1;
   let top = 1;
-  let slide = null;
   let dark = false;
   let raf = 0;
   let last = 0;
@@ -351,16 +338,14 @@ function run(gl, canvas) {
   }
 
   function drawerColor(d) {
-    return d.kind === 'tag' || d.kind === 'source' ? tint('tab', d.key).rgb : null;
+    return d.kind === 'tag' ? tint('tab', d.key).rgb : null;
   }
 
-  function drawerList(t0) {
+  function drawerList() {
     return drawers.map((d, k) => {
-      let dz = 0;
-      if (slide !== null) dz = -(CAB.DEPTH - 20) * (1 - ease(clamp((t0 - slide - k * STAGGER) / SLIDE, 0, 1)));
       const empty = hits && !d.ids.some((i) => hits.has(i));
       return {
-        x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k] + dz, tile: labels.drawerTile(k), color: drawerColor(d),
+        x: cab.slots[k].x, y: cab.slots[k].y, z: cab.z + fronts[k], tile: labels.drawerTile(k), color: drawerColor(d),
         fade: Math.max(fades.drawers[k] || 0, empty ? 0.5 : 0),
         hot: hover && hover.kind === 'drawer' && hover.k === k && !(focus && focus.k === k) ? 1 : 0,
       };
@@ -409,7 +394,7 @@ function run(gl, canvas) {
 
   function itemFor(e) {
     const it = items[e.i];
-    const here = e.where === 'x' && mode === 'tag' ? drawers[e.k].key : null;
+    const here = e.where === 'x' ? drawers[e.k].key : null;
     return {
       t: it.t, s: it.s, d: it.d, g: it.g, n: it.n, e: it.e, u: it.u, x: it.x, i: it.i,
       m: thumb(it.m), m0: it.m, cached: !!atlas.image(e.i),
@@ -621,7 +606,7 @@ function run(gl, canvas) {
     const st = window.history.state;
     const back = push ? true : !!(st && st.sh3d && st.back);
     const d = v === 'drawer' ? drawers[k] : null;
-    const next = { sh3d: v, back, mode, key: d ? d.key : null };
+    const next = { sh3d: v, back, key: d ? d.key : null };
     try {
       if (push) window.history.pushState(next, '', urlFor(v, k));
       else window.history.replaceState(next, '', urlFor(v, k));
@@ -939,15 +924,9 @@ function run(gl, canvas) {
       dirty = true;
     }
 
-    if (slide !== null) {
-      if (t0 - slide > SLIDE + STAGGER * drawers.length) slide = null;
-      busy = true;
-      dirty = true;
-    }
-
     if (dirty) {
       gl.setCards(out);
-      gl.setDrawers(drawerList(t0));
+      gl.setDrawers(drawerList());
       gl.setShadows(shadowList());
       gl.setCabinet(cab, fades.cab);
       const ok = openDrawerIndex();
@@ -964,7 +943,6 @@ function run(gl, canvas) {
     gl.setLamp(dark && lit, lamp.pos[0], lamp.pos[1], lamp.pos[2], lt.reach);
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
-    bar.classList.toggle('at-cab', s === 'cab' || s === 'drawer');
     const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
       return `${place(sibs, held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
@@ -1069,36 +1047,6 @@ function run(gl, canvas) {
     return entries.find((e) => e.where === 'x' && e.k === k && e.i === i);
   }
 
-  function pressKeys() {
-    bar.querySelectorAll('[data-group-set]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.groupSet === mode)));
-    cycleNow.dataset.i18n = `shares3d.by_${mode}`;
-    cycleNow.textContent = t(cycleNow.dataset.i18n);
-  }
-
-  function setMode(m, keep = true, nav = true) {
-    if (m === mode || !MODES.includes(m)) return;
-    mode = m;
-    if (keep) {
-      try { localStorage.setItem(GROUP_KEY, m); } catch (e) {}
-    }
-    pressKeys();
-    release();
-    const wasDrawer = view === 'drawer';
-    if (focus) setFocus(null);
-    closing = null;
-    drawers = groups(items, mode);
-    slide = reduce.matches ? null : performance.now();
-    rearrange();
-    if (wasDrawer) {
-      view = 'cab';
-      syncGo();
-      const st = window.history.state;
-      if (nav && st && st.sh3d === 'drawer' && st.back) window.history.back();
-      else if (nav) remember('cab', -1, false);
-    }
-    invalidate();
-  }
-
   function rearrange() {
     a = arrange(desk.length, drawers.length, narrow);
     cab = a.cab;
@@ -1115,8 +1063,6 @@ function run(gl, canvas) {
     return stage.getBoundingClientRect().bottom > window.innerHeight * 0.5;
   }
 
-  bar.querySelectorAll('[data-group-set]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.groupSet)));
-  cycleBtn.addEventListener('click', () => setMode(MODES[(MODES.indexOf(mode) + 1) % MODES.length]));
   goBtn.addEventListener('click', () => {
     if (!lit) return;
     if (view === 'desk') enter('cab');
@@ -1319,7 +1265,6 @@ function run(gl, canvas) {
       show(st.sh3d);
       return;
     }
-    if (st.mode !== mode && MODES.includes(st.mode)) setMode(st.mode, false, false);
     const k = drawers.findIndex((d) => d.key === st.key);
     show(k >= 0 ? 'drawer' : 'cab', k, 0);
   });
@@ -1354,7 +1299,6 @@ function run(gl, canvas) {
   });
   new ResizeObserver(measureTop).observe(document.documentElement);
 
-  pressKeys();
   measureTop();
   syncGo();
   gl.resize(canvas.clientWidth, canvas.clientHeight);
@@ -1379,7 +1323,6 @@ function run(gl, canvas) {
       } catch (e) {}
     }
     if (name !== null) {
-      if (mode !== 'tag') setMode('tag', false);
       const k = drawers.findIndex((d) => d.kind === 'tag' && d.key === name);
       if (k >= 0) show('drawer', k, 0);
     }
