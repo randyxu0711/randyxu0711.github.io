@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { layout, viewSpan, inView, MERGE_YEARS, PAD, GAP, W } from 'books3d/layout.js';
+import { layout, viewSpan, inView, MERGE_YEARS, PAD, GAP, W, SORT_NAMES } from 'books3d/layout.js';
 
 const book = (extra = {}) => ({ r: 3, d: '2024-01-01', a: 'Author', p: 300, q: 0.66, c: '#888888', ...extra });
 const many = (n, f) => Array.from({ length: n }, (_, k) => book(f(k)));
@@ -49,9 +49,13 @@ test('grouped sorts keep one shelf per group that slides sideways', () => {
   assert.ok(L.shelves[0].minOffset < 0);
 });
 
+test('four sorts, rating first; pages is gone', () => {
+  assert.deepEqual(SORT_NAMES, ['rating', 'year', 'color', 'author']);
+});
+
 test('rail sections cover every book once, in order, sized by book count', () => {
   const books = [...many(9, () => ({ r: 5 })), ...many(71, () => ({ r: 4 })), ...many(20, () => ({ r: 3 }))];
-  for (const sort of ['rating', 'year', 'color', 'author', 'pages']) {
+  for (const sort of ['rating', 'year', 'color', 'author']) {
     const L = lay(books, sort);
     let from = 0;
     L.sections.forEach((s) => {
@@ -71,12 +75,6 @@ test('author sections group by base letter and put non-Latin initials together',
   const books = [book({ a: 'Abe' }), book({ a: 'Álvarez' }), book({ a: 'Azuma' }), book({ a: 'Borges' }), book({ a: '朱宥勳' }), book({ a: '胡晴舫' })];
   const L = lay(books, 'author');
   assert.deepEqual(L.sections.map((s) => [s.label.text, s.count]), [['A', 3], ['B', 1], ['朱–胡', 2]]);
-});
-
-test('page sections are ranges of the books inside them, unknown pages last', () => {
-  const books = [book({ p: 120 }), book({ p: 180 }), book({ p: 250 }), book({ p: 700 }), book({ p: null })];
-  const L = lay(books, 'pages');
-  assert.deepEqual(L.sections.map((s) => s.label.text || s.label.kind), ['120–180', '250', '700', 'nopages']);
 });
 
 test('colour sections are hue bands with a sample colour, neutrals last', () => {
