@@ -5,7 +5,6 @@ export const LIP = 14;
 export const ROW_GAP = 64;
 export const GROUP_GAP = 90;
 export const MERGE_YEARS = 12;
-const PAGE_STEPS = [200, 300, 400, 500];
 const HUES = [[45, 'red'], [80, 'orange'], [120, 'yellow'], [180, 'green'], [285, 'blue'], [330, 'purple'], [361, 'pink']];
 const GREY = 0.035;
 
@@ -107,18 +106,6 @@ const SORTS = {
     };
     const sectionLabel = (part) => (letter(part[0]) === '#' ? rowLabel(part) : { kind: 'letters', text: letter(part[0]) });
     return { continuous: true, list, rowLabel, section: letter, sectionLabel };
-  },
-  pages(books) {
-    const list = books.map((b, i) => i).sort((a, b) => (books[a].p || Infinity) - (books[b].p || Infinity));
-    const rowLabel = (row) => {
-      const p = row.map((i) => books[i].p).filter(Boolean);
-      if (!p.length) return { kind: 'nopages' };
-      const a = Math.min(...p);
-      const z = Math.max(...p);
-      return { kind: 'pages', text: a === z ? String(a) : a + '–' + z };
-    };
-    const step = (i) => (books[i].p ? PAGE_STEPS.filter((v) => books[i].p >= v).length : -1);
-    return { continuous: true, list, rowLabel, section: step, sectionLabel: rowLabel };
   },
 };
 

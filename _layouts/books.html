@@ -27,11 +27,16 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 <section class="b3d s3d" id="b3d">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
   <div class="b3d-bar" id="b3d-bar" hidden>
-    <div class="b3d-keys" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
+    <div class="b3d-keys b3d-views" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
       <button type="button" class="key" data-view-set="spines" aria-pressed="false" data-i18n="books.spines">直立</button>
       <button type="button" class="key" data-view-set="covers" aria-pressed="false" data-i18n="books3d.covers">陳列</button>
     </div>
-    <div class="b3d-keys" role="group" aria-label="排序" data-i18n-attr="aria-label:books3d.sort">
+    <button type="button" class="key b3d-view-key" id="b3d-view" aria-pressed="false" aria-label="陳列" data-i18n-attr="aria-label:books3d.covers">
+      <svg class="g-spines" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4h2.5v9H2zM5.5 2h3v11h-3zM9.5 5h2v8h-2zM12.5 3h2v10h-2zM1 14h14v1.5H1z" fill="currentColor"/></svg>
+      <svg class="g-covers" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 2.5h5.5V13H2zM8.5 2.5H14V13H8.5zM1 14h14v1.5H1z" fill="currentColor"/></svg>
+    </button>
+    <button type="button" class="key b3d-sort-key" id="b3d-sort" aria-expanded="false" aria-controls="b3d-sorts"><span class="visually-hidden" data-i18n="books3d.sort">排序</span><span class="cur"></span><span aria-hidden="true">▾</span></button>
+    <div class="b3d-keys b3d-sorts" id="b3d-sorts" role="group" aria-label="排序" data-i18n-attr="aria-label:books3d.sort">
       {%- for k in site.data.i18n -%}
         {%- assign key = k[0] -%}
         {%- if key contains 'books3d.sort_' -%}

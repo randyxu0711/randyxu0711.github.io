@@ -8,6 +8,8 @@ import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 const root = document.getElementById('b3d');
 const stage = document.getElementById('b3d-scene');
 const bar = document.getElementById('b3d-bar');
+const viewKey = document.getElementById('b3d-view');
+const sortKey = document.getElementById('b3d-sort');
 const tier = document.getElementById('b3d-tier');
 const arrows = document.getElementById('b3d-arrows');
 const rail = document.getElementById('b3d-rail');
@@ -687,8 +689,6 @@ async function start() {
     if (l.kind === 'years') return t('books3d.years', l.year) + count;
     if (l.kind === 'undated') return t('books3d.undated') + count;
     if (l.kind === 'letters') return l.text + count;
-    if (l.kind === 'pages') return t('books.pages', l.text) + count;
-    if (l.kind === 'nopages') return t('books3d.nopages') + count;
     if (l.kind === 'hue') return t('books3d.hue_' + l.hue) + count;
     return '';
   }
@@ -812,8 +812,6 @@ async function start() {
     else if (l.kind === 'years') head = t('books3d.years', l.year);
     else if (l.kind === 'undated') head = t('books3d.undated');
     else if (l.kind === 'letters') head = l.text;
-    else if (l.kind === 'pages') head = t('books.pages', l.text);
-    else if (l.kind === 'nopages') head = t('books3d.nopages');
     else if (l.kind === 'hue') head = '<span class="sw" style="background:' + l.c + '"></span>' + t('books3d.hue_' + l.hue);
     return '<span class="h">' + head + '</span>';
   }
@@ -952,6 +950,7 @@ async function start() {
     if (v === state.view) return;
     state.view = v;
     viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewSet === v)));
+    viewKey.setAttribute('aria-pressed', String(v === 'covers'));
     try { localStorage.setItem(VIEW_KEY, v); } catch (e) {}
     setHover(-1);
     relayout('turn');
@@ -963,6 +962,7 @@ async function start() {
     if (v === state.sort || !SORT_NAMES.includes(v)) return;
     state.sort = v;
     sortBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sortSet === v)));
+    showSort();
     try { localStorage.setItem(SORT_KEY, v); } catch (e) {}
     setHover(-1);
     relayout('shuffle');
@@ -972,12 +972,48 @@ async function start() {
   }
   sortBtns.forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.sortSet === state.sort));
-    b.addEventListener('click', () => setSort(b.dataset.sortSet));
+    b.addEventListener('click', () => {
+      setSort(b.dataset.sortSet);
+      if (sortKey.getAttribute('aria-expanded') === 'true') closeSorts(true);
+    });
   });
   viewBtns.forEach((b) => {
     b.setAttribute('aria-pressed', String(b.dataset.viewSet === state.view));
     b.addEventListener('click', () => setView(b.dataset.viewSet));
   });
+  viewKey.setAttribute('aria-pressed', String(state.view === 'covers'));
+  viewKey.addEventListener('click', () => setView(state.view === 'covers' ? 'spines' : 'covers'));
+
+  function showSort() {
+    const cur = sortKey.querySelector('.cur');
+    cur.dataset.i18n = 'books3d.sort_' + state.sort;
+    cur.textContent = t(cur.dataset.i18n);
+  }
+  function closeSorts(refocus) {
+    sortKey.setAttribute('aria-expanded', 'false');
+    bar.classList.remove('open');
+    if (refocus) sortKey.focus();
+  }
+  showSort();
+  sortKey.addEventListener('click', () => {
+    if (sortKey.getAttribute('aria-expanded') === 'true') return closeSorts(false);
+    sortKey.setAttribute('aria-expanded', 'true');
+    bar.classList.add('open');
+    (bar.querySelector('[data-sort-set][aria-pressed="true"]') || sortBtns[0]).focus();
+  });
+  bar.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !bar.classList.contains('open')) return;
+    e.preventDefault();
+    closeSorts(true);
+  });
+  bar.addEventListener('focusout', (e) => {
+    if (bar.classList.contains('open') && e.relatedTarget && !bar.contains(e.relatedTarget)) closeSorts(false);
+  });
+  window.addEventListener('pointerdown', (e) => {
+    if (!bar.classList.contains('open') || bar.contains(e.target)) return;
+    e.stopPropagation();
+    closeSorts(false);
+  }, true);
 
   const isScene = (el) => el === stage || el === canvas || el === document.body || el === document.documentElement || el === root || el.id === 'main';
 
