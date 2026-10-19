@@ -357,7 +357,7 @@ function run(gl, canvas) {
 
   function camTarget(aspect) {
     if (focus) return focusDrawer(drawerOut(cab, focus.k), aspect, a);
-    if (view === 'cab') return cabCam(aspect, a);
+    if (view === 'cab') return cabCam(aspect, a, bottom, top);
     if (trail) return deskCam(heroCard(), aspect, a, bottom, top);
     return deskAll(desk.map((i, slot) => deskPose(slot, items[i].i, a)), aspect, a, bottom, top);
   }

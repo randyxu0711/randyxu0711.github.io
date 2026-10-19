@@ -232,11 +232,46 @@ export function deskAll(poses, aspect, a = BASE, bottom = -1, top = 1) {
   return at(hi, s1);
 }
 
-export function cabCam(aspect, a = BASE) {
+export function cabCam(aspect, a = BASE, bottom = -1, top = 1) {
   const cab = a.cab;
-  const wide = (cab.width / 2 + 24) / (TAN * aspect * (a.narrow ? 0.96 : 0.92));
-  const tall = (cab.height / 2 + 24) / (TAN * (a.narrow ? 0.7 : 0.8));
-  return view([0, cab.height / 2, cab.z], Math.max(wide, tall), PITCH.CAB, a.narrow ? 0.12 : 0.06);
+  const look = [0, cab.height / 2, cab.z];
+  if (!a.narrow) {
+    const wide = (cab.width / 2 + 24) / (TAN * aspect * 0.92);
+    const tall = (cab.height / 2 + 24) / (TAN * 0.8);
+    return view(look, Math.max(wide, tall), PITCH.CAB, 0.06);
+  }
+  const pts = [-1, 1].flatMap((sx) => [0, cab.height].map((y) => [sx * cab.width / 2, y, cab.z]));
+  const lo = bottom + 0.03;
+  const hi = top - 0.03;
+  const at = (d, anchor) => {
+    let s = (lo + hi) / 4;
+    for (let k = 0; k < 6; k++) {
+      const c = view(look, d, PITCH.CAB, s);
+      const ys = pts.map((pt) => ndc(c.pos, c.look, aspect, pt)[1]);
+      const y = anchor ? Math.max(...ys) : (Math.max(...ys) + Math.min(...ys)) / 2;
+      s += ((anchor ? hi : (lo + hi) / 2) - y) / 2;
+    }
+    return view(look, d, PITCH.CAB, s);
+  };
+  const ok = (d) => {
+    const c = at(d);
+    return pts.every((pt) => {
+      const [x, y] = ndc(c.pos, c.look, aspect, pt);
+      return Math.abs(x) <= FIT.NARROW && y >= lo && y <= hi;
+    });
+  };
+  let near = 100;
+  let far = 400;
+  for (let k = 0; k < 24 && !ok(far); k++) {
+    near = far;
+    far *= 1.25;
+  }
+  for (let k = 0; k < 20; k++) {
+    const mid = (near + far) / 2;
+    if (ok(mid)) far = mid;
+    else near = mid;
+  }
+  return at(far, true);
 }
 
 export const PULL = CAB.DEPTH - 60;

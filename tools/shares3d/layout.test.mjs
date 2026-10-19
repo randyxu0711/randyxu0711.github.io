@@ -166,12 +166,21 @@ test('直立螢幕的桌面全景:卡片貼著工具列上方,上面露出完整
   }
 });
 
-test('直立螢幕的櫃子鏡頭:桌上的卡不跑到底部工具列後面', () => {
-  for (const [w, h] of PHONES.filter(([, , tall]) => tall)) {
-    const { aspect, cab } = band(w, h);
-    const a = arrange(DESK.N, 9, true);
-    const front = Math.max(...Array.from({ length: DESK.N }, (_, k) => deskPose(k, k + 1, a).z)) + CARD.H / 2;
-    assert.ok(project(cabCam(aspect, a), aspect, [0, 0, front])[1] > cab, `${w}x${h}`);
+test('直立螢幕的櫃子鏡頭:整個櫃子在 nav 與工具列之間,桌上的卡可以藏到工具列後面', () => {
+  for (const [w, h] of [...PHONES, [390, 664], [375, 548]]) {
+    const { aspect, top, cab } = band(w, h);
+    for (const n of [1, 8, 9, 13]) {
+      const a = arrange(DESK.N, n, true);
+      const c = a.cab;
+      const cam = cabCam(aspect, a, cab, top);
+      const pts = [-1, 1].flatMap((sx) => [0, c.height].map((y) => [sx * c.width / 2, y, c.z]));
+      const ps = pts.map((pt) => project(cam, aspect, pt));
+      ps.forEach(([x, y]) => assert.ok(Math.abs(x) <= 1 && y <= top && y >= cab, `${w}x${h} n=${n}`));
+      const xs = ps.map(([x]) => x);
+      const ys = ps.map(([, y]) => y);
+      assert.ok(Math.max(...xs) - Math.min(...xs) > 1.7 || Math.max(...ys) - Math.min(...ys) > 0.85 * (top - cab), `${w}x${h} n=${n} fills`);
+      assert.ok(top - Math.max(...ys) < 0.08, `${w}x${h} n=${n} hangs under the nav`);
+    }
   }
 });
 
