@@ -24,6 +24,8 @@ EMPTY_META = {"title": "", "description": "", "image": ""}
 MAX_BYTES = 1_500_000
 USER_AGENT = "Mozilla/5.0 (compatible; ShareBot/1.0; +https://randyxu0711.github.io)"
 ARCHIVE_PREFIX = "https://web.archive.org/web/"
+FORM = Path(__file__).resolve().parents[2] / ".github" / "ISSUE_TEMPLATE" / "share.yml"
+MAX_TAGS = 8
 
 
 def parse_issue_body(body):
@@ -37,6 +39,18 @@ def parse_issue_body(body):
             continue
         fields[key] = [t.strip() for t in value.split(",") if t.strip()] if key == "tags" else value
     return fields
+
+
+def allowed_tags(form=FORM):
+    """表單「分類」下拉的選項;tag 清單只有這一份。"""
+    block = Path(form).read_text(encoding="utf-8").split("id: tags", 1)[1].split("options:", 1)[1]
+    tags = []
+    for line in block.splitlines()[1:]:
+        m = re.match(r"\s+- (.+)$", line)
+        if not m:
+            break
+        tags.append(m.group(1).strip())
+    return tags
 
 
 def validate_url(url):
@@ -202,7 +216,7 @@ class Result:
     link: str = ""
 
 
-def handle(event, posts_dir, fetch=fetch):
+def handle(event, posts_dir, fetch=fetch, tags=None):
     action, issue = event["action"], event["issue"]
     n = issue["number"]
     posts_dir = Path(posts_dir)
@@ -222,6 +236,11 @@ def handle(event, posts_dir, fetch=fetch):
         return Result("needs_fix", f"沒有發布。{error}\n\n編輯這個 issue 修正後會自動重跑。")
     if not fields["tags"]:
         return Result("needs_fix", "沒有發布。至少要選一個分類。\n\n編輯這個 issue 修正後會自動重跑。")
+    unknown = [t for t in fields["tags"] if t not in (allowed_tags() if tags is None else tags)]
+    if unknown:
+        return Result("needs_fix", f"沒有發布。分類「{'、'.join(unknown)}」不在清單裡"
+                                   f"(目錄櫃最多 {MAX_TAGS} 種,清單在 .github/ISSUE_TEMPLATE/share.yml)。"
+                                   "\n\n編輯這個 issue 修正後會自動重跑。")
     dup = find_duplicate(posts_dir, fields["url"], n)
     if dup is not None:
         return Result("duplicate", f"沒有發布。這篇在 #{dup} 分享過了。")

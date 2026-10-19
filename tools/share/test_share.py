@@ -16,7 +16,7 @@ https://example.com/post
 
 ### 分類
 
-AI/LLM, Tooling
+AI/LLM, Backend
 
 ### 標題(選填,抓錯時覆蓋)
 
@@ -30,7 +30,7 @@ def test_parse_issue_body_maps_labels_to_fields():
     f = share.parse_issue_body(FORM_BODY)
     assert f["url"] == "https://example.com/post"
     assert f["note"] == "值得一讀,\n第二行。"
-    assert f["tags"] == ["AI/LLM", "Tooling"]
+    assert f["tags"] == ["AI/LLM", "Backend"]
     assert f["title"] == ""
 
 
@@ -113,7 +113,7 @@ def test_build_post_front_matter():
     assert fm["description"] == "desc"
     assert fm["image"] == "https://s.com/i.png"
     assert fm["note"] == "值得一讀,\n第二行。"
-    assert fm["tags"] == ["AI/LLM", "Tooling"]
+    assert fm["tags"] == ["AI/LLM", "Backend"]
     assert fm["issue"] == 12
     assert fm["date"] == "2026-10-05 04:00:00 +0800"
     assert fm["render_with_liquid"] is False
@@ -216,7 +216,7 @@ def test_handle_ignores_other_events(tmp_path, action, reason):
 
 
 def test_handle_without_tags_needs_fix(tmp_path):
-    body = FORM_BODY.replace("AI/LLM, Tooling", "_No response_")
+    body = FORM_BODY.replace("AI/LLM, Backend", "_No response_")
     r = share.handle(event("opened", body=body), tmp_path, fetch=lambda u: pytest.fail("must not fetch"))
     assert r.status == "needs_fix"
     assert "分類" in r.comment
@@ -346,3 +346,35 @@ def test_build_post_cleans_fetched_title_but_not_user_override():
     assert 'title: "Security briefing"' in content
     _, content = share.build_post({**fields, "title": "My Title | Sysdig"}, meta, 4, "2026-10-06T10:00:00Z")
     assert 'title: "My Title | Sysdig"' in content
+
+
+# --- 分類清單 ------------------------------------------------------------------
+
+def test_allowed_tags_reads_form_options(tmp_path):
+    form = tmp_path / "share.yml"
+    form.write_text("body:\n  - type: dropdown\n    id: tags\n    attributes:\n      options:\n"
+                    "        - AI/LLM\n        - Backend\n    validations:\n      required: true\n", encoding="utf-8")
+    assert share.allowed_tags(form) == ["AI/LLM", "Backend"]
+
+
+def test_form_has_at_most_eight_tags():
+    tags = share.allowed_tags()
+    assert 0 < len(tags) <= share.MAX_TAGS
+    assert len(set(tags)) == len(tags)
+
+
+def test_published_posts_only_use_form_tags():
+    allowed = set(share.allowed_tags())
+    posts = share.FORM.parents[2] / "_posts"
+    for p in posts.glob("*.md"):
+        m = re.search(r"^tags: (\[.*\])$", p.read_text(encoding="utf-8"), re.M)
+        assert m and set(json.loads(m.group(1))) <= allowed, p.name
+
+
+def test_handle_unknown_tag_needs_fix(tmp_path):
+    body = FORM_BODY.replace("AI/LLM, Backend", "AI/LLM, Tooling")
+    r = share.handle(event("opened", body=body), tmp_path, fetch=lambda u: pytest.fail("must not fetch"),
+                     tags=["AI/LLM", "Backend"])
+    assert r.status == "needs_fix"
+    assert "Tooling" in r.comment
+    assert not list(tmp_path.glob("*.md"))
