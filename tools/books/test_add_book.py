@@ -130,7 +130,7 @@ def test_opened_adds_book_everywhere(tmp_path):
     assert r.status == "published" and r.title == "What We Talk About When We Talk About Love"
     added = json.loads((d / "books_added.json").read_text(encoding="utf-8"))
     assert added == [{"id": "11438", "title": "What We Talk About When We Talk About Love", "author": "Raymond Carver",
-                      "rating": 4, "pages": 159, "read": None, "added": "2026-10-07", "shelves": [],
+                      "rating": 4, "pages": 159, "read": "2026-10-07", "added": "2026-10-07", "shelves": [],
                       "url": "https://www.goodreads.com/book/show/11438",
                       "cover": added[0]["cover"], "color": "#7a3b1f", "ink": "#f7f3ea",
                       "ratio": 0.66, "read_count": 1, "issue": 21}]

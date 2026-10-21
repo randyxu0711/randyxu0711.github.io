@@ -48,12 +48,13 @@ CSV 沒有的書照樣保留。所以 issue 加的書不會因為重新匯入 CS
 
 ## 欄位
 
-issue 加的書:`read` 為 null(表單不問讀完日期),`added` 是 issue 建立的日期,`shelves` 為空。
+issue 加的書:`read` 與 `added` 都是 issue 建立的日期(台北時間;通常讀完就加書,差幾天無所謂,CSV 重新匯入時以 Goodreads 為準。
+issue 表單沒有日期欄位型別,所以不問),`shelves` 為空。
 排序照舊:評分高到低,同評分有讀完日期的在前。
 
 ## 不做
 
-不回寫 Goodreads(沒有 API)。不問讀完日期與心得(之後要再加欄位)。
+不回寫 Goodreads(沒有 API)。不問心得(之後要再加欄位);讀完日期用開 issue 那天。
 
 ## 測試(`tools/books/test_add_book.py`)
 

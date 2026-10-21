@@ -242,7 +242,7 @@ def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch
     when = datetime.fromisoformat(issue["created_at"].replace("Z", "+00:00")).astimezone(TZ)
     entry = {
         "id": bid, "title": info["title"], "author": info["author"], "rating": rating(f["rating"]),
-        "pages": info["pages"], "read": None, "added": when.date().isoformat(), "shelves": [],
+        "pages": info["pages"], "read": when.date().isoformat(), "added": when.date().isoformat(), "shelves": [],
         "url": books.BOOK_URL.format(bid), "cover": info["cover"], "color": hue,
         "ink": books.ink_for(hue) if hue else None, "ratio": ratio, "read_count": 1, "issue": n,
     }
