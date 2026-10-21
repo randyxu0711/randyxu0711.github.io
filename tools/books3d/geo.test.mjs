@@ -115,7 +115,7 @@ test('pin spots fall inside the country, keep apart and are deterministic', () =
   assert.equal(a.length, 30);
   assert.ok(a.every(([x, y]) => x > 0 && x < 20 && y > 0 && y < 4));
   const min = Math.min(...a.flatMap((p, i) => a.slice(i + 1).map((q) => Math.hypot(p[0] - q[0], p[1] - q[1]))));
-  assert.ok(min > 0.5, 'min gap ' + min);
+  assert.ok(min > 1.5, 'min gap ' + min);
   assert.deepEqual(pinSpots(polys, 30), a);
   assert.deepEqual(pinSpots(polys, 0), []);
 });

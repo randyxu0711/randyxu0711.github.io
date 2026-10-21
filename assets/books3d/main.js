@@ -976,12 +976,10 @@ async function start() {
   });
   rail.addEventListener('focusout', () => { if (railDrag === null) tip.classList.remove('show'); });
 
-  const viewBtns = bar.querySelectorAll('[data-view-set]');
   function setView(v) {
     if (v === state.view) return;
     if (globe && globe.active) return globe.close(() => setView(v));
     state.view = v;
-    viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewSet === v)));
     viewKey.setAttribute('aria-pressed', String(v === 'covers'));
     try { localStorage.setItem(VIEW_KEY, v); } catch (e) {}
     setHover(-1);
@@ -1009,10 +1007,6 @@ async function start() {
       setSort(b.dataset.sortSet);
       if (sortKey.getAttribute('aria-expanded') === 'true') closeSorts(true);
     });
-  });
-  viewBtns.forEach((b) => {
-    b.setAttribute('aria-pressed', String(b.dataset.viewSet === state.view));
-    b.addEventListener('click', () => setView(b.dataset.viewSet));
   });
   viewKey.setAttribute('aria-pressed', String(state.view === 'covers'));
   viewKey.addEventListener('click', () => setView(state.view === 'covers' ? 'spines' : 'covers'));
@@ -1256,6 +1250,7 @@ async function start() {
   });
   document.addEventListener('langchange', () => {
     navHeight();
+    globeLabel(globeKey.querySelector('.lbl').dataset.i18n);
     buildRail(true);
     updateTier(true);
     scheduleList(0);
@@ -1291,6 +1286,9 @@ async function start() {
       })).then((g) => {
         globe = g;
         globe.colors(lampOn);
+        globe.card.addEventListener('click', (e) => {
+          if (e.target.closest('button[data-k]')) closeMap(false);
+        });
         return g;
       });
       globeLoad.catch(() => { globeKey.hidden = true; });
@@ -1307,6 +1305,7 @@ async function start() {
       g.open({ x: m.span / 2 + 5 * R, y: gl.camera.position.y, z: gl.view.D * 0.4 }, R);
       root.classList.add('globe');
       globeLabel('books3d.globe_back');
+      if (canvas.clientWidth > 640) openMap();
       placeLamp();
       invalidate();
     });
@@ -1327,6 +1326,7 @@ async function start() {
     const l = globeKey.querySelector('.lbl');
     l.dataset.i18n = k;
     l.textContent = t(k);
+    globeKey.title = t(k);
   }
 
   globeKey.addEventListener('click', () => {
