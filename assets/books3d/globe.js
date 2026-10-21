@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, classOf, SMALL, STEPS } from 'books3d/geo.js';
+import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, STEPS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
-import { approach, clamp, lerp, easeInOut } from 'scene3d/anim.js';
+import { clamp, lerp, easeInOut } from 'scene3d/anim.js';
 
 const TW = 4096;
 const TH = 2048;
@@ -25,7 +25,7 @@ const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid'];
 const css = (c) => 'rgb(' + c.slice(0, 3).map((v) => Math.round(v * 255)).join(' ') + ')';
 const dark = (c, k) => [c[0] * k, c[1] * k, c[2] * k, 1];
 
-export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, root, t, lang, reduce, onShelf, onClosed, invalidate }) {
+export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, root, t, lang, reduce, onClosed, invalidate }) {
   const topo = await (await fetch(atlas)).json();
   const shapes = decode(topo);
   const ranks = ranking(books, (k) => k);
@@ -449,6 +449,19 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     pos.needsUpdate = true;
   }
 
+  let stale = true;
+  function fresh() {
+    if (!stale) return;
+    stale = false;
+    paint();
+    paintLift();
+  }
+
+  renderer.domElement.addEventListener('webglcontextrestored', () => {
+    [mapT, emitT, dropT].forEach((x) => { x.needsUpdate = true; });
+    invalidate();
+  });
+
   function colors(isNight) {
     night = isNight;
     tok = readTokens(TOKENS);
@@ -475,8 +488,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     sun.castShadow = !night;
     key.intensity = night ? 3 : 0;
     glow.intensity = night ? 7 : 0;
-    paint();
-    paintLift();
+    stale = true;
+    if (S.mode !== 'off') fresh();
     invalidate();
   }
 
@@ -590,6 +603,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     S.t0 = performance.now();
     S.from = S.p;
     hit.hidden = false;
+    fresh();
     invalidate();
   }
 
@@ -613,7 +627,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const qRi = qR.clone().invert();
   const _p = new THREE.Vector3();
   const _q = new THREE.Quaternion();
-  const _m = new THREE.Matrix4();
   const target = new THREE.PerspectiveCamera(FOV, 1, 0.05, 300);
 
   function sceneCam(e) {
