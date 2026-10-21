@@ -83,6 +83,10 @@ export function distAt(z, R, near, far) {
   return R + (far - R) * Math.pow((near - R) / (far - R), z);
 }
 
+export function zoomAt(d, R, near, far) {
+  return Math.log((Math.min(far, Math.max(near, d)) - R) / (far - R)) / Math.log((near - R) / (far - R));
+}
+
 export function screenPx(a, dist, R, tanV, vh) {
   return Math.max(0.03, Math.sqrt(a)) * R / ((dist - R) * tanV) * vh / 2;
 }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, SMALL } from 'books3d/geo.js';
+import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, SMALL } from 'books3d/geo.js';
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, a + ' ≉ ' + b);
 
@@ -53,6 +53,8 @@ test('zoom curve runs from far to near and zoomFor inverts screenPx', () => {
   const z = zoomFor(240, a, 1, tanV, 800, 1.55, 6);
   near(screenPx(a, distAt(z, 1, 1.55, 6), 1, tanV, 800), 240, 1e-6);
   near(zoomFor(1e6, a, 1, tanV, 800, 1.55, 6), 1);
+  near(distAt(zoomAt(3, 1, 1.55, 6), 1, 1.55, 6), 3);
+  near(zoomAt(100, 1, 1.55, 6), 0);
 });
 
 test('small countries fly in, big ones go to the shelf, fully zoomed always goes to the shelf', () => {

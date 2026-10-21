@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { decode, area, dirOf, toPixel, distAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, classOf, SMALL, FLY_TO_PX, STEPS } from 'books3d/geo.js';
+import { decode, area, dirOf, toPixel, distAt, zoomAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, classOf, SMALL, FLY_TO_PX, STEPS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { approach, clamp, lerp, easeInOut } from 'scene3d/anim.js';
 
@@ -46,7 +46,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const camera = new THREE.PerspectiveCamera(FOV, 1, 0.05, 300);
   scene.add(camera);
 
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x8a7a66, 1.6);
+  const hemi = new THREE.HemisphereLight(0xffffff, 0xc8b89c, 1.6);
   const sun = new THREE.DirectionalLight(0xffffff, 1.6);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
@@ -295,8 +295,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     wallMat.emissive.setRGB(...tok.edge.slice(0, 3));
     wallMat.emissiveIntensity = night ? 0.5 : 0;
     ballMat.emissiveIntensity = topMat.emissiveIntensity = night ? 0.8 : 0;
-    hemi.intensity = night ? 1.3 : 2.2;
-    sun.intensity = night ? 0.1 : 2;
+    hemi.intensity = night ? 1.3 : 2.6;
+    sun.intensity = night ? 0.1 : 1.4;
     sun.castShadow = !night;
     key.intensity = night ? 3 : 0;
     glow.intensity = night ? 7 : 0;
@@ -371,12 +371,15 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     rank.querySelectorAll('button').forEach((b) => b.classList.toggle('on', lifted.length === 1 && lifted[0] === b.dataset.k));
   }
 
-  const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0, sheet: 0 };
+  const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0, sheet: 0, sheetT: 0, mid: 0, room: 1 };
   let hover = null;
   let touchHover = null;
   const far = () => Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect()));
   const aspect = () => window.innerWidth / Math.max(1, window.innerHeight);
-  const dist = () => distAt(S.z, 1, NEAR, far());
+  const dist = () => {
+    const d = distAt(S.z, 1, NEAR, far());
+    return S.sheet ? lerp(d, Math.max(d, 1.35 / (S.room * TAN)), S.sheet) : d;
+  };
 
   function face(dir) {
     const v = dir;
@@ -438,7 +441,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const target = new THREE.PerspectiveCamera(FOV, 1, 0.05, 300);
 
   function sceneCam(e) {
-    const ly = -0.2 * (1 - S.z) - S.sheet * (dist() - 1) * TAN * 2;
+    const ly = -0.2 * (1 - S.z) + S.sheet * 2 * S.mid * dist() * TAN;
     target.aspect = aspect();
     target.position.set(0, ly, dist());
     target.quaternion.identity();
@@ -505,6 +508,11 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       if (Math.abs(S[a] - S[b]) < 1e-4) S[a] = S[b];
       busy = true;
     });
+    if (S.sheet !== S.sheetT) {
+      S.sheet += (S.sheetT - S.sheet) * r(6);
+      if (Math.abs(S.sheet - S.sheetT) < 1e-3) S.sheet = S.sheetT;
+      busy = true;
+    }
     const hT = lifted.length ? LIFT - 0.01 * S.z : 0;
     if (S.h !== hT) {
       S.h += (hT - S.h) * r(14);
@@ -635,6 +643,15 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     close(k);
   }
 
+  function focusContinent(c) {
+    const spread = Math.min(1.2, Math.max(...c.list.map((x) => c.dir.angleTo(x.dir))) + 0.15);
+    face(c.dir);
+    S.zT = clamp(zoomAt(1 + Math.sin(spread) / (0.75 * TAN), 1, NEAR, far()), 0, 0.3);
+    hover = null;
+    setLift([]);
+    invalidate();
+  }
+
   function rowAct(k) {
     const c = C.get(k);
     const front = _n.copy(c.dir).applyQuaternion(spin.quaternion).z;
@@ -739,7 +756,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   });
   labels.addEventListener('click', (e) => {
     const b = e.target.closest('.b3d-lab');
-    if (!b || b.dataset.id[0] === '@') return;
+    if (!b) return;
+    if (b.dataset.id[0] === '@') return focusContinent(conts.find((c) => '@' + c.id === b.dataset.id));
     act(b.dataset.id, e.pointerType && e.pointerType !== 'mouse');
   });
 
@@ -786,7 +804,13 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   }
 
   function setSheet(open) {
-    S.sheet = open ? clamp((1 - card.getBoundingClientRect().top / window.innerHeight) / 2, 0, 0.4) : 0;
+    const H = window.innerHeight;
+    const top = parseFloat(getComputedStyle(root).getPropertyValue('--nav-h')) || 0;
+    const bottom = open ? card.getBoundingClientRect().top : H;
+    S.mid = ((top + bottom) / 2 - H / 2) / H;
+    S.room = clamp((bottom - top) / H, 0.2, 1);
+    S.sheetT = open ? 1 : 0;
+    if (reduce.matches) S.sheet = S.sheetT;
     invalidate();
   }
 
