@@ -1,7 +1,7 @@
 import { layout, viewSpan, inView, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'scene3d/colors.js';
 import { createScene } from 'books3d/scene.js';
-import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf } from 'books3d/textures.js';
+import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf, lang } from 'books3d/textures.js';
 import { ease, easeInOut, lerp, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 
@@ -20,6 +20,15 @@ const heldText = document.getElementById('b3d-held-text');
 const grLink = document.getElementById('b3d-gr');
 const list = document.getElementById('b3d-list');
 const books = JSON.parse(document.getElementById('b3d-data').textContent);
+const geoEl = document.getElementById('b3d-geo');
+const geo = geoEl ? JSON.parse(geoEl.textContent) : {};
+const subregions = new Map((geo.subregions || []).map((s) => [s.id, s]));
+books.forEach((b) => {
+  const c = geo.countries && b.g ? geo.countries[b.g] : null;
+  const s = c ? subregions.get(c.subregion) : null;
+  b.sr = s ? s.id : null;
+  b.ct = s ? s.continent || c.continent || null : null;
+});
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
 const VIEW_KEY = 'books3d-view';
@@ -42,6 +51,10 @@ const CHEVRON = {
 const dims = books.map((b) => ({ t: thickness(b), h: height(b), color: hexRgb(b.c), ink: hexRgb(b.k || '#f7f3ea') }));
 
 const t = (k, num) => (window.siteI18n ? window.siteI18n.t(k, num) : k);
+const regionName = (id) => {
+  const s = subregions.get(id);
+  return s ? s[lang()] || s.en : id;
+};
 const rotOf = (view) => (view === 'covers' ? -Math.PI / 2 : 0);
 const zOf = (view, i) => (view === 'covers' ? -dims[i].t / 2 : -W / 2);
 const footprint = (i, rot) => dims[i].t * Math.abs(Math.cos(rot)) + W * Math.abs(Math.sin(rot));
@@ -690,6 +703,8 @@ async function start() {
     if (l.kind === 'undated') return t('books3d.undated') + count;
     if (l.kind === 'letters') return l.text + count;
     if (l.kind === 'hue') return t('books3d.hue_' + l.hue) + count;
+    if (l.kind === 'region') return regionName(l.id) + count;
+    if (l.kind === 'unplaced') return t('books3d.unplaced') + count;
     return '';
   }
 
@@ -813,6 +828,8 @@ async function start() {
     else if (l.kind === 'undated') head = t('books3d.undated');
     else if (l.kind === 'letters') head = l.text;
     else if (l.kind === 'hue') head = '<span class="sw" style="background:' + l.c + '"></span>' + t('books3d.hue_' + l.hue);
+    else if (l.kind === 'region') head = regionName(l.id);
+    else if (l.kind === 'unplaced') head = t('books3d.unplaced');
     return '<span class="h">' + head + '</span>';
   }
 

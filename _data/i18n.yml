@@ -52,6 +52,8 @@ books3d.sort_rating: { zh: "星等", en: "Rating" }
 books3d.sort_year:   { zh: "年份", en: "Year" }
 books3d.sort_color:  { zh: "顏色", en: "Color" }
 books3d.sort_author: { zh: "作者", en: "Author" }
+books3d.sort_region: { zh: "地區", en: "Region" }
+books3d.unplaced: { zh: "未標國家", en: "Unplaced" }
 books3d.undated: { zh: "沒有日期", en: "Undated" }
 books3d.years:   { zh: "{n} 年", en: "{n}" }
 books3d.index:   { zh: "書架索引", en: "Shelf index" }
