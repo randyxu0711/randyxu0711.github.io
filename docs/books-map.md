@@ -44,7 +44,7 @@ Ishiguro 算英國(使用者的決定)。Goodreads 的拼字錯誤只在我們�
 一份檔案管洲、次區域、國家,地球儀與書架共用:
 
 ```yaml
-continents:            # 地球儀拉遠時的洲名;順序 = 書架地區排序的洲順序
+continents:            # 地球儀拉遠時的洲名
   europe:   { zh: 歐洲,   en: Europe }
   americas: { zh: 美洲,   en: Americas }
   ...
