@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, SMALL } from 'books3d/geo.js';
+import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, SMALL } from 'books3d/geo.js';
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, a + ' ≉ ' + b);
 
@@ -45,22 +45,25 @@ test('directions match three.js SphereGeometry uv mapping', () => {
   assert.deepEqual(toPixel(0, 0, 4096, 2048), [2048, 1024]);
 });
 
-test('zoom curve runs from far to near and zoomFor inverts screenPx', () => {
+test('zoom curve runs from far to near and zoomAt inverts it', () => {
   near(distAt(0, 1, 1.55, 6), 6);
   near(distAt(1, 1, 1.55, 6), 1.55);
-  const tanV = Math.tan(Math.PI / 12);
-  const a = 0.01;
-  const z = zoomFor(240, a, 1, tanV, 800, 1.55, 6);
-  near(screenPx(a, distAt(z, 1, 1.55, 6), 1, tanV, 800), 240, 1e-6);
-  near(zoomFor(1e6, a, 1, tanV, 800, 1.55, 6), 1);
   near(distAt(zoomAt(3, 1, 1.55, 6), 1, 1.55, 6), 3);
   near(zoomAt(100, 1, 1.55, 6), 0);
+  near(zoomAt(1.1, 1, 1.55, 6), 1);
 });
 
-test('small countries fly in, big ones go to the shelf, fully zoomed always goes to the shelf', () => {
-  assert.equal(clickAction(40, 0.3), 'fly');
-  assert.equal(clickAction(120, 0.3), 'shelf');
-  assert.equal(clickAction(40, 1), 'shelf');
+test('spread is the angular radius of the largest polygon around the anchor', () => {
+  const box = (l0, p0, l1, p1) => [[l0, p0], [l1, p0], [l1, p1], [l0, p1], [l0, p0]];
+  const polys = [[box(-1, -1, 1, 1)], [box(50, 0, 51, 1)]];
+  near(spread(polys, [0, 0]), Math.acos(Math.cos(Math.PI / 180) ** 2), 1e-9);
+});
+
+test('focus distance frames the country at FOCUS of the short side', () => {
+  const tanV = Math.tan(Math.PI / 12);
+  const d = focusDist(0.1, tanV, 16 / 9);
+  near(Math.sin(0.1) / ((d - 1) * tanV), 0.4);
+  assert.ok(focusDist(0.1, tanV, 0.46) > d);
 });
 
 test('labels are placed by score and overlapping ones are dropped', () => {

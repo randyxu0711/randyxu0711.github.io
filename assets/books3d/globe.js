@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { decode, area, dirOf, toPixel, distAt, zoomAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, classOf, SMALL, FLY_TO_PX, STEPS } from 'books3d/geo.js';
+import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, classOf, SMALL, STEPS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { approach, clamp, lerp, easeInOut } from 'scene3d/anim.js';
 
@@ -13,6 +13,7 @@ const RING = 1.07;
 const DOT = 13;
 const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
+const MIN_SPREAD = 0.08;
 const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'globe-table', 'brass', 'wood', 'edge', 'desk', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
 const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid', 'edge', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
 
@@ -30,7 +31,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     const polys = g && shapes.get(g.topo);
     if (!polys) return;
     const a = area(polys);
-    C.set(r.country, { ...r, g, polys, area: a, small: a < SMALL, dir: new THREE.Vector3(...dirOf(g.at[0], g.at[1])) });
+    C.set(r.country, { ...r, g, polys, area: a, small: a < SMALL, spread: Math.max(MIN_SPREAD, spread(polys, g.at)), dir: new THREE.Vector3(...dirOf(g.at[0], g.at[1])) });
   });
   const sub = new Map(geo.subregions.map((s) => [s.id, s]));
   const conts = geo.continents.map((c) => {
@@ -96,7 +97,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const drop = new THREE.Mesh(sphere, dropMat);
   drop.scale.setScalar(1.0008);
   const wallGeo = new THREE.BufferGeometry();
-  const wallMat = new THREE.MeshStandardMaterial({ roughness: 0.65, side: THREE.DoubleSide, emissive: 0xffffff, emissiveIntensity: 0 });
+  const wallMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   const walls = new THREE.Mesh(wallGeo, wallMat);
   top.visible = drop.visible = walls.visible = false;
   walls.frustumCulled = false;
@@ -273,7 +274,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       pos.array[i * 3 + 2] = wallBase[i * 3 + 2] * k;
     }
     pos.needsUpdate = true;
-    wallGeo.computeVertexNormals();
   }
 
   function colors(isNight) {
@@ -291,9 +291,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     wallM.color.setRGB(...tok.desk.slice(0, 3));
     wallM.emissive.setRGB(...tok.desk.slice(0, 3));
     wallM.emissiveIntensity = night ? 0.22 : 0.3;
-    wallMat.color.setRGB(...tok.edge.slice(0, 3));
-    wallMat.emissive.setRGB(...tok.edge.slice(0, 3));
-    wallMat.emissiveIntensity = night ? 0.5 : 0;
+    wallMat.color.setRGB(...dark(tok.edge, 0.85).slice(0, 3));
     ballMat.emissiveIntensity = topMat.emissiveIntensity = night ? 0.8 : 0;
     hemi.intensity = night ? 1.3 : 2.6;
     sun.intensity = night ? 0.1 : 1.4;
@@ -373,6 +371,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0 };
   let hover = null;
+  let focused = null;
   const far = () => Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect()));
   const aspect = () => window.innerWidth / Math.max(1, window.innerHeight);
   const dist = () => distAt(S.z, 1, NEAR, far());
@@ -416,8 +415,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   function close(then) {
     if (S.mode === 'off' || S.mode === 'out') return;
+    focused = hover = null;
     setLift([]);
-    hover = null;
     tip.hidden = true;
     S.mode = 'out';
     S.t0 = performance.now();
@@ -601,48 +600,37 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     return { ball: true, k: null };
   }
 
-  function px(k) {
-    return screenPx(C.get(k).area, dist(), 1, TAN, window.innerHeight);
-  }
-
   function hoverAt(x, y) {
     const h = pickAt(x, y);
     setHover(h.k);
-    hit.style.cursor = h.k ? (clickAction(px(h.k), S.z) === 'fly' ? 'zoom-in' : 'pointer') : drag ? 'grabbing' : 'grab';
+    hit.style.cursor = h.k ? 'pointer' : drag ? 'grabbing' : 'grab';
   }
   function setHover(k) {
     if (hover === k) return;
     hover = k;
-    setLift(k ? [k] : []);
+    setLift([...new Set([focused, k])].filter(Boolean));
+  }
+
+  function unfocus() {
+    focused = hover = null;
+    setLift([]);
   }
 
   function act(k) {
+    if (focused === k) return close(k);
     const c = C.get(k);
-    if (clickAction(px(k), S.z) === 'fly') {
-      face(c.dir);
-      S.zT = clamp(zoomFor(FLY_TO_PX, c.area, 1, TAN, window.innerHeight, NEAR, far()), 0, 1);
-      invalidate();
-      return;
-    }
-    close(k);
+    face(c.dir);
+    S.zT = clamp(zoomAt(focusDist(c.spread, TAN, aspect()), 1, NEAR, far()), 0, 1);
+    focused = k;
+    setLift([...new Set([k, hover])].filter(Boolean));
+    invalidate();
   }
 
   function focusContinent(c) {
     const spread = Math.min(1.2, Math.max(...c.list.map((x) => c.dir.angleTo(x.dir))) + 0.15);
     face(c.dir);
     S.zT = clamp(zoomAt(1 + Math.sin(spread) / (0.75 * TAN), 1, NEAR, far()), 0, 0.3);
-    hover = null;
-    setLift([]);
-    invalidate();
-  }
-
-  function rowAct(k) {
-    const c = C.get(k);
-    const front = _n.copy(c.dir).applyQuaternion(spin.quaternion).z;
-    if (front > 0.8 && clickAction(px(k), S.z) === 'shelf') return close(k);
-    face(c.dir);
-    S.zT = Math.max(S.zT, clamp(zoomFor(FLY_TO_PX, c.area, 1, TAN, window.innerHeight, NEAR, far()), 0, 1));
-    setHover(k);
+    unfocus();
     invalidate();
   }
 
@@ -704,7 +692,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (d.moved > 6 || e.type !== 'pointerup') return;
     const h = pickAt(e.clientX, e.clientY);
     if (h.k) act(h.k);
-    else setHover(null);
+    else unfocus();
     invalidate();
   };
   hit.addEventListener('pointerup', up);
@@ -731,7 +719,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   labels.addEventListener('pointerout', (e) => {
     if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest('.b3d-lab')) {
       hover = null;
-      setLift([]);
+      setLift(focused ? [focused] : []);
     }
   });
   labels.addEventListener('click', (e) => {
@@ -755,16 +743,14 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   });
   card.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-k]');
-    if (b) rowAct(b.dataset.k);
+    if (b) act(b.dataset.k);
   });
 
   function keydown(e) {
     if (S.mode !== 'on') return false;
     if (e.key === 'Escape') {
-      if (lifted.length) {
-        hover = null;
-        setLift([]);
-      } else if (S.zT > 0.02) S.zT = 0;
+      if (lifted.length) unfocus();
+      else if (S.zT > 0.02) S.zT = 0;
       else close();
       invalidate();
       return true;

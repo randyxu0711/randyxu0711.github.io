@@ -1,7 +1,6 @@
 export const STEPS = [1, 2, 5, 10, 20];
 export const SMALL = 0.001;
-export const FLY_PX = 80;
-export const FLY_TO_PX = 240;
+export const FOCUS = 0.4;
 
 export const classOf = (n) => STEPS.filter((s) => n >= s).length - 1;
 
@@ -87,17 +86,18 @@ export function zoomAt(d, R, near, far) {
   return Math.log((Math.min(far, Math.max(near, d)) - R) / (far - R)) / Math.log((near - R) / (far - R));
 }
 
-export function screenPx(a, dist, R, tanV, vh) {
-  return Math.max(0.03, Math.sqrt(a)) * R / ((dist - R) * tanV) * vh / 2;
+export function spread(polys, at) {
+  const main = polys.reduce((best, p) => (area([p]) > area([best]) ? p : best));
+  const c = dirOf(at[0], at[1]);
+  return main[0].reduce((m, [lon, lat]) => {
+    const v = dirOf(lon, lat);
+    return Math.max(m, Math.acos(Math.min(1, c[0] * v[0] + c[1] * v[1] + c[2] * v[2])));
+  }, 0);
 }
 
-export function zoomFor(px, a, R, tanV, vh, near, far) {
-  const dist = R + Math.max(0.03, Math.sqrt(a)) * R * vh / (2 * px * tanV);
-  const d = Math.min(far, Math.max(near, dist));
-  return Math.log((d - R) / (far - R)) / Math.log((near - R) / (far - R));
+export function focusDist(s, tanV, aspect, frac = FOCUS) {
+  return 1 + Math.sin(Math.min(s, Math.PI / 2)) / (frac * tanV * Math.min(1, aspect));
 }
-
-export const clickAction = (px, z) => (px < FLY_PX && z < 0.99 ? 'fly' : 'shelf');
 
 export function cull(labels, pad = [3, 2]) {
   const placed = [];
