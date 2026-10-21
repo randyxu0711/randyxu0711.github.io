@@ -101,7 +101,6 @@ html.js .b3d:not(.on):not(.fail) .b3d-list { visibility: hidden; }
 .b3d-lab { position: absolute; left: 0; top: 0; pointer-events: auto; background: none; border: 0; padding: 0.1rem 0.25rem; cursor: pointer; white-space: nowrap;
   color: var(--ink); font: 600 0.84rem var(--font-display); will-change: transform; transition: opacity 180ms;
   text-shadow: 0 0 1px var(--desk), 0 0 1px var(--desk), 0 0 2px var(--desk), 0 0 3px var(--desk), 0 0 5px var(--desk), 0 0 8px var(--desk); }
-.b3d-lab b { font: 500 0.72rem var(--font-code); color: var(--ink-3); margin-left: 0.3em; }
 .b3d-lab.cont { font: 500 0.78rem var(--font-ui); letter-spacing: 0.3em; color: var(--ink-3); padding-left: 0.55rem; }
 html[data-lang="en"] .b3d-lab.cont { letter-spacing: 0.12em; font-size: 0.7rem; text-transform: uppercase; }
 .b3d-lab:hover, .b3d-lab.lit { color: var(--accent); }

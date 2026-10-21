@@ -15,7 +15,7 @@ const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
 const MIN_SPREAD = 0.08;
 const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'globe-table', 'brass', 'wood', 'edge', 'desk', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
-const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid', 'edge', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
+const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid'];
 
 const css = (c) => 'rgb(' + c.slice(0, 3).map((v) => Math.round(v * 255)).join(' ') + ')';
 const dark = (c, k) => [c[0] * k, c[1] * k, c[2] * k, 1];
@@ -67,8 +67,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   };
   const mapC = canvas2d(TW, TH);
   const emitC = canvas2d(TW / 2, TH / 2);
-  const topC = canvas2d(TW, TH);
-  const topEmitC = canvas2d(TW / 2, TH / 2);
   const dropC = canvas2d(TW / 2, TH / 2);
   const tex = (c) => {
     const x = new THREE.CanvasTexture(c);
@@ -77,8 +75,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   };
   const mapT = tex(mapC);
   const emitT = tex(emitC);
-  const topT = tex(topC);
-  const topEmitT = tex(topEmitC);
   const dropT = tex(dropC);
 
   const root3 = new THREE.Group();
@@ -91,17 +87,27 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   ball.castShadow = true;
   spin.add(ball);
 
-  const topMat = new THREE.MeshStandardMaterial({ map: topT, emissiveMap: topEmitT, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.65, transparent: true, alphaTest: 0.5 });
-  const top = new THREE.Mesh(sphere, topMat);
+  const glowU = { value: 0 };
+  const topGeo = new THREE.BufferGeometry();
+  const topMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65 });
+  topMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uGlow = glowU;
+    sh.fragmentShader = 'uniform float uGlow;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = vColor.rgb * uGlow;');
+  };
+  const top = new THREE.Mesh(topGeo, topMat);
+  const rimGeo = new THREE.BufferGeometry();
+  const rimMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
+  const rim = new THREE.Mesh(rimGeo, rimMat);
+  top.frustumCulled = rim.frustumCulled = false;
   const dropMat = new THREE.MeshBasicMaterial({ map: dropT, transparent: true, depthWrite: false, opacity: 0 });
   const drop = new THREE.Mesh(sphere, dropMat);
   drop.scale.setScalar(1.0008);
   const wallGeo = new THREE.BufferGeometry();
   const wallMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
   const walls = new THREE.Mesh(wallGeo, wallMat);
-  top.visible = drop.visible = walls.visible = false;
+  top.visible = drop.visible = walls.visible = rim.visible = false;
   walls.frustumCulled = false;
-  spin.add(drop, top, walls);
+  spin.add(drop, top, walls, rim);
 
   const brass = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.6 });
   const wood = new THREE.MeshStandardMaterial({ roughness: 0.6 });
@@ -192,28 +198,80 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   }
 
   let lifted = [];
+  const shapeOf = (c) => (c.small ? [[circle(c.g.at, (DOT * 1.3 * 360) / TW)]] : c.polys);
+  const SPLIT = 2;
+
+  function buildTop() {
+    const pos = [];
+    const col = [];
+    const add = (pts, rgb) => pts.forEach(([lon, lat]) => {
+      pos.push(...dirOf(lon, lat));
+      col.push(...rgb);
+    });
+    const split = (a, b, c, rgb) => {
+      const ab = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      const bc = Math.hypot(b[0] - c[0], b[1] - c[1]);
+      const ca = Math.hypot(c[0] - a[0], c[1] - a[1]);
+      if (Math.max(ab, bc, ca) <= SPLIT) return add([a, b, c], rgb);
+      const m = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
+      const x = m(a, b);
+      const y = m(b, c);
+      const z = m(c, a);
+      split(a, x, z, rgb);
+      split(x, b, y, rgb);
+      split(z, y, c, rgb);
+      split(x, y, z, rgb);
+    };
+    const strip = (r) => {
+      const pts = r.map(([x, y]) => new THREE.Vector2(x, y));
+      if (pts.length > 1 && pts[0].equals(pts[pts.length - 1])) pts.pop();
+      return pts;
+    };
+    lifted.forEach((k) => {
+      const c = C.get(k);
+      const rgb = tok['map-' + (c.cls + 1)].slice(0, 3);
+      shapeOf(c).forEach((rings) => {
+        const contour = strip(rings[0]);
+        const holes = rings.slice(1).map(strip);
+        const faces = THREE.ShapeUtils.triangulateShape(contour, holes);
+        const all = contour.concat(...holes).map((v) => [v.x, v.y]);
+        faces.forEach(([a, b, d]) => split(all[a], all[b], all[d], rgb));
+      });
+    });
+    topGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    topGeo.setAttribute('normal', new THREE.Float32BufferAttribute(pos, 3));
+    topGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  }
+
+  let rimW = 0;
+  function buildRim(w) {
+    rimW = w;
+    const pos = [];
+    const _a = new THREE.Vector3();
+    const _b = new THREE.Vector3();
+    const _s = new THREE.Vector3();
+    lifted.forEach((k) => {
+      shapeOf(C.get(k)).flat().forEach((r) => {
+        for (let i = 0; i < r.length - 1; i++) {
+          _a.set(...dirOf(r[i][0], r[i][1]));
+          _b.set(...dirOf(r[i + 1][0], r[i + 1][1]));
+          _s.subVectors(_b, _a).cross(_a).normalize().multiplyScalar(w / 2);
+          const p = [_a.clone().add(_s), _a.clone().sub(_s), _b.clone().sub(_s), _b.clone().add(_s)];
+          [0, 1, 2, 0, 2, 3].forEach((j) => pos.push(p[j].x, p[j].y, p[j].z));
+        }
+      });
+    });
+    rimGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  }
+  const rimWant = () => (2.5 * (dist() - 1) * 2 * TAN) / window.innerHeight;
+
   function paintLift() {
-    const g = topC.getContext('2d');
-    const e = topEmitC.getContext('2d');
     const d = dropC.getContext('2d');
-    g.clearRect(0, 0, TW, TH);
-    e.clearRect(0, 0, TW / 2, TH / 2);
     d.clearRect(0, 0, TW / 2, TH / 2);
     d.filter = 'blur(4px)';
     d.fillStyle = night ? 'rgba(0,0,0,.7)' : 'rgba(60,35,20,.45)';
     lifted.forEach((k) => {
       const c = C.get(k);
-      trace(g, c.polys, 1);
-      if (c.small) dot(g, c, 1, DOT * 1.3);
-      g.fillStyle = css(ramp(c.cls));
-      g.fill('evenodd');
-      g.strokeStyle = raw.edge;
-      g.lineWidth = 5;
-      g.stroke();
-      trace(e, c.polys, 0.5);
-      if (c.small) dot(e, c, 0.5, DOT * 1.3);
-      e.fillStyle = css(ramp(c.cls, true));
-      e.fill('evenodd');
       d.save();
       d.translate(2.5, 3.5);
       trace(d, c.polys, 0.5);
@@ -222,7 +280,9 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       d.restore();
     });
     d.filter = 'none';
-    topT.needsUpdate = topEmitT.needsUpdate = dropT.needsUpdate = true;
+    dropT.needsUpdate = true;
+    buildTop();
+    buildRim(rimWant());
     buildWalls();
   }
 
@@ -241,7 +301,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     };
     lifted.forEach((k) => {
       const c = C.get(k);
-      const rings = c.small ? [circle(c.g.at, (DOT * 1.3 * 360) / TW)] : c.polys.flat();
+      const rings = shapeOf(c).flat();
       rings.forEach((r) => {
         for (let i = 0; i < r.length - 1; i++) {
           const a = r[i];
@@ -281,7 +341,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     tok = readTokens(TOKENS);
     const cs = getComputedStyle(document.documentElement);
     RAW.forEach((k) => { raw[k] = cs.getPropertyValue('--' + k).trim() || '#808080'; });
-    raw.edge = raw.edge || css(tok.edge);
     brass.color.setRGB(...tok.brass.slice(0, 3));
     brass.roughness = night ? 0.4 : 0.35;
     brass.metalness = night ? 0.55 : 0.6;
@@ -292,7 +351,10 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     wallM.emissive.setRGB(...tok.desk.slice(0, 3));
     wallM.emissiveIntensity = night ? 0.22 : 0.3;
     wallMat.color.setRGB(...dark(tok.edge, 0.85).slice(0, 3));
-    ballMat.emissiveIntensity = topMat.emissiveIntensity = night ? 0.8 : 0;
+    ballMat.emissiveIntensity = night ? 0.8 : 0;
+    glowU.value = night ? 0.8 : 0;
+    topMat.color.setScalar(night ? NIGHT_DARK : 1);
+    rimMat.color.setRGB(...tok.edge.slice(0, 3));
     hemi.intensity = night ? 1.3 : 2.6;
     sun.intensity = night ? 0.1 : 1.4;
     sun.castShadow = !night;
@@ -333,7 +395,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   conts.forEach((c) => mkLabel('@' + c.id, 'cont'));
 
   function text() {
-    C.forEach((c, k) => { labelEls.get(k).el.innerHTML = esc(nameOf(k)) + '<b>' + c.count + '</b>'; });
+    C.forEach((c, k) => { labelEls.get(k).el.textContent = nameOf(k); });
     conts.forEach((c) => { labelEls.get('@' + c.id).el.textContent = c[lang()] || c.en; });
     labelEls.forEach((l) => { l.w = 0; });
     card.setAttribute('aria-label', t('books3d.map_title'));
@@ -510,9 +572,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       busy = true;
     }
     const shown = S.h > 1e-4 && lifted.length;
-    top.visible = drop.visible = walls.visible = !!shown;
+    top.visible = drop.visible = walls.visible = rim.visible = !!shown;
     if (shown) {
       top.scale.setScalar(1 + S.h);
+      rim.scale.setScalar((1 + S.h) * 1.0004);
+      const w = rimWant();
+      if (Math.abs(w - rimW) > rimW * 0.15) buildRim(w);
       setWalls(1 + S.h);
       dropMat.opacity = clamp(S.h / LIFT, 0, 1);
     }
@@ -577,7 +642,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     });
     if (hover && !keep.has(hover)) {
       const p = labelEls.get(hover).p;
-      tip.innerHTML = '<b>' + esc(nameOf(hover)) + '</b> <span>' + esc(t('books.count', C.get(hover).count)) + '</span>';
+      tip.innerHTML = '<b>' + esc(nameOf(hover)) + '</b>';
       tip.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)';
       tip.hidden = false;
     } else tip.hidden = true;
