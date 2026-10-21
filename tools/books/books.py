@@ -8,12 +8,14 @@
 - 主色用 Pillow 算(只有這裡需要 Pillow)。
 - 用 issue 加的書(_data/books_added.json)會合進來,同一本以 CSV 為準。
 - _data/books_fix.json 修正 Goodreads 匯出不對的讀完日期與次數(id → {read, read_count})。
+- 轉完列出 _data/authors.yml 沒有的作者(不連網查,手動補)。
 CSV 本身含私人資料,不要 commit(books/ 在 .gitignore)。
 """
 
 import csv
 import io
 import json
+import re
 import sys
 import time
 import urllib.request
@@ -203,6 +205,48 @@ def fill_covers(items, cache, fetch_page=fetch_page, fetch_image=fetch_image,
     return fetched
 
 
+AUTHOR_KEY = re.compile(r'^"((?:[^"\\]|\\.)*)"\s*:\s*$')
+AUTHOR_FIELD = re.compile(r"^  (\w+):\s*(.+?)\s*$")
+
+
+def _author_blocks(text):
+    """authors.yml 切成 [(作者名或 None, 行們)];None 是檔頭的註解。以文字處理,不用 PyYAML。"""
+    blocks, cur_name, cur = [], None, []
+    for line in text.splitlines(keepends=True):
+        m = AUTHOR_KEY.match(line.rstrip("\n"))
+        if m:
+            blocks.append((cur_name, cur))
+            cur_name, cur = json.loads(f'"{m.group(1)}"'), []
+        cur.append(line)
+    blocks.append((cur_name, cur))
+    return blocks
+
+
+def author_entries(text):
+    out = {}
+    for name, lines in _author_blocks(text):
+        if name is None:
+            continue
+        fields = {}
+        for line in lines[1:]:
+            m = AUTHOR_FIELD.match(line.rstrip("\n"))
+            if m:
+                v = m.group(2)
+                fields[m.group(1)] = json.loads(v) if v.startswith('"') else int(v) if v.isdigit() else v
+        out[name] = fields
+    return out
+
+
+def authors_remove_issue(text, issue):
+    mark = re.compile(rf"^  issue:\s*{issue}\s*$", re.M)
+    return "".join("".join(lines) for k, lines in _author_blocks(text) if not (k and mark.search("".join(lines))))
+
+
+def missing_authors(items, authors_text):
+    known = author_entries(authors_text)
+    return sorted({b["author"] for b in items if b.get("author")} - known.keys())
+
+
 def run(csv_path, data_dir, hide_shelf="hide", **fetchers):
     data_dir = Path(data_dir)
     fix_path = data_dir / "books_fix.json"
@@ -224,6 +268,12 @@ def run(csv_path, data_dir, hide_shelf="hide", **fetchers):
     cache_path.write_text(
         json.dumps(cache, ensure_ascii=False, indent=1, sort_keys=True) + "\n", encoding="utf-8")
     print(f"{len(items)} 本書,抓了 {fetched} 本的封面")
+    authors_path = data_dir / "authors.yml"
+    missing = missing_authors(items, authors_path.read_text(encoding="utf-8") if authors_path.exists() else "")
+    if missing:
+        print(f"_data/authors.yml 沒有這 {len(missing)} 位作者,地圖上不會出現,要手動補:")
+        for name in missing:
+            print(f"  {name}")
 
 
 if __name__ == "__main__":

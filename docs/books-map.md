@@ -221,14 +221,14 @@ countries:
 - 不在的話依序:
   1. 有填「作者國家」→ 必須是 `geo.yml` 的國家,寫進 `authors.yml`(`basis: "issue #n"`)。
   2. 沒填 → 用作者名查 Wikidata(`wbsearchentities` → P27),**剛好一個國籍且在 `geo.yml`** 才寫入(附 `qid`、`basis: "Wikidata P27"`)。
-  3. 還是不知道(查不到、多重國籍、國家不在 `geo.yml`)→ **書照樣發布**,留言說明、加 `needs-fix`;編輯 issue 填上國家會重跑。
+  3. 還是不知道(查不到、多重國籍、國家不在 `geo.yml`、連不上 Wikidata)→ **書照樣發布**,留言說明、加 `needs-fix`、issue 留著開;編輯 issue 填上國家會重跑。
      國家不在 `geo.yml` 時,留言說要先在 `geo.yml` 加這一國(中文名、次區域、`at`)。
 - 撤下(not planned):只移除帶同一個 `issue` 的 `authors.yml` 條目。
 - 留言列出判定結果(「作者國家:英國(Wikidata P27)」),判錯時編輯 issue 填欄位覆蓋。
 
 ### CSV 重新匯入(`books.py` / `run.sh`)
 
-不連網查;轉檔後列出 `authors.yml` 裡沒有的作者(`run.sh` 印在最後),手動補。
+不連網查;轉檔後列出 `authors.yml` 裡沒有的作者(`books.py` 印在轉檔摘要後面),手動補。
 
 ### 測試(`tools/books/`)
 

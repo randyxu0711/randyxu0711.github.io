@@ -34,16 +34,43 @@ def event(action, body=FORM_BODY, state_reason=None, number=21):
         "state_reason": state_reason}}
 
 
-def data_dir(tmp_path, books_json=None, zh_yml=None):
+ROOT = Path(__file__).parents[2]
+
+
+def data_dir(tmp_path, books_json=None, zh_yml=None, authors_yml=None):
     d = tmp_path / "_data"
     d.mkdir()
     (d / "books.json").write_text(json.dumps(books_json or [], ensure_ascii=False), encoding="utf-8")
+    (d / "geo.yml").write_text((ROOT / "_data/geo.yml").read_text(encoding="utf-8"), encoding="utf-8")
     if zh_yml is not None:
         (d / "books_zh.yml").write_text(zh_yml, encoding="utf-8")
+    if authors_yml is not None:
+        (d / "authors.yml").write_text(authors_yml, encoding="utf-8")
     return d
 
 
-FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=lambda b: "#7a3b1f", measure=lambda b: 0.66)
+def claim(qid, rank="normal"):
+    return {"mainsnak": {"datavalue": {"value": {"id": qid}}}, "rank": rank}
+
+
+def wikidata(*people, nonhuman=()):
+    """假的 Wikidata:people = (QID, [P27 國家]);nonhuman 排在搜尋結果前面。"""
+    entities = {q: {"claims": {"P31": [claim("Q5")], "P27": [claim(c) for c in nats]}} for q, nats in people}
+    entities |= {q: {"claims": {"P31": [claim("Q7725634")]}} for q in nonhuman}
+    order = list(nonhuman) + [q for q, _ in people]
+
+    def fetch(params):
+        if params["action"] == "wbsearchentities":
+            assert params["search"] == "Raymond Carver" and params["language"] == "en" and params["type"] == "item"
+            return {"search": [{"id": q} for q in order]}
+        assert params["props"] == "claims"
+        return {"entities": {q: entities[q] for q in params["ids"].split("|")}}
+    return fetch
+
+
+CARVER_US = wikidata(("Q219862", ["Q30"]))
+FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=lambda b: "#7a3b1f", measure=lambda b: 0.66,
+                fetch_json=CARVER_US)
 
 
 # --- 表單 -----------------------------------------------------------------------
@@ -51,7 +78,7 @@ FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=l
 def test_parse_issue_body_maps_labels():
     f = add_book.parse_issue_body(FORM_BODY)
     assert f == {"url": "https://www.goodreads.com/book/show/11438.What_We_Talk_About?from_search=true",
-                 "rating": "4", "title_zh": "當我們討論愛情", "author_zh": "瑞蒙．卡佛"}
+                 "rating": "4", "title_zh": "當我們討論愛情", "author_zh": "瑞蒙．卡佛", "country": ""}
 
 
 def test_parse_issue_body_no_response_is_empty():
@@ -63,6 +90,9 @@ def test_issue_form_labels_match_parser():
     form = Path(__file__).parents[2] / ".github/ISSUE_TEMPLATE/book.yml"
     labels = re.findall(r"^\s+label: (.+)$", form.read_text(encoding="utf-8"), flags=re.M)
     assert sorted(labels) == sorted(add_book.LABELS)
+    assert add_book.LABELS["作者國家"] == "country"
+    ids = re.findall(r"^\s+id: (.+)$", form.read_text(encoding="utf-8"), flags=re.M)
+    assert sorted(ids) == sorted(add_book.LABELS.values())
 
 
 def test_issue_form_name_is_at_least_three_chars():
@@ -219,3 +249,153 @@ def test_csv_run_keeps_issue_books_and_csv_wins(tmp_path):
     out = {b["id"]: b for b in json.loads((d / "books.json").read_text(encoding="utf-8"))}
     assert out["23361794"]["title"] == "百年孤寂" and "issue" not in out["23361794"]   # CSV 優先
     assert out["777"]["title"] == "Only issue"                                       # issue 加的保留
+
+
+def test_csv_run_prints_missing_authors(tmp_path, capsys):
+    d = tmp_path / "_data"
+    d.mkdir()
+    books.run(FIX / "goodreads_export.csv", d, hide_shelf="hide",
+              fetch_page=lambda i: "", fetch_image=lambda u: b"GIF89a", sleep=lambda s: None)
+    out_books = json.loads((d / "books.json").read_text(encoding="utf-8"))
+    known = out_books[0]["author"]
+    (d / "authors.yml").write_text(f'"{known}":\n  literature: "Colombia"\n', encoding="utf-8")
+    capsys.readouterr()
+    books.run(FIX / "goodreads_export.csv", d, hide_shelf="hide",
+              fetch_page=lambda i: "", fetch_image=lambda u: b"GIF89a", sleep=lambda s: None)
+    out = capsys.readouterr().out
+    assert "authors.yml 沒有" in out
+    for name in {b["author"] for b in out_books} - {known}:
+        assert f"  {name}\n" in out
+    assert f"  {known}\n" not in out
+
+
+# --- 作者國家 -------------------------------------------------------------------
+
+AUTHORS_YML = """# 檔頭註解
+# 第二行
+
+"Alice Munro":
+  qid: "Q234819"
+  literature: "Canada"
+"carson-mccullers":
+  counts_as: "Carson McCullers"
+  basis: "Goodreads duplicate author page"
+"Someone":
+  literature: "Japan"
+  basis: "issue #9"
+  issue: 9
+"""
+
+NO_NETWORK = dict(FETCH_OK, fetch_json=lambda p: pytest.fail("must not query Wikidata"))
+
+
+def with_country(country):
+    return FORM_BODY + f"\n### 作者國家\n\n{country}\n"
+
+
+def authors_text(d):
+    return (d / "authors.yml").read_text(encoding="utf-8")
+
+
+def test_known_author_untouched(tmp_path):
+    text = AUTHORS_YML + '"Raymond Carver":\n  qid: "Q219862"\n  literature: "United States"\n'
+    d = data_dir(tmp_path, authors_yml=text)
+    r = add_book.handle(event("opened", body=with_country("Japan")), d, **NO_NETWORK)
+    assert r.status == "published" and "美國(已在名單)" in r.comment
+    assert authors_text(d) == text
+
+
+def test_form_country_appends_entry_and_keeps_rest_byte_identical(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    r = add_book.handle(event("opened", body=with_country("united kingdom")), d, **NO_NETWORK)
+    assert r.status == "published" and "英國(表單)" in r.comment
+    assert authors_text(d) == AUTHORS_YML + (
+        '"Raymond Carver":\n  literature: "United Kingdom"\n  basis: "issue #21"\n  issue: 21\n')
+
+
+def test_form_country_not_in_geo_still_publishes(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    r = add_book.handle(event("opened", body=with_country("Atlantis")), d, **NO_NETWORK)
+    assert r.status == "published_needs_fix"
+    assert "Atlantis" in r.comment and "geo.yml" in r.comment and "subregion" in r.comment
+    assert json.loads((d / "books_added.json").read_text(encoding="utf-8"))[0]["id"] == "11438"
+    assert authors_text(d) == AUTHORS_YML
+
+
+def test_wikidata_single_citizenship_in_geo(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    r = add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=wikidata(("Q219862", ["Q30"]), nonhuman=["Q1"])))
+    assert r.status == "published" and "美國(Wikidata P27)" in r.comment
+    assert authors_text(d) == AUTHORS_YML + (
+        '"Raymond Carver":\n  qid: "Q219862"\n  literature: "United States"\n  basis: "Wikidata P27"\n  issue: 21\n')
+
+
+def test_wikidata_ignores_deprecated_citizenship(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+
+    def fetch(params):
+        if params["action"] == "wbsearchentities":
+            return {"search": [{"id": "Q219862"}]}
+        return {"entities": {"Q219862": {"claims": {"P31": [claim("Q5")],
+                                                      "P27": [claim("Q30"), claim("Q145", rank="deprecated")]}}}}
+    assert add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=fetch)).status == "published"
+
+
+@pytest.mark.parametrize("fetch,words", [
+    (wikidata(("Q219862", ["Q30", "Q145"])), ["多個國籍", "美國、英國"]),
+    (wikidata(nonhuman=["Q1", "Q2"]), ["查不到"]),
+    (wikidata(), ["查不到"]),
+    (wikidata(("Q219862", [])), ["查不到"]),
+    (wikidata(("Q219862", ["Q16635"])), ["Q16635", "geo.yml", "subregion"]),
+])
+def test_wikidata_unknown_still_publishes(tmp_path, fetch, words):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    r = add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=fetch))
+    assert r.status == "published_needs_fix"
+    assert all(w in r.comment for w in words) and "作者國家" in r.comment
+    assert authors_text(d) == AUTHORS_YML
+    assert json.loads((d / "books.json").read_text(encoding="utf-8"))[0]["id"] == "11438"
+
+
+def test_wikidata_network_error_counts_as_unknown(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+
+    def boom(params):
+        raise OSError("HTTP 503")
+    r = add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=boom))
+    assert r.status == "published_needs_fix" and "HTTP 503" in r.comment
+
+
+def test_rerun_replaces_own_entry_only(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    add_book.handle(event("opened"), d, **FETCH_OK)
+    r = add_book.handle(event("edited", body=with_country("Canada")), d, **NO_NETWORK)
+    assert r.status == "published" and "加拿大(表單)" in r.comment
+    assert authors_text(d) == AUTHORS_YML + (
+        '"Raymond Carver":\n  literature: "Canada"\n  basis: "issue #21"\n  issue: 21\n')
+
+
+def test_rerun_unknown_drops_own_stale_entry(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    add_book.handle(event("opened"), d, **FETCH_OK)
+    r = add_book.handle(event("edited", body=with_country("Atlantis")), d, **NO_NETWORK)
+    assert r.status == "published_needs_fix"
+    assert authors_text(d) == AUTHORS_YML
+
+
+def test_not_planned_removes_only_own_author_entry(tmp_path):
+    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
+    add_book.handle(event("opened"), d, **FETCH_OK)
+    r = add_book.handle(event("closed", state_reason="not_planned"), d)
+    assert r.status == "removed"
+    assert authors_text(d) == AUTHORS_YML
+
+
+def test_text_parsers_agree_with_yaml():
+    import yaml
+    geo_text = (ROOT / "_data/geo.yml").read_text(encoding="utf-8")
+    geo = yaml.safe_load(geo_text)["countries"]
+    assert add_book.geo_countries(geo_text) == {k: {"zh": v["zh"], "qid": v["qid"]} for k, v in geo.items()}
+    text = (ROOT / "_data/authors.yml").read_text(encoding="utf-8")
+    assert books.author_entries(text) == yaml.safe_load(text)
+    assert books.author_entries(AUTHORS_YML) == yaml.safe_load(AUTHORS_YML)

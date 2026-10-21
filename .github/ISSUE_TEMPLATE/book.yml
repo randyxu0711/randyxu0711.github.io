@@ -34,3 +34,9 @@ body:
     attributes:
       label: 中文作者
       description: 選填。台灣譯本上的作者譯名。
+  - type: input
+    id: country
+    attributes:
+      label: 作者國家
+      description: 選填。作者還不在 _data/authors.yml 時才需要。英文國名,要跟 _data/geo.yml 一樣,如 United Kingdom;沒填就查 Wikidata。
+      placeholder: United Kingdom
