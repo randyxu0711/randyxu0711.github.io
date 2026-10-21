@@ -11,7 +11,7 @@ html.js .sh3d:not(.fail) .sh3d-list .thumb { display: none; }
 .main:has(> .sh3d.on) { padding-bottom: 0; }
 html:has(.sh3d.on), body:has(.sh3d.on) { overflow: hidden; overscroll-behavior: none; }
 body:has(.sh3d.on) .footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; pointer-events: none; transition: opacity 250ms, visibility 250ms; }
-body:has(.sh3d.on) .footer-inner { padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 0.35rem); justify-content: center; gap: 0.25rem 1rem; font-size: var(--t-xs); }
+body:has(.sh3d.on) .footer-inner { padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 0.35rem); }
 body:has(.sh3d.on) .footer-inner > * { pointer-events: auto; }
 body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opacity: 0; visibility: hidden; }
 
