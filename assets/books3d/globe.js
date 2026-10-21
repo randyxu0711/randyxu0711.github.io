@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, STEPS } from 'books3d/geo.js';
+import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, STEPS, FOCUS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
 import { clamp, lerp, easeInOut } from 'scene3d/anim.js';
@@ -16,7 +16,7 @@ const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
 const MIN_SPREAD = 0.08;
 const PIN_N = 80;
-const PIN_PX = 8;
+const PIN_PX = 6;
 const PIN_RISE = 260;
 const PIN_STAGGER = 18;
 const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'globe-table', 'brass', 'wood', 'edge', 'desk', 'paper', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
@@ -297,8 +297,9 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     pins.t0 = performance.now();
     pins.out = false;
     pins.hot = -1;
-    pins.r = (PIN_PX * (focusDist(c.spread, TAN, aspect()) - 1) * 2 * TAN) / window.innerHeight;
+    pins.r = (PIN_PX * (pinDist(c) - 1) * 2 * TAN) / window.innerHeight;
     paintPins();
+    fillStrip();
   }
 
   function dropPins() {
@@ -306,7 +307,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     pins.out = true;
     pins.t0 = performance.now();
     pins.hot = -1;
-    pinCard.hidden = true;
+    strip.el.hidden = true;
+    strip.on = false;
   }
 
   function paintPins() {
@@ -340,16 +342,16 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   }
 
   const _ph = new THREE.Vector3();
-  function pickPin(x, y) {
+  const _pv = new THREE.Vector3();
+  function pickPin(x, y, touch) {
     if (!pins.list.length || pins.out) return -1;
     ndc.set((x / window.innerWidth) * 2 - 1, 1 - (y / window.innerHeight) * 2);
     ray.setFromCamera(ndc, camera);
     let best = -1;
-    let bd = Infinity;
+    let bd = ((pins.r * (touch ? 22 : 12)) / PIN_PX) ** 2;
     pins.list.forEach((p, j) => {
       _ph.copy(p.d).multiplyScalar(1 + S.h).addScaledVector(p.up, pins.r * 2.6).applyQuaternion(spin.quaternion);
-      if (ray.ray.distanceSqToPoint(_ph) > (pins.r * 1.6) ** 2) return;
-      const d = _ph.distanceTo(camera.position);
+      const d = ray.ray.distanceSqToPoint(_ph);
       if (d < bd) { bd = d; best = j; }
     });
     return best;
@@ -359,24 +361,10 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (pins.hot === j) return;
     pins.hot = j;
     paintPins();
-    if (j < 0) {
-      pinCard.hidden = true;
-      return;
-    }
-    const b = books[pins.list[j].i];
-    const url = smallCover(b.cv);
-    pinCard.innerHTML = (url ? '<img src="' + esc(url) + '" alt="" crossorigin="anonymous">' : '<i style="background:' + esc(b.c || '#888') + '"></i>')
-      + '<span><b>' + esc(titleOf(b)) + '</b><small>' + esc(authorOf(b)) + '</small></span>';
-    pinCard.hidden = false;
     invalidate();
+    markStrip();
   }
 
-  function placePinCard() {
-    if (pins.hot < 0 || pinCard.hidden) return;
-    const p = pins.list[pins.hot];
-    _ph.copy(p.d).multiplyScalar(1 + S.h).addScaledVector(p.up, pins.r * 3).applyQuaternion(spin.quaternion).project(camera);
-    pinCard.style.transform = 'translate(' + ((_ph.x + 1) / 2 * window.innerWidth).toFixed(1) + 'px,' + ((1 - _ph.y) / 2 * window.innerHeight).toFixed(1) + 'px)';
-  }
 
   function paintLift() {
     const d = dropC.getContext('2d');
@@ -506,10 +494,47 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   card.className = 'b3d-map';
   card.id = 'b3d-map';
   card.hidden = true;
-  const pinCard = document.createElement('div');
-  pinCard.className = 'b3d-pin';
-  pinCard.hidden = true;
-  root.append(hit, labels, tip, pinCard, card);
+  const strip = { el: document.createElement('aside'), row: null, on: false, raf: 0, lock: 0 };
+  strip.el.className = 'b3d-strip';
+  strip.el.hidden = true;
+  strip.el.innerHTML = '<div class="b3d-strip-head"><b></b><span></span></div><div class="b3d-strip-row"></div><p class="b3d-strip-now"><b></b><small></small></p>';
+  strip.row = strip.el.querySelector('.b3d-strip-row');
+  root.append(hit, labels, tip, card, strip.el);
+
+  function fillStrip() {
+    strip.on = true;
+    strip.el.hidden = false;
+    stripText();
+    strip.row.innerHTML = pins.list.map((p, j) => {
+      const b = books[p.i];
+      const url = smallCover(b.cv);
+      return '<button type="button" data-j="' + j + '" aria-label="' + esc(titleOf(b) + ', ' + authorOf(b)) + '">'
+        + (url ? '<img src="' + esc(url) + '" alt="" loading="lazy">' : '<i style="background:' + esc(b.c || '#888') + '"></i>') + '</button>';
+    }).join('');
+    stripTo(0, false);
+    pins.hot = -1;
+    hotPin(0);
+  }
+  function stripText() {
+    if (!strip.on || pins.k == null) return;
+    const h = strip.el.querySelector('.b3d-strip-head');
+    h.children[0].textContent = nameOf(pins.k);
+    h.children[1].textContent = t('books.count', pins.list.length);
+    markStrip();
+  }
+  function markStrip() {
+    strip.row.querySelectorAll('button').forEach((b, j) => b.classList.toggle('on', j === pins.hot));
+    const now = strip.el.querySelector('.b3d-strip-now');
+    const b = pins.hot >= 0 && books[pins.list[pins.hot].i];
+    now.children[0].textContent = b ? titleOf(b) : '';
+    now.children[1].textContent = b ? authorOf(b) : '';
+  }
+  function stripTo(j, smooth) {
+    const b = strip.row.children[j];
+    if (!b) return;
+    strip.lock = performance.now() + (smooth ? 500 : 0);
+    strip.row.scrollTo({ left: b.offsetLeft + b.offsetWidth / 2 - strip.row.clientWidth / 2, behavior: smooth && !reduce.matches ? 'smooth' : 'auto' });
+  }
 
   const labelEls = new Map();
   const mkLabel = (id, cls) => {
@@ -529,6 +554,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     C.forEach((c, k) => { labelEls.get(k).el.textContent = nameOf(k); });
     conts.forEach((c) => { labelEls.get('@' + c.id).el.textContent = c[lang()] || c.en; });
     labelEls.forEach((l) => { l.w = 0; });
+    stripText();
     card.setAttribute('aria-label', t('books3d.map_title'));
     const steps = STEPS.map((s, k) => (k === STEPS.length - 1 ? s + '+' : s === STEPS[k + 1] - 1 ? String(s) : s + '–' + (STEPS[k + 1] - 1)));
     card.innerHTML = '<div class="b3d-map-head"><h2>' + esc(t('books3d.map_title')) + '</h2><span>' + esc(t('books3d.map_countries', C.size)) + '</span></div>'
@@ -568,6 +594,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const far = () => Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect()));
   const aspect = () => window.innerWidth / Math.max(1, window.innerHeight);
   const dist = () => distAt(S.z, 1, NEAR, far());
+  const pinDist = (c) => focusDist(c.spread, TAN, aspect(), aspect() < 1 ? 0.85 : FOCUS);
 
   function face(dir) {
     const v = dir;
@@ -722,7 +749,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     }
     if (stepPins(performance.now())) busy = true;
     placeLabels(e);
-    placePinCard();
     return busy;
   }
 
@@ -767,6 +793,24 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       }
       list.push({ id, x: p.x, y: p.y, w: l.w, h: l.h, score: cont ? 0.5 : src.count, vw, vh });
     });
+    if (on && pins.list.length && !pins.out) {
+      const box = [Infinity, Infinity, -Infinity, -Infinity];
+      pins.list.forEach((p, j) => {
+        const q = project(_pv.copy(p.d).multiplyScalar(1 + S.h).addScaledVector(p.up, pins.r * 2.6));
+        if (q.facing <= 0) return;
+        list.push({ id: '#' + j, x: q.x, y: q.y - PIN_PX, w: PIN_PX * 3, h: PIN_PX * 5, score: Infinity, vw, vh });
+        box[0] = Math.min(box[0], q.x);
+        box[1] = Math.min(box[1], q.y - PIN_PX * 3.5);
+        box[2] = Math.max(box[2], q.x);
+      });
+      const f = list.find((x) => x.id === pins.k);
+      if (f && box[0] < Infinity) {
+        f.x = (box[0] + box[2]) / 2;
+        f.y = box[1] - f.h / 2 - 4;
+        f.score = Infinity;
+        labelEls.get(pins.k).p = { ...labelEls.get(pins.k).p, x: f.x, y: f.y };
+      }
+    }
     const keep = new Set(cull(list).map((x) => x.id));
     labelEls.forEach((l, id) => {
       const show = keep.has(id);
@@ -801,8 +845,11 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   function hoverAt(x, y) {
     const j = pickPin(x, y);
-    hotPin(j);
     if (j >= 0) {
+      if (j !== pins.hot) {
+        hotPin(j);
+        stripTo(j, true);
+      }
       hit.style.cursor = 'pointer';
       return;
     }
@@ -826,7 +873,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (focused === k) return close(k);
     const c = C.get(k);
     face(c.dir);
-    S.zT = clamp(zoomAt(focusDist(c.spread, TAN, aspect()), 1, NEAR, far()), 0, 1);
+    S.zT = clamp(zoomAt(pinDist(c), 1, NEAR, far()), 0, 1);
     focused = k;
     setPins(k);
     setLift([...new Set([k, hover])].filter(Boolean));
@@ -897,7 +944,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     drag = null;
     if (e.timeStamp - d.t > 80) S.vel = 0;
     if (d.moved > 6 || e.type !== 'pointerup') return;
-    const j = pickPin(e.clientX, e.clientY);
+    const j = pickPin(e.clientX, e.clientY, d.touch);
+    if (j >= 0 && strip.on && pins.hot !== j) {
+      hotPin(j);
+      stripTo(j, true);
+      return;
+    }
     if (j >= 0) {
       close({ country: pins.k, book: pins.list[j].i });
       invalidate();
@@ -908,6 +960,55 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     else unfocus();
     invalidate();
   };
+  strip.row.addEventListener('scroll', () => {
+    if (strip.raf) return;
+    strip.raf = requestAnimationFrame(() => {
+      strip.raf = 0;
+      if (!strip.on || strip.lock > performance.now()) return;
+      const mid = strip.row.scrollLeft + strip.row.clientWidth / 2;
+      let best = -1;
+      let bd = Infinity;
+      strip.row.querySelectorAll('button').forEach((b, j) => {
+        const d = Math.abs(b.offsetLeft + b.offsetWidth / 2 - mid);
+        if (d < bd) { bd = d; best = j; }
+      });
+      hotPin(best);
+    });
+  }, { passive: true });
+  strip.row.addEventListener('pointerover', (e) => {
+    const b = e.target.closest('button[data-j]');
+    if (b && e.pointerType === 'mouse') hotPin(+b.dataset.j);
+  });
+  strip.row.addEventListener('focusin', (e) => {
+    const b = e.target.closest('button[data-j]');
+    if (!b) return;
+    hotPin(+b.dataset.j);
+    stripTo(+b.dataset.j, true);
+  });
+  strip.row.addEventListener('keydown', (e) => {
+    const b = e.target.closest('button[data-j]');
+    const to = b && (e.key === 'ArrowRight' ? b.nextElementSibling : e.key === 'ArrowLeft' ? b.previousElementSibling : null);
+    if (!to) return;
+    e.preventDefault();
+    to.focus({ preventScroll: true });
+  });
+  let wheelAcc = 0;
+  strip.row.addEventListener('wheel', (e) => {
+    if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    e.preventDefault();
+    wheelAcc += e.deltaY * (e.deltaMode === 1 ? 16 : 1);
+    if (Math.abs(wheelAcc) < 40) return;
+    const j = clamp(pins.hot + Math.sign(wheelAcc), 0, pins.list.length - 1);
+    wheelAcc = 0;
+    hotPin(j);
+    stripTo(j, true);
+  }, { passive: false });
+  strip.row.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-j]');
+    if (!b || !pins.list.length) return;
+    close({ country: pins.k, book: pins.list[+b.dataset.j].i });
+    invalidate();
+  });
   hit.addEventListener('pointerup', up);
   hit.addEventListener('pointercancel', up);
   hit.addEventListener('pointerleave', () => {
@@ -968,7 +1069,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       invalidate();
       return true;
     }
-    if (e.target.closest && e.target.closest('.b3d-map, input, textarea, select')) return false;
+    if (e.target.closest && e.target.closest('.b3d-map, .b3d-strip, input, textarea, select')) return false;
     const step = 0.25;
     if (e.key === 'ArrowLeft') S.yawT -= step;
     else if (e.key === 'ArrowRight') S.yawT += step;

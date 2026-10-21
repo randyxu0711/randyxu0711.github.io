@@ -165,13 +165,17 @@ export function pinSpots(polys, n) {
   }
   if (!inside.length) return Array.from({ length: n }, () => [(x0 + x1) / 2, (y0 + y1) / 2]);
   const gap = (a, b) => Math.hypot((a[0] - b[0]) * cosMid, a[1] - b[1]);
-  let sep = Math.sqrt(((x1 - x0) * cosMid * (y1 - y0) * inside.length) / 4000 / n);
-  for (;;) {
-    const out = [];
-    for (const p of inside) {
-      if (out.every((q) => gap(p, q) >= sep)) out.push(p);
-      if (out.length === n) return out;
-    }
-    sep *= 0.85;
+  const far = inside.map(() => Infinity);
+  const out = [];
+  let next = 0;
+  while (out.length < n) {
+    const q = inside[next];
+    out.push(q);
+    let bd = -1;
+    inside.forEach((p, i) => {
+      far[i] = Math.min(far[i], gap(p, q));
+      if (far[i] > bd) { bd = far[i]; next = i; }
+    });
   }
+  return out;
 }
