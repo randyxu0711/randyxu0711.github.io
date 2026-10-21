@@ -1280,6 +1280,23 @@
   "read_count": 1
  },
  {
+  "id": "60792305",
+  "title": "Empuzjon",
+  "author": "Olga Tokarczuk",
+  "rating": 3,
+  "pages": 400,
+  "read": "2026-10-21",
+  "added": "2026-10-21",
+  "shelves": [],
+  "url": "https://www.goodreads.com/book/show/60792305",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1649696962i/60792305.jpg",
+  "color": "#a5957e",
+  "ink": "#f7f3ea",
+  "ratio": 0.635,
+  "read_count": 1,
+  "issue": 64
+ },
+ {
   "id": "12818197",
   "title": "The English Patient",
   "author": "Michael Ondaatje",
