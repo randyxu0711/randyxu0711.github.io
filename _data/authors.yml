@@ -1,225 +1,145 @@
 # Author nationality for the books map. Wikidata P27 + manual overrides.
 # literature: which national literature the author belongs to (Britannica's descriptor when contested).
 # counts_as: same person / the work belongs to that author. name: corrected spelling.
-# origin: birthplace / roots when different. continent + subregion: UN M49.
+# origin: birthplace / roots when different. Continent and subregion live on the country in geo.yml.
 
 "Abdulrazak Gurnah":
   qid: "Q317877"
   literature: "United Kingdom"
   origin: "Tanzania"
-  continent: "Europe"
-  subregion: "Northern Europe"
   basis: "Britannica: Tanzanian-born British author"
 "Ahmadou Kourouma":
   qid: "Q401023"
   literature: "Ivory Coast"
-  continent: "Africa"
-  subregion: "Sub-Saharan Africa"
 "Albert Camus":
   qid: "Q34670"
   literature: "France"
   origin: "Algeria"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Alberto Moravia":
   qid: "Q161933"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Alessandro Baricco":
   qid: "Q295589"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Alexander MacLeod":
   qid: "Q4719481"
   literature: "Canada"
-  continent: "Americas"
-  subregion: "Northern America"
 "Alexandre Jardin":
   qid: "Q982361"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Alice Munro":
   qid: "Q234819"
   literature: "Canada"
-  continent: "Americas"
-  subregion: "Northern America"
 "Amos Oz":
   qid: "Q151872"
   literature: "Israel"
-  continent: "Asia"
-  subregion: "Western Asia"
 "André Brink":
   qid: "Q380664"
   literature: "South Africa"
-  continent: "Africa"
-  subregion: "Sub-Saharan Africa"
 "André Gide":
   qid: "Q47484"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Andrée Chedid":
   qid: "Q465721"
   literature: "France"
   origin: "Egypt"
-  continent: "Europe"
-  subregion: "Western Europe"
   basis: "Francophone writer; French citizen from 1946"
 "Anne Tyler":
   qid: "Q235615"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Anthony  Doerr":
   counts_as: "Anthony Doerr"
   basis: "Goodreads duplicate author page (extra space)"
 "Anthony Doerr":
   qid: "Q2754186"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Azar Nafisi":
   qid: "Q258753"
   literature: "United States"
   origin: "Iran"
-  continent: "Americas"
-  subregion: "Northern America"
   basis: "Britannica: Iranian-American writer"
 "Bohumil Hrabal":
   qid: "Q242130"
   literature: "Czech Republic"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Carlos Reis":
   counts_as: "José Saramago"
   basis: "study guide to Saramago's O Ano da Morte de Ricardo Reis"
 "Carson McCullers":
   qid: "Q230591"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Chimamanda Ngozi Adichie":
   qid: "Q230141"
   literature: "Nigeria"
-  continent: "Africa"
-  subregion: "Sub-Saharan Africa"
 "Christa Wolf":
   qid: "Q57382"
   literature: "Germany"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Claire Keegan":
   qid: "Q278917"
   literature: "Ireland"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Colm Tóibín":
   qid: "Q470758"
   literature: "Ireland"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "César Aira":
   qid: "Q166590"
   literature: "Argentina"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "David Fishelson":
   counts_as: "Franz Kafka"
   basis: "stage adaptation of Kafka's The Castle"
 "David Grossman":
   qid: "Q160263"
   literature: "Israel"
-  continent: "Asia"
-  subregion: "Western Asia"
 "Don DeLillo":
   qid: "Q310048"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Doris Lessing":
   qid: "Q40874"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Emily Brontë":
   qid: "Q80137"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Erich Maria Remarque":
   qid: "Q47293"
   literature: "Germany"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Ernest Hemingway":
   qid: "Q23434"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "F. Scott Fitzgerald":
   qid: "Q93354"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Federico Andahazi":
   qid: "Q2617973"
   literature: "Argentina"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "Franz Kafka":
   qid: "Q905"
   literature: "Czech Republic"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Fyodor Dostoevsky":
   qid: "Q991"
   literature: "Russia"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Gabriel García Márquez":
   qid: "Q5878"
   literature: "Colombia"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "George Orwell":
   qid: "Q3335"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "George Sand":
   qid: "Q3816"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "George Saunders":
   qid: "Q1251926"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Gore Vidal":
   qid: "Q167821"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Grazia Deledda":
   qid: "Q7728"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Gustaf Sobin":
   qid: "Q1555435"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Ha Jin":
   qid: "Q121778"
   literature: "United States"
   origin: "China"
-  continent: "Americas"
-  subregion: "Northern America"
   basis: "Britannica: writes in English in the US about China"
 "Hajin":
   counts_as: "Ha Jin"
@@ -227,501 +147,311 @@
 "Han Kang":
   qid: "Q5646626"
   literature: "South Korea"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Hans Höller":
   counts_as: "Peter Handke"
   basis: "study guide to Handke's Wunschloses Unglück"
 "Harper Lee":
   qid: "Q182658"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Haruki Murakami":
   qid: "Q134798"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Henry Miller":
   qid: "Q187765"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Hermann Hesse":
   qid: "Q25973"
   literature: "Germany"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Herta Müller":
   qid: "Q38049"
   literature: "Germany"
   origin: "Romania"
-  continent: "Europe"
-  subregion: "Western Europe"
   basis: "Britannica: Romanian-born German writer"
 "Italo Calvino":
   qid: "Q154756"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Ivan Klíma":
   qid: "Q506582"
   literature: "Czech Republic"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Ivan Turgenev":
   qid: "Q42831"
   literature: "Russia"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "J.D. Salinger":
   qid: "Q79904"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "J.M. Coetzee":
   qid: "Q43293"
   literature: "South Africa"
-  continent: "Africa"
-  subregion: "Sub-Saharan Africa"
   basis: "Britannica: South African novelist; Australian citizen since 2006"
 "Jacques-Pierre Amette":
   qid: "Q717736"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "James Joyce":
   qid: "Q6882"
   literature: "Ireland"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Jean-Dominique Bauby":
   qid: "Q317730"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Jeffrey Eugenides":
   qid: "Q357108"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "John Steinbeck":
   qid: "Q39212"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Jon Fosse":
   qid: "Q443868"
   literature: "Norway"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Jonathan Franzen":
   qid: "Q316607"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Joseph Conrad":
   qid: "Q82925"
   literature: "United Kingdom"
   origin: "Poland"
-  continent: "Europe"
-  subregion: "Northern Europe"
   basis: "Britannica: English novelist of Polish descent"
 "José Eduardo Agualusa":
   qid: "Q363927"
   literature: "Angola"
-  continent: "Africa"
-  subregion: "Sub-Saharan Africa"
 "José Saramago":
   qid: "Q37060"
   literature: "Portugal"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Judith Hermann":
   qid: "Q60984"
   literature: "Germany"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Julian Barnes":
   qid: "Q295431"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Julio Llamazares":
   qid: "Q535423"
   literature: "Spain"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Kazuo Ishiguro":
   qid: "Q272855"
   literature: "United Kingdom"
   origin: "Japan"
-  continent: "Europe"
-  subregion: "Northern Europe"
   basis: "Randy: raised in the UK, writes in English"
 "Kenzaburō Ōe":
   qid: "Q80095"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Kōbō Abe":
   qid: "Q186273"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Laura Imai Messina":
   qid: "Q108238405"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Leo Tolstoy":
   qid: "Q7243"
   literature: "Russia"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Lorrie Moore":
   qid: "Q204168"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "László Krasznahorkai":
   qid: "Q512062"
   literature: "Hungary"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Marcel Aymé":
   qid: "Q318026"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Marcel Proust":
   qid: "Q7199"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Margaret Atwood":
   qid: "Q183492"
   literature: "Canada"
-  continent: "Americas"
-  subregion: "Northern America"
 "Mariana Enriquez":
   qid: "Q5997426"
   literature: "Argentina"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "Marie Redonnet":
   qid: "Q3292755"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Marina Lewycka":
   qid: "Q270487"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Mario Vargas Llosa":
   qid: "Q39803"
   literature: "Peru"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "Marlon James":
   qid: "Q16211564"
   literature: "Jamaica"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "Mia Couto":
   qid: "Q382101"
   literature: "Mozambique"
-  continent: "Africa"
-  subregion: "Sub-Saharan Africa"
 "Michael Ondaatje":
   qid: "Q313593"
   literature: "Canada"
   origin: "Sri Lanka"
-  continent: "Americas"
-  subregion: "Northern America"
   basis: "Britannica: born in Colombo, Canadian novelist"
 "Michel Houellebecq":
   qid: "Q103114"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Mieko Kawakami":
   qid: "Q455930"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Miguel Delibes":
   qid: "Q157326"
   literature: "Spain"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Miguel Ángel Asturias":
   qid: "Q75603"
   literature: "Guatemala"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "Mikhail Bulgakov":
   qid: "Q835"
   literature: "Russia"
   origin: "Ukraine"
-  continent: "Europe"
-  subregion: "Eastern Europe"
   basis: "Russian-language Soviet writer, born in Kyiv"
 "Mo Yan":
   qid: "Q8998"
   literature: "China"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Nam Cao":
   qid: "Q6961060"
   literature: "Vietnam"
-  continent: "Asia"
-  subregion: "South-eastern Asia"
 "Nathanael West":
   qid: "Q370521"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Natsume Sōseki":
   qid: "Q180903"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Neil Gaiman":
   qid: "Q210059"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Nu Nu Yi Inwa":
   qid: "Q13068551"
   literature: "Myanmar"
-  continent: "Asia"
-  subregion: "South-eastern Asia"
 "Olga Tokarczuk":
   qid: "Q254032"
   literature: "Poland"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Orhan Pamuk":
   qid: "Q241248"
   literature: "Turkey"
-  continent: "Asia"
-  subregion: "Western Asia"
 "Patrick Modiano":
   qid: "Q222944"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Per Petterson":
   qid: "Q70155"
   literature: "Norway"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Percival Everett":
   qid: "Q3375158"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Peter Handke":
   qid: "Q44107"
   literature: "Austria"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Philippe Claudel":
   qid: "Q472613"
   literature: "France"
-  continent: "Europe"
-  subregion: "Western Europe"
 "Qiu Miaojin":
   qid: "Q465264"
   literature: "Taiwan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Ray Bradbury":
   qid: "Q40640"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Raymond Carver":
   qid: "Q219862"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Raymond Chandler":
   qid: "Q180377"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Richard Flanagan":
   qid: "Q1351191"
   literature: "Australia"
-  continent: "Oceania"
-  subregion: "Australia and New Zealand"
 "Richard Ford":
   qid: "Q547794"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Robert A. Heinlein":
   qid: "Q123078"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Ryū Murakami":
   qid: "Q380265"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Sally Rooney":
   qid: "Q54861296"
   literature: "Ireland"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Salman Rushdie":
   qid: "Q44306"
   literature: "United Kingdom"
   origin: "India"
-  continent: "Europe"
-  subregion: "Northern Europe"
   basis: "Britannica: Indian-born British-American novelist"
 "Samantha Harvey":
   qid: "Q7408668"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Saul Bellow":
   qid: "Q83059"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Sayaka Murata":
   qid: "Q11523472"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Sebastian Faulks":
   qid: "Q443055"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Sherwood Anderson":
   qid: "Q233898"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Shūichi Yoshida":
   qid: "Q1053551"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Susanna Tamaro":
   qid: "Q234621"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "Svetlana Alexievich":
   qid: "Q274334"
   literature: "Belarus"
-  continent: "Europe"
-  subregion: "Eastern Europe"
   basis: "Britannica: Belarusian writer, writes in Russian"
 "Sándor Márai":
   qid: "Q36951"
   literature: "Hungary"
-  continent: "Europe"
-  subregion: "Eastern Europe"
 "Ta Obreht":
   name: "Téa Obreht"
   qid: "Q439226"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Toni Morrison":
   qid: "Q72334"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "Tove Ditlevsen":
   qid: "Q270333"
   literature: "Denmark"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Udaru Oshita":
   qid: "Q11431826"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "Umberto Eco":
   qid: "Q12807"
   literature: "Italy"
-  continent: "Europe"
-  subregion: "Southern Europe"
 "V.S. Naipaul":
   qid: "Q44593"
   literature: "United Kingdom"
   origin: "Trinidad and Tobago"
-  continent: "Europe"
-  subregion: "Northern Europe"
   basis: "Britannica: Trinidad-born, settled in Britain"
 "Virginia Woolf":
   qid: "Q40909"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Vladimir Nabokov":
   qid: "Q36591"
   literature: "United States"
   origin: "Russia"
-  continent: "Americas"
-  subregion: "Northern America"
   basis: "Britannica: Russian-born American novelist"
 "W. Somerset Maugham":
   qid: "Q134942"
   literature: "United Kingdom"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Werner Fuld":
   qid: "Q2561235"
   literature: "Germany"
-  continent: "Europe"
-  subregion: "Western Europe"
 "William Faulkner":
   qid: "Q38392"
   literature: "United States"
-  continent: "Americas"
-  subregion: "Northern America"
 "William Trevor":
   qid: "Q528826"
   literature: "Ireland"
-  continent: "Europe"
-  subregion: "Northern Europe"
 "Yasunari Kawabata":
   qid: "Q43736"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "carson-mccullers":
   counts_as: "Carson McCullers"
   basis: "Goodreads duplicate author page"
 "Álvaro Enrigue":
   qid: "Q3576975"
   literature: "Mexico"
-  continent: "Americas"
-  subregion: "Latin America and the Caribbean"
 "朱少麟":
   qid: "Q11093904"
   literature: "Taiwan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
   basis: "Taiwanese novelist; Wikidata has no citizenship"
 "渡邊淳一":
   qid: "Q3278086"
   literature: "Japan"
-  continent: "Asia"
-  subregion: "Eastern Asia"
 "胡遷":
   qid: "Q57265516"
   literature: "China"
-  continent: "Asia"
-  subregion: "Eastern Asia"

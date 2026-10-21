@@ -82,14 +82,16 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 [{%- for b in site.data.books -%}
   {%- assign zh = site.data.books_zh[b.id] -%}
   {%- assign t_zh = zh.title | default: b.title -%}
+  {%- assign geo = site.data.book_geo[b.author] -%}
   {%- unless forloop.first %},{% endunless -%}
   {"id":{{ b.id | jsonify }},"t":{{ b.title | jsonify }},"tz":{{ zh.title | jsonify }},"a":{{ b.author | jsonify }},"az":{{ zh.author | jsonify }},
   "r":{{ b.rating | default: 0 }},"p":{{ b.pages | jsonify }},"d":{{ b.read | jsonify }},"n":{{ b.read_count | default: 1 }},
   "c":{{ b.color | jsonify }},"k":{{ b.ink | jsonify }},"q":{{ b.ratio | default: 0.66 }},"cv":{{ b.cover | jsonify }},"u":{{ b.url | jsonify }},
-  "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }}}
+  "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }},"g":{{ geo.g | jsonify }},"go":{{ geo.go | jsonify }}}
 {%- endfor -%}]
 {%- endcapture %}
 <script type="application/json" id="b3d-data">{{ books_json | replace: "</", "<\/" }}</script>
+<script type="application/json" id="b3d-geo">{{ site.data.books_geo | jsonify | replace: "</", "<\/" }}</script>
 <script>
 addEventListener('error', (e) => {
   const root = document.getElementById('b3d');

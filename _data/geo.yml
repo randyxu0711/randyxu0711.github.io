@@ -1,0 +1,62 @@
+# 洲、UN M49 次區域、國家:地球儀與書架的地區排序共用。
+# countries 的鍵 = authors.yml 的 literature。at: [經度, 緯度]。topo: world-atlas countries-110m 的名稱不同時才寫。
+# qid: Wikidata 的國家,給 issue 加書時比對作者國籍(P27)。
+
+continents:
+  europe: { zh: 歐洲, en: Europe }
+  americas: { zh: 美洲, en: Americas }
+  asia: { zh: 亞洲, en: Asia }
+  africa: { zh: 非洲, en: Africa }
+  oceania: { zh: 大洋洲, en: Oceania }
+
+subregions:
+  northern-europe: { zh: 北歐, en: "Northern Europe", continent: europe }
+  western-europe: { zh: 西歐, en: "Western Europe", continent: europe }
+  eastern-europe: { zh: 東歐, en: "Eastern Europe", continent: europe }
+  southern-europe: { zh: 南歐, en: "Southern Europe", continent: europe }
+  northern-america: { zh: 北美, en: "Northern America", continent: americas }
+  latin-america-and-the-caribbean: { zh: 拉丁美洲與加勒比海, en: "Latin America and the Caribbean", continent: americas }
+  eastern-asia: { zh: 東亞, en: "Eastern Asia", continent: asia }
+  western-asia: { zh: 西亞, en: "Western Asia", continent: asia }
+  south-eastern-asia: { zh: 東南亞, en: "South-eastern Asia", continent: asia }
+  sub-saharan-africa: { zh: 撒哈拉以南非洲, en: "Sub-Saharan Africa", continent: africa }
+  australia-and-new-zealand: { zh: 澳洲與紐西蘭, en: "Australia and New Zealand", continent: oceania }
+
+countries:
+  "United Kingdom": { zh: 英國, subregion: northern-europe, at: [-2, 53], qid: Q145 }
+  "Ireland": { zh: 愛爾蘭, subregion: northern-europe, at: [-8, 53.2], qid: Q27 }
+  "Norway": { zh: 挪威, subregion: northern-europe, at: [9.5, 61], qid: Q20 }
+  "Denmark": { zh: 丹麥, subregion: northern-europe, at: [10, 55.8], qid: Q35 }
+  "France": { zh: 法國, subregion: western-europe, at: [2.3, 46.8], qid: Q142 }
+  "Germany": { zh: 德國, subregion: western-europe, at: [10.4, 51.2], qid: Q183 }
+  "Austria": { zh: 奧地利, subregion: western-europe, at: [14.5, 47.6], qid: Q40 }
+  "Russia": { zh: 俄羅斯, subregion: eastern-europe, at: [38, 56], qid: Q159 }
+  "Czech Republic": { zh: 捷克, subregion: eastern-europe, at: [15.3, 49.8], topo: "Czechia", qid: Q213 }
+  "Hungary": { zh: 匈牙利, subregion: eastern-europe, at: [19.2, 47.2], qid: Q28 }
+  "Poland": { zh: 波蘭, subregion: eastern-europe, at: [19.4, 52.1], qid: Q36 }
+  "Belarus": { zh: 白俄羅斯, subregion: eastern-europe, at: [27.9, 53.6], qid: Q184 }
+  "Italy": { zh: 義大利, subregion: southern-europe, at: [12.8, 42.6], qid: Q38 }
+  "Spain": { zh: 西班牙, subregion: southern-europe, at: [-3.7, 40.2], qid: Q29 }
+  "Portugal": { zh: 葡萄牙, subregion: southern-europe, at: [-8.4, 39.6], qid: Q45 }
+  "United States": { zh: 美國, subregion: northern-america, at: [-90, 39], topo: "United States of America", qid: Q30 }
+  "Canada": { zh: 加拿大, subregion: northern-america, at: [-79, 50], qid: Q16 }
+  "Argentina": { zh: 阿根廷, subregion: latin-america-and-the-caribbean, at: [-63, -34.6], qid: Q414 }
+  "Colombia": { zh: 哥倫比亞, subregion: latin-america-and-the-caribbean, at: [-74, 4.6], qid: Q739 }
+  "Peru": { zh: 秘魯, subregion: latin-america-and-the-caribbean, at: [-75.5, -10], qid: Q419 }
+  "Jamaica": { zh: 牙買加, subregion: latin-america-and-the-caribbean, at: [-77.3, 18.1], qid: Q766 }
+  "Guatemala": { zh: 瓜地馬拉, subregion: latin-america-and-the-caribbean, at: [-90.4, 15.2], qid: Q774 }
+  "Mexico": { zh: 墨西哥, subregion: latin-america-and-the-caribbean, at: [-101, 22], qid: Q96 }
+  "Japan": { zh: 日本, subregion: eastern-asia, at: [138.5, 36.4], qid: Q17 }
+  "China": { zh: 中國, subregion: eastern-asia, at: [110, 33], qid: Q148 }
+  "Taiwan": { zh: 台灣, subregion: eastern-asia, at: [121, 23.7], qid: Q865 }
+  "South Korea": { zh: 韓國, subregion: eastern-asia, at: [127.8, 36.4], qid: Q884 }
+  "Israel": { zh: 以色列, subregion: western-asia, at: [35, 31.4], qid: Q801 }
+  "Turkey": { zh: 土耳其, subregion: western-asia, at: [32.5, 39.2], qid: Q43 }
+  "Vietnam": { zh: 越南, subregion: south-eastern-asia, at: [105.8, 19], qid: Q881 }
+  "Myanmar": { zh: 緬甸, subregion: south-eastern-asia, at: [96, 20.5], qid: Q836 }
+  "South Africa": { zh: 南非, subregion: sub-saharan-africa, at: [24, -30], qid: Q258 }
+  "Ivory Coast": { zh: 象牙海岸, subregion: sub-saharan-africa, at: [-5.3, 7.5], topo: "Côte d'Ivoire", qid: Q1008 }
+  "Nigeria": { zh: 奈及利亞, subregion: sub-saharan-africa, at: [8, 9.5], qid: Q1033 }
+  "Angola": { zh: 安哥拉, subregion: sub-saharan-africa, at: [17.5, -12], qid: Q916 }
+  "Mozambique": { zh: 莫三比克, subregion: sub-saharan-africa, at: [35.5, -17], qid: Q1029 }
+  "Australia": { zh: 澳洲, subregion: australia-and-new-zealand, at: [146, -33], qid: Q408 }

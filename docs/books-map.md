@@ -65,8 +65,10 @@ countries:
 
 ### 國界
 
-- world-atlas `countries-110m.json`(Natural Earth,公有領域;world-atlas 是 ISC)放 `assets/vendor/world-atlas/`,
-  與 `topojson-client`(ISC,約 7KB)一起自架,不用 CDN。110m 已有台灣、牙買加。
+- world-atlas `countries-110m.json`(Natural Earth,公有領域;world-atlas 是 ISC)自架在 `assets/vendor/world-atlas/`,不用 CDN。
+  110m 已有台灣、牙買加。
+- TopoJSON 自己解(`geo.js` 約 30 行:arcs 是差分編碼,累加後乘 `transform` 的 scale 加 translate;負的 arc 編號 = 反向),
+  不另外自架 `topojson-client`。
 - 不用 d3:等距長方投影是線性的(`x = (lon + 180) / 360 × W`),自己畫;國界已在 180° 經線切開。
 - 點到哪一國:另外畫一張**編號貼圖**(每國填自己的編號色,不反鋸齒),射線打到球的 uv 讀那一格的像素。不用 `geoContains`。
 
@@ -235,7 +237,7 @@ countries:
 
 只在本機 `books-map` 分支 commit,最後開一個 PR(不每階段推)。
 
-1. **資料**:`geo.yml`、`authors.yml` 拿掉洲 / 次區域、頁面輸出 `g` 與 `b3d-geo`、自架 world-atlas 與 topojson-client、資料一致性測試。
+1. **資料**:`geo.yml`、`authors.yml` 拿掉洲 / 次區域、頁面輸出 `g` 與 `b3d-geo`、自架 world-atlas、資料一致性測試。
 2. **地區排序**:`layout.js`、工具列鍵、層標題、索引軌、測試。
 3. **地球儀模型與打光**:球、底座、牆、貼圖、晝夜燈光、color management 換算;地球儀鍵、鏡頭轉過去 / 回來、鎖捲動。
    → **對著 v15 的晝夜截圖比對**,一致了才往下。
