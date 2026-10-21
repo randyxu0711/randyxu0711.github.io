@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, SMALL } from 'books3d/geo.js';
+import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, screenPx, zoomFor, clickAction, cull, ranking, nearestAngle, contains, SMALL } from 'books3d/geo.js';
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, a + ' ≉ ' + b);
 
@@ -92,4 +92,13 @@ test('rings crossing the antimeridian are unwrapped; rings around a pole are clo
   assert.deepEqual(unwrap([[179, 0], [-179, 1], [179, 2]]), [[179, 0], [181, 1], [179, 2]]);
   const r = unwrap([[-180, -80], [-60, -78], [60, -79], [180, -80]]);
   assert.deepEqual(r.slice(-3), [[180, -90], [-180, -90], [-180, -80]]);
+});
+
+test('contains handles holes and longitudes past the antimeridian', () => {
+  const box = (l0, p0, l1, p1) => [[l0, p0], [l1, p0], [l1, p1], [l0, p1], [l0, p0]];
+  const polys = [[box(170, 0, 190, 10), box(175, 2, 178, 4)]];
+  assert.ok(contains(polys, 172, 5));
+  assert.ok(contains(polys, -175, 5));
+  assert.ok(!contains(polys, 176, 3));
+  assert.ok(!contains(polys, 160, 5));
 });

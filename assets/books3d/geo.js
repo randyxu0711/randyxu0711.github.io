@@ -121,3 +121,17 @@ export function nearestAngle(from, to) {
   const d = ((((to - from) % (2 * Math.PI)) + 3 * Math.PI) % (2 * Math.PI)) - Math.PI;
   return from + d;
 }
+
+function inRing(ring, x, y) {
+  let inside = false;
+  for (let k = 0, j = ring.length - 1; k < ring.length; j = k++) {
+    const [xi, yi] = ring[k];
+    const [xj, yj] = ring[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+export function contains(polys, lon, lat) {
+  return [lon, lon - 360, lon + 360].some((x) => polys.some((rings) => inRing(rings[0], x, lat) && !rings.slice(1).some((h) => inRing(h, x, lat))));
+}
