@@ -3,18 +3,19 @@
 
 name: Randy Xu
 avatar: /assets/img/avatar.jpg
-goodreads: https://www.goodreads.com/user/show/178569619-randy-xu   # 卷宗封面的聯絡列
+goodreads: https://www.goodreads.com/user/show/178569619-randy-xu   # 卷宗封面頭像下的圖示鍵
+linkedin: https://www.linkedin.com/in/randy-xu-6899b8162/
 
 role:
-  zh: 軟體工程師，探索可驗證的 AI agent 應用
-  en: Software engineer exploring verifiable AI agent applications
+  zh: 軟體工程師，探索有趣的 AI 應用
+  en: Software engineer exploring interesting AI applications
 
 intro:   # 卷宗封面上的自介:你是誰、現在在做什麼、工作之外。細節交給 projects 與經歷,不在這裡重複
   zh:
-    - 我是 Randy，軟體工程師。在 Openfind 做了兩年半企業郵件系統 Mail2000 的核心開發；現在專注在 AI agent，讓 AI 的輸出可以驗證、可以測試，而不只是看起來對。
+    - Hi，我是 Randy，軟體工程師。在 Openfind 做了兩年半企業郵件系統 Mail2000 的核心開發；現在專注在研究 AI agent 相關的應用，也動手做一些自己有興趣的東西。
     - 工作之外，我讀世界經典文學，偶爾也寫短篇。這個網站收錄我的 projects、值得一讀的技術文章，以及讀過的書。
   en:
-    - I'm Randy, a software engineer. I spent two and a half years on the core of Mail2000, Openfind's enterprise email system; these days I focus on AI agents, and on making their output verifiable and testable rather than merely plausible.
+    - Hi, I'm Randy, a software engineer. I spent two and a half years on the core of Mail2000, Openfind's enterprise email system; these days I'm researching applications of AI agents, and building things I find interesting along the way.
     - Outside of work I read world classic literature and occasionally write short stories. This site collects my projects, technical articles worth reading, and the books I've read.
 
 # 每一節的小標
