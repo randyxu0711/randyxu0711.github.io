@@ -1332,15 +1332,11 @@ async function start() {
     if (!globe) return;
     mapKey.setAttribute('aria-expanded', 'true');
     globe.card.classList.add('open');
-    globe.setSheet(true);
   }
   function closeMap(refocus) {
     if (mapKey.getAttribute('aria-expanded') !== 'true') return;
     mapKey.setAttribute('aria-expanded', 'false');
-    if (globe) {
-      globe.card.classList.remove('open');
-      globe.setSheet(false);
-    }
+    if (globe) globe.card.classList.remove('open');
     if (refocus) mapKey.focus();
   }
   mapKey.addEventListener('click', () => {

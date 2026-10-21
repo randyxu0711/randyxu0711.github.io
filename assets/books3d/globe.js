@@ -371,15 +371,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     rank.querySelectorAll('button').forEach((b) => b.classList.toggle('on', lifted.length === 1 && lifted[0] === b.dataset.k));
   }
 
-  const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0, sheet: 0, sheetT: 0, mid: 0, room: 1 };
+  const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0 };
   let hover = null;
   let touchHover = null;
   const far = () => Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect()));
   const aspect = () => window.innerWidth / Math.max(1, window.innerHeight);
-  const dist = () => {
-    const d = distAt(S.z, 1, NEAR, far());
-    return S.sheet ? lerp(d, Math.max(d, 1.35 / (S.room * TAN)), S.sheet) : d;
-  };
+  const dist = () => distAt(S.z, 1, NEAR, far());
 
   function face(dir) {
     const v = dir;
@@ -441,7 +438,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const target = new THREE.PerspectiveCamera(FOV, 1, 0.05, 300);
 
   function sceneCam(e) {
-    const ly = -0.2 * (1 - S.z) + S.sheet * 2 * S.mid * dist() * TAN;
+    const ly = -0.2 * (1 - S.z);
     target.aspect = aspect();
     target.position.set(0, ly, dist());
     target.quaternion.identity();
@@ -508,11 +505,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       if (Math.abs(S[a] - S[b]) < 1e-4) S[a] = S[b];
       busy = true;
     });
-    if (S.sheet !== S.sheetT) {
-      S.sheet += (S.sheetT - S.sheet) * r(6);
-      if (Math.abs(S.sheet - S.sheetT) < 1e-3) S.sheet = S.sheetT;
-      busy = true;
-    }
     const hT = lifted.length ? LIFT - 0.01 * S.z : 0;
     if (S.h !== hT) {
       S.h += (hT - S.h) * r(14);
@@ -720,11 +712,10 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (d.moved > 6 || e.type !== 'pointerup') return;
     const h = pickAt(e.clientX, e.clientY);
     if (h.k) act(h.k, d.touch);
-    else if (h.ball) {
+    else {
       touchHover = null;
       setHover(null);
-    } else if (S.zT > 0.02) S.zT = 0;
-    else close();
+    }
     invalidate();
   };
   hit.addEventListener('pointerup', up);
@@ -803,17 +794,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     return true;
   }
 
-  function setSheet(open) {
-    const H = window.innerHeight;
-    const top = parseFloat(getComputedStyle(root).getPropertyValue('--nav-h')) || 0;
-    const bottom = open ? card.getBoundingClientRect().top : H;
-    S.mid = ((top + bottom) / 2 - H / 2) / H;
-    S.room = clamp((bottom - top) / H, 0.2, 1);
-    S.sheetT = open ? 1 : 0;
-    if (reduce.matches) S.sheet = S.sheetT;
-    invalidate();
-  }
-
   text();
   document.addEventListener('langchange', text);
 
@@ -824,7 +804,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     render,
     colors,
     keydown,
-    setSheet,
     card,
     get active() { return S.mode !== 'off'; },
     get on() { return S.mode === 'on'; },

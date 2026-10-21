@@ -110,7 +110,7 @@ html[data-lang="en"] .b3d-lab.cont { letter-spacing: 0.14em; font-size: 0.82rem;
 .b3d-gtip:not([hidden]) { translate: -50% calc(-100% - 14px); }
 
 .b3d-map { --lh: 1.6rem; position: fixed; z-index: 18; left: 22px; top: calc(var(--nav-h, 4rem) + 1rem); width: 15rem; padding: 0.9rem 1.1rem 1.5rem; border-radius: 3px;
-  background-color: var(--card); color: var(--ink); font-size: 0.84rem; transform: rotate(-0.6deg);
+  background-color: var(--card); color: var(--ink); font-size: 0.84rem;
   background-image: linear-gradient(var(--edge) 0 0); background-size: 100% 1.5px; background-position: 0 2.55rem; background-repeat: no-repeat;
   box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--card-rim), 0 2px 0 var(--edge-n), 0 16px 30px -8px var(--drop-near); }
 .b3d-map::before { content: ""; position: absolute; left: 50%; bottom: 0.55rem; width: 0.6rem; height: 0.6rem; border-radius: 50%; transform: translateX(-50%); background: var(--desk); box-shadow: inset 0 1px 2px var(--drop-near); }
@@ -142,7 +142,7 @@ html[data-lang="en"] .b3d-ramp { --cols: 3.9rem 0.4rem repeat(5, 1fr); }
 .b3d-map-foot { display: flex; align-items: center; justify-content: flex-end; height: var(--lh); border-top: 1px solid color-mix(in srgb, var(--ink-3) 22%, transparent); font: 0.72rem var(--font-code); color: var(--ink-3); }
 @media (max-width: 640px) {
   .b3d-map { left: 16px; right: 16px; top: auto; bottom: calc(var(--bar-h, 3.5rem) + 1.75rem + env(safe-area-inset-bottom, 0px)); width: auto; padding: 0.6rem 0.85rem 1.2rem;
-    transform: none; border-radius: 6px; background-position: 0 2.2rem; }
+    border-radius: 6px; background-position: 0 2.2rem; }
   .b3d-map:not(.open) { display: none; }
   .b3d-map-head { height: 1.5rem; margin-bottom: 0.7rem; }
   .b3d-map-head h2 { font-size: 0.9rem; }
