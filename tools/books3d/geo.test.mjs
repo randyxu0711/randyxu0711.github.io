@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, SMALL } from 'books3d/geo.js';
+import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, pinSpots, SMALL } from 'books3d/geo.js';
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, a + ' ≉ ' + b);
 
@@ -106,4 +106,16 @@ test('contains handles holes and longitudes past the antimeridian', () => {
   assert.ok(contains(polys, -175, 5));
   assert.ok(!contains(polys, 176, 3));
   assert.ok(!contains(polys, 160, 5));
+});
+
+test('pin spots fall inside the country, keep apart and are deterministic', () => {
+  const L = [[[0, 0], [20, 0], [20, 4], [0, 4], [0, 0]]];
+  const polys = [L, [[[50, 50], [50.1, 50], [50.1, 50.1], [50, 50]]]];
+  const a = pinSpots(polys, 30);
+  assert.equal(a.length, 30);
+  assert.ok(a.every(([x, y]) => x > 0 && x < 20 && y > 0 && y < 4));
+  const min = Math.min(...a.flatMap((p, i) => a.slice(i + 1).map((q) => Math.hypot(p[0] - q[0], p[1] - q[1]))));
+  assert.ok(min > 0.5, 'min gap ' + min);
+  assert.deepEqual(pinSpots(polys, 30), a);
+  assert.deepEqual(pinSpots(polys, 0), []);
 });

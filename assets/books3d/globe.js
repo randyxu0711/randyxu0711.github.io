@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, classOf, SMALL, STEPS } from 'books3d/geo.js';
+import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, classOf, SMALL, STEPS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
+import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
 import { approach, clamp, lerp, easeInOut } from 'scene3d/anim.js';
 
 const TW = 4096;
@@ -14,7 +15,11 @@ const DOT = 13;
 const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
 const MIN_SPREAD = 0.08;
-const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'globe-table', 'brass', 'wood', 'edge', 'desk', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
+const PIN_N = 80;
+const PIN_PX = 8;
+const PIN_RISE = 260;
+const PIN_STAGGER = 18;
+const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'globe-table', 'brass', 'wood', 'edge', 'desk', 'paper', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
 const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid'];
 
 const css = (c) => 'rgb(' + c.slice(0, 3).map((v) => Math.round(v * 255)).join(' ') + ')';
@@ -31,7 +36,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     const polys = g && shapes.get(g.topo);
     if (!polys) return;
     const a = area(polys);
-    C.set(r.country, { ...r, g, polys, area: a, small: a < SMALL, spread: Math.max(MIN_SPREAD, spread(polys, g.at)), dir: new THREE.Vector3(...dirOf(g.at[0], g.at[1])) });
+    C.set(r.country, { ...r, ids: books.map((b, i) => (b.g === r.country ? i : -1)).filter((i) => i >= 0).sort((x, y) => (books[y].r || 0) - (books[x].r || 0)), g, polys, area: a, small: a < SMALL, spread: Math.max(MIN_SPREAD, spread(polys, g.at)), dir: new THREE.Vector3(...dirOf(g.at[0], g.at[1])) });
   });
   const sub = new Map(geo.subregions.map((s) => [s.id, s]));
   const conts = geo.continents.map((c) => {
@@ -265,6 +270,114 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   }
   const rimWant = () => (2.5 * (dist() - 1) * 2 * TAN) / window.innerHeight;
 
+  const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshStandardMaterial({ roughness: 0.28 }), PIN_N);
+  const needles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.11, 0.05, 1, 8).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.7 }), PIN_N);
+  heads.frustumCulled = needles.frustumCulled = false;
+  heads.count = needles.count = 0;
+  spin.add(needles, heads);
+  const pins = { k: null, list: [], t0: 0, out: false, r: 0, hot: -1 };
+  const _pu = new THREE.Vector3(0, 1, 0);
+  const _pp = new THREE.Vector3();
+  const _pq = new THREE.Quaternion();
+  const _ps = new THREE.Vector3();
+  const _pm = new THREE.Matrix4();
+  const _pc = new THREE.Color();
+  const overshoot = (t) => 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2);
+
+  function setPins(k) {
+    const c = C.get(k);
+    const spots = pinSpots(shapeOf(c), Math.min(PIN_N, c.ids.length));
+    pins.list = spots.map(([lon, lat], j) => {
+      const d = new THREE.Vector3(...dirOf(lon, lat));
+      const away = d.clone().sub(c.dir).projectOnPlane(d);
+      const up = away.lengthSq() > 1e-12 ? d.clone().addScaledVector(away.normalize(), 0.2).normalize() : d.clone();
+      return { i: c.ids[j], d, up };
+    });
+    pins.k = k;
+    pins.t0 = performance.now();
+    pins.out = false;
+    pins.hot = -1;
+    pins.r = (PIN_PX * (focusDist(c.spread, TAN, aspect()) - 1) * 2 * TAN) / window.innerHeight;
+    paintPins();
+  }
+
+  function dropPins() {
+    if (!pins.list.length || pins.out) return;
+    pins.out = true;
+    pins.t0 = performance.now();
+    pins.hot = -1;
+    pinCard.hidden = true;
+  }
+
+  function paintPins() {
+    pins.list.forEach((p, j) => heads.setColorAt(j, _pc.setRGB(...(j === pins.hot ? tok.edge : tok.paper).slice(0, 3))));
+    if (heads.instanceColor) heads.instanceColor.needsUpdate = true;
+  }
+
+  function stepPins(now) {
+    if (!pins.list.length) return false;
+    let busy = false;
+    const L = pins.r * 2.6;
+    heads.count = needles.count = pins.list.length;
+    pins.list.forEach((p, j) => {
+      const t = reduce.matches ? 1 : clamp((now - pins.t0 - (pins.out ? 0 : j * PIN_STAGGER)) / PIN_RISE, 0, 1);
+      if (t < 1) busy = true;
+      const e = pins.out ? 1 - easeInOut(t) : overshoot(t);
+      const hot = j === pins.hot;
+      _pq.setFromUnitVectors(_pu, p.up);
+      _pp.copy(p.d).multiplyScalar(1 + S.h);
+      needles.setMatrixAt(j, _pm.compose(_pp, _pq, _ps.set(pins.r, L * e * (hot ? 1.15 : 1), pins.r)));
+      _pp.addScaledVector(p.up, L * e * (hot ? 1.15 : 1));
+      heads.setMatrixAt(j, _pm.compose(_pp, _pq, _ps.setScalar(pins.r * Math.max(0, e) * (hot ? 1.2 : 1))));
+    });
+    heads.instanceMatrix.needsUpdate = needles.instanceMatrix.needsUpdate = true;
+    if (pins.out && !busy) {
+      pins.list = [];
+      pins.k = null;
+      heads.count = needles.count = 0;
+    }
+    return busy;
+  }
+
+  const _ph = new THREE.Vector3();
+  function pickPin(x, y) {
+    if (!pins.list.length || pins.out) return -1;
+    ndc.set((x / window.innerWidth) * 2 - 1, 1 - (y / window.innerHeight) * 2);
+    ray.setFromCamera(ndc, camera);
+    let best = -1;
+    let bd = Infinity;
+    pins.list.forEach((p, j) => {
+      _ph.copy(p.d).multiplyScalar(1 + S.h).addScaledVector(p.up, pins.r * 2.6).applyQuaternion(spin.quaternion);
+      if (ray.ray.distanceSqToPoint(_ph) > (pins.r * 1.6) ** 2) return;
+      const d = _ph.distanceTo(camera.position);
+      if (d < bd) { bd = d; best = j; }
+    });
+    return best;
+  }
+
+  function hotPin(j) {
+    if (pins.hot === j) return;
+    pins.hot = j;
+    paintPins();
+    if (j < 0) {
+      pinCard.hidden = true;
+      return;
+    }
+    const b = books[pins.list[j].i];
+    const url = smallCover(b.cv);
+    pinCard.innerHTML = (url ? '<img src="' + esc(url) + '" alt="" crossorigin="anonymous">' : '<i style="background:' + esc(b.c || '#888') + '"></i>')
+      + '<span><b>' + esc(titleOf(b)) + '</b><small>' + esc(authorOf(b)) + '</small></span>';
+    pinCard.hidden = false;
+    invalidate();
+  }
+
+  function placePinCard() {
+    if (pins.hot < 0 || pinCard.hidden) return;
+    const p = pins.list[pins.hot];
+    _ph.copy(p.d).multiplyScalar(1 + S.h).addScaledVector(p.up, pins.r * 3).applyQuaternion(spin.quaternion).project(camera);
+    pinCard.style.transform = 'translate(' + ((_ph.x + 1) / 2 * window.innerWidth).toFixed(1) + 'px,' + ((1 - _ph.y) / 2 * window.innerHeight).toFixed(1) + 'px)';
+  }
+
   function paintLift() {
     const d = dropC.getContext('2d');
     d.clearRect(0, 0, TW / 2, TH / 2);
@@ -355,6 +468,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     glowU.value = night ? 0.8 : 0;
     topMat.color.setScalar(night ? NIGHT_DARK : 1);
     rimMat.color.setRGB(...tok.edge.slice(0, 3));
+    needles.material.color.setRGB(...tok.brass.slice(0, 3));
+    paintPins();
     hemi.intensity = night ? 1.3 : 2.6;
     sun.intensity = night ? 0.1 : 1.4;
     sun.castShadow = !night;
@@ -378,7 +493,10 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   card.className = 'b3d-map';
   card.id = 'b3d-map';
   card.hidden = true;
-  root.append(hit, labels, tip, card);
+  const pinCard = document.createElement('div');
+  pinCard.className = 'b3d-pin';
+  pinCard.hidden = true;
+  root.append(hit, labels, tip, pinCard, card);
 
   const labelEls = new Map();
   const mkLabel = (id, cls) => {
@@ -477,6 +595,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   function close(then) {
     if (S.mode === 'off' || S.mode === 'out') return;
+    dropPins();
     focused = hover = null;
     setLift([]);
     tip.hidden = true;
@@ -588,7 +707,9 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       pointer.moved = false;
       hoverAt(pointer.x, pointer.y);
     }
+    if (stepPins(performance.now())) busy = true;
     placeLabels(e);
+    placePinCard();
     return busy;
   }
 
@@ -666,6 +787,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   }
 
   function hoverAt(x, y) {
+    const j = pickPin(x, y);
+    hotPin(j);
+    if (j >= 0) {
+      hit.style.cursor = 'pointer';
+      return;
+    }
     const h = pickAt(x, y);
     setHover(h.k);
     hit.style.cursor = h.k ? 'pointer' : drag ? 'grabbing' : 'grab';
@@ -677,6 +804,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   }
 
   function unfocus() {
+    dropPins();
     focused = hover = null;
     setLift([]);
   }
@@ -687,6 +815,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     face(c.dir);
     S.zT = clamp(zoomAt(focusDist(c.spread, TAN, aspect()), 1, NEAR, far()), 0, 1);
     focused = k;
+    setPins(k);
     setLift([...new Set([k, hover])].filter(Boolean));
     invalidate();
   }
@@ -755,6 +884,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     drag = null;
     if (e.timeStamp - d.t > 80) S.vel = 0;
     if (d.moved > 6 || e.type !== 'pointerup') return;
+    const j = pickPin(e.clientX, e.clientY);
+    if (j >= 0) {
+      close({ country: pins.k, book: pins.list[j].i });
+      invalidate();
+      return;
+    }
     const h = pickAt(e.clientX, e.clientY);
     if (h.k) act(h.k);
     else unfocus();

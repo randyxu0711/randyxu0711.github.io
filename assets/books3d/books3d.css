@@ -109,6 +109,13 @@ html[data-lang="en"] .b3d-lab.cont { letter-spacing: 0.12em; font-size: 0.7rem; 
 .b3d-gtip { position: fixed; left: 0; top: 0; z-index: 17; pointer-events: none; margin: 0; padding: 0.3rem 0.6rem; border-radius: 5px; background: var(--card); color: var(--ink);
   font-size: 0.82rem; white-space: nowrap; box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--card-rim), 0 2px 0 var(--edge), 0 8px 16px var(--drop-near); }
 .b3d-gtip b { font-family: var(--font-display); font-weight: 600; }
+.b3d-pin { position: fixed; left: 0; top: 0; z-index: 17; pointer-events: none; display: flex; align-items: center; gap: 0.6rem; max-width: 15rem;
+  padding: 0.45rem 0.7rem 0.45rem 0.45rem; border-radius: 6px; background: var(--card); color: var(--ink); translate: 14px -50%;
+  box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--card-rim), 0 2px 0 var(--edge-n), 0 10px 22px -8px var(--drop-near); }
+.b3d-pin img, .b3d-pin i { flex: none; width: 2.4rem; aspect-ratio: 2 / 3; border-radius: 2px; object-fit: cover; box-shadow: 0 1px 3px var(--drop-near); }
+.b3d-pin span { display: grid; gap: 0.15rem; min-width: 0; }
+.b3d-pin b { font: 600 0.86rem/1.25 var(--font-display); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.b3d-pin small { font-size: 0.74rem; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .b3d-gtip span { color: var(--ink-3); }
 .b3d-gtip:not([hidden]) { translate: -50% calc(-100% - 14px); }
 

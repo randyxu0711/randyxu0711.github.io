@@ -139,3 +139,39 @@ function inRing(ring, x, y) {
 export function contains(polys, lon, lat) {
   return [lon, lon - 360, lon + 360].some((x) => polys.some((rings) => inRing(rings[0], x, lat) && !rings.slice(1).some((h) => inRing(h, x, lat))));
 }
+
+function halton(i, b) {
+  let f = 1;
+  let r = 0;
+  for (let k = i; k > 0; k = Math.floor(k / b)) {
+    f /= b;
+    r += f * (k % b);
+  }
+  return r;
+}
+
+export function pinSpots(polys, n) {
+  if (!n) return [];
+  const main = polys.reduce((best, p) => (area([p]) > area([best]) ? p : best));
+  const ring = main[0];
+  const lons = ring.map((p) => p[0]);
+  const lats = ring.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...lons), Math.max(...lons), Math.min(...lats), Math.max(...lats)];
+  const cosMid = Math.cos(((y0 + y1) / 2) * RAD);
+  const inside = [];
+  for (let i = 1; inside.length < 4000 && i < 40000; i++) {
+    const p = [x0 + halton(i, 2) * (x1 - x0), y0 + halton(i, 3) * (y1 - y0)];
+    if (contains([main], p[0], p[1])) inside.push(p);
+  }
+  if (!inside.length) return Array.from({ length: n }, () => [(x0 + x1) / 2, (y0 + y1) / 2]);
+  const gap = (a, b) => Math.hypot((a[0] - b[0]) * cosMid, a[1] - b[1]);
+  let sep = Math.sqrt(((x1 - x0) * cosMid * (y1 - y0) * inside.length) / 4000 / n);
+  for (;;) {
+    const out = [];
+    for (const p of inside) {
+      if (out.every((q) => gap(p, q) >= sep)) out.push(p);
+      if (out.length === n) return out;
+    }
+    sep *= 0.85;
+  }
+}

@@ -1319,6 +1319,7 @@ async function start() {
     placeLamp();
     invalidate();
     if (typeof then === 'function') then();
+    else if (then && then.country) goShelf(then.country, then.book);
     else if (then) goShelf(then);
   }
 
@@ -1382,7 +1383,7 @@ async function start() {
     updateTier(true);
     invalidate();
   }
-  function goShelf(country) {
+  function goShelf(country, book) {
     const wait = state.sort === 'region' || reduce.matches ? 0 : SHUFFLE;
     if (state.sort !== 'region') setSort('region');
     const L = state.L;
@@ -1416,6 +1417,7 @@ async function start() {
       };
       ['pointerdown', 'wheel', 'keydown'].forEach((ev) => window.addEventListener(ev, end, true));
     }, wait + 50));
+    if (book !== undefined) markTimers.push(setTimeout(() => lift(book), wait + ids.length * MARK_STEP + 250));
     invalidate();
   }
 
