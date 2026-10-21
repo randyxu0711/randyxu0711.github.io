@@ -56,7 +56,6 @@ books3d.sort_region: { zh: "地區", en: "Region" }
 books3d.unplaced: { zh: "未標國家", en: "Unplaced" }
 books3d.globe:    { zh: "地圖", en: "Map" }
 books3d.globe_back: { zh: "書架", en: "Shelf" }
-books3d.map_again: { zh: "再點一下看這國的書", en: "Tap again for its books" }
 books3d.map_title: { zh: "閱讀版圖", en: "Reading map" }
 books3d.map_none: { zh: "尚未涉足", en: "Unexplored" }
 books3d.map_countries: { zh: "{n} 國", en: "{n} countries", en_one: "{n} country" }

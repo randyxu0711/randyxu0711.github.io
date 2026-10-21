@@ -373,7 +373,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0 };
   let hover = null;
-  let touchHover = null;
   const far = () => Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect()));
   const aspect = () => window.innerWidth / Math.max(1, window.innerHeight);
   const dist = () => distAt(S.z, 1, NEAR, far());
@@ -418,7 +417,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   function close(then) {
     if (S.mode === 'off' || S.mode === 'out') return;
     setLift([]);
-    hover = touchHover = null;
+    hover = null;
     tip.hidden = true;
     S.mode = 'out';
     S.t0 = performance.now();
@@ -577,11 +576,9 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       if (show) l.el.style.transform = 'translate(' + (l.p.x - l.w / 2).toFixed(1) + 'px,' + (l.p.y - l.h / 2).toFixed(1) + 'px)';
       l.el.classList.toggle('lit', !!(lifted.length && (id[0] === '@' ? false : lifted.includes(id))));
     });
-    const again = touchHover && touchHover === hover;
-    if (hover && (again || !keep.has(hover))) {
+    if (hover && !keep.has(hover)) {
       const p = labelEls.get(hover).p;
-      tip.innerHTML = '<b>' + esc(nameOf(hover)) + '</b> <span>' + esc(t('books.count', C.get(hover).count)) + '</span>'
-        + (again ? '<span class="again">' + esc(t('books3d.map_again')) + '</span>' : '');
+      tip.innerHTML = '<b>' + esc(nameOf(hover)) + '</b> <span>' + esc(t('books.count', C.get(hover).count)) + '</span>';
       tip.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)';
       tip.hidden = false;
     } else tip.hidden = true;
@@ -619,16 +616,9 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     setLift(k ? [k] : []);
   }
 
-  function act(k, touch) {
+  function act(k) {
     const c = C.get(k);
-    const fly = clickAction(px(k), S.z) === 'fly';
-    if (touch && !fly && touchHover !== k) {
-      touchHover = k;
-      setHover(k);
-      return;
-    }
-    touchHover = null;
-    if (fly) {
+    if (clickAction(px(k), S.z) === 'fly') {
       face(c.dir);
       S.zT = clamp(zoomFor(FLY_TO_PX, c.area, 1, TAN, window.innerHeight, NEAR, far()), 0, 1);
       invalidate();
@@ -713,11 +703,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (e.timeStamp - d.t > 80) S.vel = 0;
     if (d.moved > 6 || e.type !== 'pointerup') return;
     const h = pickAt(e.clientX, e.clientY);
-    if (h.k) act(h.k, d.touch);
-    else {
-      touchHover = null;
-      setHover(null);
-    }
+    if (h.k) act(h.k);
+    else setHover(null);
     invalidate();
   };
   hit.addEventListener('pointerup', up);
@@ -751,7 +738,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     const b = e.target.closest('.b3d-lab');
     if (!b) return;
     if (b.dataset.id[0] === '@') return focusContinent(conts.find((c) => '@' + c.id === b.dataset.id));
-    act(b.dataset.id, e.pointerType && e.pointerType !== 'mouse');
+    act(b.dataset.id);
   });
 
   card.addEventListener('pointerover', (e) => {
@@ -775,7 +762,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (S.mode !== 'on') return false;
     if (e.key === 'Escape') {
       if (lifted.length) {
-        hover = touchHover = null;
+        hover = null;
         setLift([]);
       } else if (S.zT > 0.02) S.zT = 0;
       else close();

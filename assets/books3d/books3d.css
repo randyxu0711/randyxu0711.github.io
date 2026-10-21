@@ -111,7 +111,6 @@ html[data-lang="en"] .b3d-lab.cont { letter-spacing: 0.12em; font-size: 0.7rem; 
   font-size: 0.82rem; white-space: nowrap; box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--card-rim), 0 2px 0 var(--edge), 0 8px 16px var(--drop-near); }
 .b3d-gtip b { font-family: var(--font-display); font-weight: 600; }
 .b3d-gtip span { color: var(--ink-3); }
-.b3d-gtip .again { display: block; margin-top: 0.15rem; color: var(--accent); font-size: 0.78rem; }
 .b3d-gtip:not([hidden]) { translate: -50% calc(-100% - 14px); }
 
 .b3d-map { --lh: 1.6rem; position: fixed; z-index: 18; left: 22px; top: calc(var(--nav-h, 4rem) + 1rem); width: 16rem; padding: 0.9rem 1.1rem 1.5rem; border-radius: 3px;
