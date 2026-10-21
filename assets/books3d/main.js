@@ -1306,7 +1306,7 @@ async function start() {
       const R = m.span / (canvas.clientWidth <= 640 ? 3.5 : 7.2);
       g.open({ x: m.span / 2 + 5 * R, y: gl.camera.position.y, z: gl.view.D * 0.4 }, R);
       root.classList.add('globe');
-      globeKey.setAttribute('aria-pressed', 'true');
+      globeLabel('books3d.globe_back');
       placeLamp();
       invalidate();
     });
@@ -1314,12 +1314,18 @@ async function start() {
 
   function globeClosed(then) {
     root.classList.remove('globe');
-    globeKey.setAttribute('aria-pressed', 'false');
+    globeLabel('books3d.globe');
     closeMap(false);
     placeLamp();
     invalidate();
     if (typeof then === 'function') then();
     else if (then) goShelf(then);
+  }
+
+  function globeLabel(k) {
+    const l = globeKey.querySelector('.lbl');
+    l.dataset.i18n = k;
+    l.textContent = t(k);
   }
 
   globeKey.addEventListener('click', () => {

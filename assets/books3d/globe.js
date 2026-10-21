@@ -336,7 +336,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   function text() {
     C.forEach((c, k) => { labelEls.get(k).el.innerHTML = esc(nameOf(k)) + '<b>' + c.count + '</b>'; });
-    conts.forEach((c) => { labelEls.get('@' + c.id).el.innerHTML = esc(c[lang()] || c.en) + '<b>' + c.count + '</b>'; });
+    conts.forEach((c) => { labelEls.get('@' + c.id).el.textContent = c[lang()] || c.en; });
     labelEls.forEach((l) => { l.w = 0; });
     card.setAttribute('aria-label', t('books3d.map_title'));
     const steps = STEPS.map((s, k) => (k === STEPS.length - 1 ? s + '+' : s === STEPS[k + 1] - 1 ? String(s) : s + '–' + (STEPS[k + 1] - 1)));
@@ -403,7 +403,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     if (S.mode === 'off') {
       S.yaw = S.yawT = 0;
       S.tilt = S.tiltT = 0;
-      face(new THREE.Vector3(...dirOf(30, 50)));
+      face(new THREE.Vector3(...dirOf(-35, 38)));
       S.yaw = S.yawT;
       S.tilt = S.tiltT = clamp(S.tiltT, -tiltMax(0), tiltMax(0));
       S.z = S.zT = 0;
@@ -568,7 +568,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
         l.w = l.el.offsetWidth;
         l.h = l.el.offsetHeight;
       }
-      list.push({ id, x: p.x, y: p.y, w: l.w, h: l.h, score: (cont ? 1e4 : 0) + src.count, vw, vh });
+      list.push({ id, x: p.x, y: p.y, w: l.w, h: l.h, score: cont ? 0.5 : src.count, vw, vh });
     });
     const keep = new Set(cull(list).map((x) => x.id));
     labelEls.forEach((l, id) => {
@@ -577,9 +577,11 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       if (show) l.el.style.transform = 'translate(' + (l.p.x - l.w / 2).toFixed(1) + 'px,' + (l.p.y - l.h / 2).toFixed(1) + 'px)';
       l.el.classList.toggle('lit', !!(lifted.length && (id[0] === '@' ? false : lifted.includes(id))));
     });
-    if (hover && !keep.has(hover)) {
+    const again = touchHover && touchHover === hover;
+    if (hover && (again || !keep.has(hover))) {
       const p = labelEls.get(hover).p;
-      tip.innerHTML = '<b>' + esc(nameOf(hover)) + '</b> <span>' + esc(t('books.count', C.get(hover).count)) + '</span>';
+      tip.innerHTML = '<b>' + esc(nameOf(hover)) + '</b> <span>' + esc(t('books.count', C.get(hover).count)) + '</span>'
+        + (again ? '<span class="again">' + esc(t('books3d.map_again')) + '</span>' : '');
       tip.style.transform = 'translate(' + p.x.toFixed(1) + 'px,' + p.y.toFixed(1) + 'px)';
       tip.hidden = false;
     } else tip.hidden = true;
