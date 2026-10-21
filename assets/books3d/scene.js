@@ -504,5 +504,9 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, setLampAt, warm };
+  function draw() {
+    renderer.render(scene, camera);
+  }
+
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, setLampAt, warm };
 }

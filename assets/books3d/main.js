@@ -1,4 +1,4 @@
-import { layout, viewSpan, inView, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
+import { layout, viewSpan, inView, countryRun, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'scene3d/colors.js';
 import { createScene } from 'books3d/scene.js';
 import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf, lang } from 'books3d/textures.js';
@@ -19,6 +19,8 @@ const heldEl = document.getElementById('b3d-held');
 const heldText = document.getElementById('b3d-held-text');
 const grLink = document.getElementById('b3d-gr');
 const list = document.getElementById('b3d-list');
+const globeKey = document.getElementById('b3d-globe-key');
+const mapKey = document.getElementById('b3d-map-key');
 const books = JSON.parse(document.getElementById('b3d-data').textContent);
 const geoEl = document.getElementById('b3d-geo');
 const geo = geoEl ? JSON.parse(geoEl.textContent) : {};
@@ -595,6 +597,9 @@ async function start() {
   const pointer = { x: 0, y: 0, in: false, moved: false, speed: 0, time: 0 };
   let hovered = -1;
   let focused = -1;
+  const marked = new Set();
+  let globe = null;
+  let globeLoad = null;
 
   function frame(now) {
     raf = 0;
@@ -642,6 +647,7 @@ async function start() {
     }
 
     gl.frustum(cam);
+    if (globe && globe.active && globe.frame(now, dt)) busy = true;
     if (lampOn) placeLamp();
     if (lit && pointer.in && !drag && !held && (pointer.moved || camMoved || dirty)) {
       pointer.moved = false;
@@ -676,7 +682,8 @@ async function start() {
       dirty = false;
     }
     if (camMoved || moved) updateTier();
-    gl.render(cam);
+    if (globe && globe.active) globe.render(gl.draw);
+    else gl.draw();
     if (!liveT0) {
       liveT0 = now;
       root.classList.add('live');
@@ -757,7 +764,7 @@ async function start() {
 
   function setHover(i) {
     hovered = i;
-    for (let k = 0; k < n; k++) hvT[k] = k === hovered || k === focused ? 1 : 0;
+    for (let k = 0; k < n; k++) hvT[k] = k === hovered || k === focused || marked.has(k) ? 1 : 0;
     document.documentElement.style.cursor = i >= 0 ? 'pointer' : '';
     invalidate();
   }
@@ -834,7 +841,14 @@ async function start() {
   }
 
   let tierKey = null;
+  let mark = null;
   function updateTier(force) {
+    if (mark) {
+      tier.classList.remove('empty');
+      tier.innerHTML = '<span class="h">' + mark.name + '</span><span class="n">' + t('books.count', mark.count) + '</span>';
+      tierKey = null;
+      return;
+    }
     const line = cam.yTop - window.innerHeight * 0.5 / m.ppu;
     let k = -1;
     state.L.shelves.forEach((x, j) => { if (k < 0 || x.y + x.tallest >= line) k = j; });
@@ -965,6 +979,7 @@ async function start() {
   const viewBtns = bar.querySelectorAll('[data-view-set]');
   function setView(v) {
     if (v === state.view) return;
+    if (globe && globe.active) return globe.close(() => setView(v));
     state.view = v;
     viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.viewSet === v)));
     viewKey.setAttribute('aria-pressed', String(v === 'covers'));
@@ -977,6 +992,7 @@ async function start() {
   const sortBtns = bar.querySelectorAll('[data-sort-set]');
   function setSort(v) {
     if (v === state.sort || !SORT_NAMES.includes(v)) return;
+    if (globe && globe.active) return globe.close(() => setSort(v));
     state.sort = v;
     sortBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.sortSet === v)));
     showSort();
@@ -1108,7 +1124,7 @@ async function start() {
   }, { passive: false });
 
   document.addEventListener('keydown', (e) => {
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || trans || !lit) return;
+    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || trans || !lit || (globe && globe.active)) return;
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
     const s = shelfAt(window.innerHeight / 2);
@@ -1157,6 +1173,7 @@ async function start() {
     const d = tokens.desk;
     lampOn = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
     placeLamp();
+    if (globe) globe.colors(lampOn);
     if (!liveT0 && !lampOn) root.classList.add('soft');
     if (intro) applyIntro(lit ? performance.now() - litT0 : -1);
     invalidate();
@@ -1169,7 +1186,7 @@ async function start() {
       return;
     }
     const hover = window.matchMedia('(hover: hover)').matches && pointer.time;
-    gl.setLamp(lampOn && lit, hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
+    gl.setLamp(lampOn && lit && !(globe && globe.active), hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
   }
 
   const nav = document.querySelector('.nav');
@@ -1256,6 +1273,154 @@ async function start() {
     tex.fontsChanged();
     invalidate();
   });
+
+  function loadGlobe() {
+    if (!globeLoad) {
+      globeLoad = import('books3d/globe.js').then((mod) => mod.createGlobe({
+        renderer: gl.renderer,
+        shelfCamera: () => gl.camera,
+        books,
+        geo,
+        atlas: root.dataset.atlas,
+        root,
+        t,
+        lang,
+        reduce,
+        invalidate,
+        onClosed: globeClosed,
+      })).then((g) => {
+        globe = g;
+        globe.colors(lampOn);
+        return g;
+      });
+      globeLoad.catch(() => { globeKey.hidden = true; });
+    }
+    return globeLoad;
+  }
+
+  function openGlobe() {
+    loadGlobe().then((g) => {
+      if (held) drop();
+      clearMark();
+      setHover(-1);
+      const R = m.span / (canvas.clientWidth <= 640 ? 3.5 : 7.2);
+      g.open({ x: m.span / 2 + 5 * R, y: gl.camera.position.y, z: gl.view.D * 0.4 }, R);
+      root.classList.add('globe');
+      globeKey.setAttribute('aria-pressed', 'true');
+      placeLamp();
+      invalidate();
+    });
+  }
+
+  function globeClosed(then) {
+    root.classList.remove('globe');
+    globeKey.setAttribute('aria-pressed', 'false');
+    closeMap(false);
+    placeLamp();
+    invalidate();
+    if (typeof then === 'function') then();
+    else if (then) goShelf(then);
+  }
+
+  globeKey.addEventListener('click', () => {
+    if (!lit) return;
+    if (globe && globe.active) globe.close();
+    else openGlobe();
+  });
+
+  function openMap() {
+    if (!globe) return;
+    mapKey.setAttribute('aria-expanded', 'true');
+    globe.card.classList.add('open');
+    globe.setSheet(true);
+  }
+  function closeMap(refocus) {
+    if (mapKey.getAttribute('aria-expanded') !== 'true') return;
+    mapKey.setAttribute('aria-expanded', 'false');
+    if (globe) {
+      globe.card.classList.remove('open');
+      globe.setSheet(false);
+    }
+    if (refocus) mapKey.focus();
+  }
+  mapKey.addEventListener('click', () => {
+    if (mapKey.getAttribute('aria-expanded') === 'true') closeMap(false);
+    else openMap();
+  });
+  window.addEventListener('pointerdown', (e) => {
+    if (mapKey.getAttribute('aria-expanded') !== 'true' || mapKey.contains(e.target) || (globe && globe.card.contains(e.target))) return;
+    e.stopPropagation();
+    closeMap(false);
+    const swallow = (ev) => { ev.stopPropagation(); };
+    window.addEventListener('pointerup', swallow, { capture: true, once: true });
+  }, true);
+  document.addEventListener('keydown', (e) => {
+    if (!globe || !globe.on || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === 'Escape' && mapKey.getAttribute('aria-expanded') === 'true') {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      closeMap(true);
+      return;
+    }
+    if (globe.keydown(e)) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+    }
+  }, true);
+
+  const MARK_STEP = 40;
+  let markTimers = [];
+  function clearMark() {
+    markTimers.forEach(clearTimeout);
+    markTimers = [];
+    if (!mark) return;
+    mark = null;
+    marked.clear();
+    setHover(hovered);
+    updateTier(true);
+    invalidate();
+  }
+  function goShelf(country) {
+    const wait = state.sort === 'region' || reduce.matches ? 0 : SHUFFLE;
+    if (state.sort !== 'region') setSort('region');
+    const L = state.L;
+    const run = countryRun(L, books, country);
+    if (!run) return;
+    const s = L.shelves[run.shelf];
+    const ids = s.list.slice(run.from, run.from + run.count);
+    const a = L.items[ids[0]];
+    const z = L.items[ids[ids.length - 1]];
+    const left = a.lx - a.w / 2;
+    const width = z.lx + z.w / 2 - left;
+    const o = width < m.span * 0.8 ? -(s.x0 + left + width / 2) : -m.span / 2 + m.span * 0.08 - (s.x0 + left);
+    offT.set(s.key, clamp(o, s.minOffset, 0));
+    if (reduce.matches || wait) off.set(s.key, offT.get(s.key));
+    const py = (scrollTarget() - (s.y + s.tallest / 2)) * m.ppu;
+    window.scrollTo(0, Math.max(0, Math.round(window.scrollY + py - window.innerHeight / 2)));
+    const c = geo.countries[country];
+    mark = { name: lang() === 'zh' ? c.zh : country, count: run.count };
+    updateTier(true);
+    ids.forEach((i, k) => {
+      markTimers.push(setTimeout(() => {
+        marked.add(i);
+        hvT[i] = 1;
+        invalidate();
+      }, wait + k * MARK_STEP));
+    });
+    markTimers.push(setTimeout(() => {
+      const end = () => {
+        ['pointerdown', 'wheel', 'keydown'].forEach((ev) => window.removeEventListener(ev, end, true));
+        clearMark();
+      };
+      ['pointerdown', 'wheel', 'keydown'].forEach((ev) => window.addEventListener(ev, end, true));
+    }, wait + 50));
+    invalidate();
+  }
+
+  const idle = window.requestIdleCallback || ((f) => setTimeout(f, 300));
+  const whenLit = () => (lit ? idle(() => loadGlobe()) : setTimeout(whenLit, 300));
+  if (globeKey && geo.countries) whenLit();
+  else if (globeKey) globeKey.hidden = true;
 
   buildList();
   window.addEventListener('scroll', invalidate, { passive: true });

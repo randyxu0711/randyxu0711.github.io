@@ -54,6 +54,11 @@ books3d.sort_color:  { zh: "顏色", en: "Color" }
 books3d.sort_author: { zh: "作者", en: "Author" }
 books3d.sort_region: { zh: "地區", en: "Region" }
 books3d.unplaced: { zh: "未標國家", en: "Unplaced" }
+books3d.globe:    { zh: "地球儀", en: "Globe" }
+books3d.map_title: { zh: "閱讀版圖", en: "Reading map" }
+books3d.map_none: { zh: "尚未涉足", en: "Unexplored" }
+books3d.map_countries: { zh: "{n} 國", en: "{n} countries", en_one: "{n} country" }
+books3d.map_total: { zh: "共 {n} 本", en: "{n} books", en_one: "{n} book" }
 books3d.undated: { zh: "沒有日期", en: "Undated" }
 books3d.years:   { zh: "{n} 年", en: "{n}" }
 books3d.index:   { zh: "書架索引", en: "Shelf index" }
