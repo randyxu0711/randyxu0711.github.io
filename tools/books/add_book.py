@@ -4,15 +4,13 @@
 讀 GITHUB_EVENT_PATH;把留言寫到 $RUNNER_TEMP/book-comment.md、標題寫到 book-title.txt,
 status(published / published_needs_fix / needs_fix / removed / skip)寫進 GITHUB_OUTPUT。
 書目從 Goodreads 書頁的 JSON-LD 取得(/book/show/ 是 robots.txt 允許的路徑);封面主色用 books.py 的函式。
-作者不在 _data/authors.yml 時,用表單的「作者國家」或 Wikidata 的國籍(P27)補一筆。
+作者不在 _data/authors.yml 時,用表單手填的「作者國家」補一筆(依作者所屬的文學圈,不查網路)。
 """
 
 import json
 import os
 import re
 import sys
-import urllib.parse
-import urllib.request
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -24,7 +22,6 @@ TZ = ZoneInfo("Asia/Taipei")
 # 要跟 .github/ISSUE_TEMPLATE/book.yml 的 label 一字不差
 LABELS = {"Goodreads 網址": "url", "評分": "rating", "中文書名": "title_zh", "中文作者": "author_zh",
           "作者國家": "country"}
-WIKIDATA = "https://www.wikidata.org/w/api.php?"
 BOOK_URL = re.compile(r"^https?://(?:www\.)?goodreads\.com/(?:[a-z]{2}/)?book/show/(\d+)", re.I)
 LD_JSON = re.compile(r'<script[^>]*type="application/ld\+json"[^>]*>(.*?)</script>', re.S | re.I)
 
@@ -123,8 +120,8 @@ def zh_remove_issue(text, issue):
 # --- 作者國家:geo.yml 只讀 countries 那段;authors.yml 逐塊編輯,其他條目一個字都不動 ------------
 
 GEO_COUNTRY = re.compile(r'^  "?([^":]+?)"?:\s*\{(.*)\}\s*$')
-FILL_COUNTRY = "編輯這個 issue,在「作者國家」填英文國名(要是 `_data/geo.yml` 的國家,如 `United Kingdom`)就會重跑。"
 ADD_GEO = "先在 `_data/geo.yml` 的 `countries` 加這一國(中文名 `zh`、次區域 `subregion`、位置 `at`、`qid`),再編輯 issue 重跑。"
+NO_COUNTRY = "沒填(新作者;地圖上不會有這本,要補就編輯 issue 填「作者國家」)。"
 
 
 def geo_countries(text):
@@ -152,58 +149,15 @@ def authors_upsert(text, name, fields, issue):
     return kept + block + f"  issue: {issue}\n"
 
 
-def fetch_json(params):
-    req = urllib.request.Request(WIKIDATA + urllib.parse.urlencode({**params, "format": "json"}),
-                                 headers={"User-Agent": books.USER_AGENT})
-    with urllib.request.urlopen(req, timeout=20) as r:
-        return json.loads(r.read(3_000_000))
-
-
-def _claim_ids(claims, prop):
-    ids = []
-    for c in claims.get(prop, []):
-        v = ((c.get("mainsnak") or {}).get("datavalue") or {}).get("value")
-        if c.get("rank") != "deprecated" and isinstance(v, dict) and v.get("id") and v["id"] not in ids:
-            ids.append(v["id"])
-    return ids
-
-
-def wikidata_citizenship(name, fetch_json):
-    """搜尋結果裡第一個是人(P31 = Q5)的:回傳 (作者 QID, [P27 國家 QID]);沒有人回 (None, [])。"""
-    hits = fetch_json({"action": "wbsearchentities", "search": name, "language": "en", "type": "item",
-                       "limit": 7}).get("search", [])
-    ids = [h["id"] for h in hits if h.get("id")]
-    if not ids:
-        return None, []
-    entities = fetch_json({"action": "wbgetentities", "ids": "|".join(ids), "props": "claims"}).get("entities", {})
-    for qid in ids:
-        claims = (entities.get(qid) or {}).get("claims") or {}
-        if "Q5" in _claim_ids(claims, "P31"):
-            return qid, _claim_ids(claims, "P27")
-    return None, []
-
-
-def resolve_country(author, form, countries, issue, fetch_json):
-    """回傳 (要寫進 authors.yml 的欄位或 None, 留言裡「作者國家」那一格)。"""
-    if form:
-        key = next((k for k in countries if k.casefold() == form.strip().casefold()), None)
-        if not key:
-            return None, f"表單填的「{form}」不在 `_data/geo.yml`。{ADD_GEO}"
-        return {"literature": key, "basis": f"issue #{issue}"}, f"{countries[key]['zh']}(表單)"
-    try:
-        qid, nats = wikidata_citizenship(author, fetch_json)
-    except Exception as e:  # 網路錯誤種類太多,一律當成不知道,書照樣發布
-        return None, f"查 Wikidata 失敗({e or type(e).__name__})。{FILL_COUNTRY}"
-    by_qid = {c["qid"]: k for k, c in countries.items() if c["qid"]}
-    if not qid or not nats:
-        return None, f"Wikidata 查不到「{author}」的國籍。{FILL_COUNTRY}"
-    if len(nats) > 1:
-        named = "、".join(countries[by_qid[q]]["zh"] if q in by_qid else q for q in nats)
-        return None, f"Wikidata 上有多個國籍({named}),要人來選。{FILL_COUNTRY}"
-    if nats[0] not in by_qid:
-        return None, f"Wikidata 的國籍 `{nats[0]}` 不在 `_data/geo.yml`。{ADD_GEO}"
-    key = by_qid[nats[0]]
-    return {"qid": qid, "literature": key, "basis": "Wikidata P27"}, f"{countries[key]['zh']}(Wikidata P27)"
+def resolve_country(form, countries, issue):
+    """回傳 (要寫進 authors.yml 的欄位或 None, 留言裡「作者國家」那一格, 是否要人修)。"""
+    if not form.strip():
+        return None, NO_COUNTRY, False
+    want = form.strip().casefold()
+    key = next((k for k, c in countries.items() if want in (k.casefold(), c["zh"].casefold())), None)
+    if not key:
+        return None, f"填的「{form.strip()}」不在 `_data/geo.yml`。{ADD_GEO}", True
+    return {"literature": key, "basis": f"issue #{issue}"}, f"{countries[key]['zh']}(表單)", False
 
 
 def known_country(name, entries, countries):
@@ -235,7 +189,7 @@ def _read(path):
 
 
 def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch_image, color=books.dominant_color,
-           measure=books.cover_ratio, fetch_json=fetch_json):
+           measure=books.cover_ratio):
     action, issue = event["action"], event["issue"]
     n = issue["number"]
     d = Path(data_dir)
@@ -303,11 +257,11 @@ def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch
     rest = books.authors_remove_issue(authors, n)
     entries = books.author_entries(rest)
     known = info["author"] in entries
-    fields = None
+    fields, fix = None, False
     if known:
         country = known_country(info["author"], entries, countries)
     else:
-        fields, country = resolve_country(info["author"], f["country"], countries, n, fetch_json)
+        fields, country, fix = resolve_country(f["country"], countries, n)
     new_authors = authors_upsert(rest, info["author"], fields, n) if fields else rest
     if new_authors != authors:
         authors_p.write_text(new_authors, encoding="utf-8")
@@ -323,8 +277,8 @@ def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch
     if info["cover"]:
         lines += ["", f'<img src="{info["cover"]}" width="120">']
     lines += ["", "要改評分、中文書名或作者國家,編輯這個 issue;要撤下,把 issue 關成 not planned。"]
-    if not known and not fields:
-        lines[0] = "已加到書架(約一分鐘後可見),但還不知道作者國家,補上之前地圖上不會有這本"
+    if fix:
+        lines[0] = "已加到書架(約一分鐘後可見),但作者國家對不到,補上之前地圖上不會有這本"
         return Result("published_needs_fix", "\n".join(lines), info["title"])
     return Result("published", "\n".join(lines), info["title"])
 

@@ -11,7 +11,7 @@ CSV 匯入(`tools/books/run.sh`)仍然是大量匯入的方式;兩邊共用同�
 | 評分 | `rating` | | 下拉:5、4、3、2、1、未評分;沒選 = 未評分 |
 | 中文書名 | `title_zh` | | 台灣譯本書名;填了就寫進 `_data/books_zh.yml` |
 | 中文作者 | `author_zh` | | 作者譯名 |
-| 作者國家 | `country` | | 英文國名,要是 `_data/geo.yml` 的國家(如 `United Kingdom`,大小寫不拘);作者還不在 `_data/authors.yml` 才用得到,沒填就查 Wikidata |
+| 作者國家 | `country` | | 手填,中文或英文國名都可以,要是 `_data/geo.yml` 的國家(如「英國」或 `United Kingdom`,英文大小寫不拘);第一次讀這位作者時填,已在 `_data/authors.yml` 就不用 |
 
 label 要跟 `tools/books/add_book.py` 的 `LABELS` 一字不差(有測試守門)。
 
@@ -29,12 +29,10 @@ label 要跟 `tools/books/add_book.py` 的 `LABELS` 一字不差(有測試守門
      - `_data/books_zh.yml`:有填中文書名或作者才寫,條目加 `issue: <n>`;沒填就不動既有條目。
   5. 作者國家(地球儀用,見 `docs/books-map.md`〈新書的國家〉)。先拿掉這個 issue 自己之前寫的 `authors.yml` 條目,再看:
      - 作者(跟 `books.json` 一字不差)已在 `_data/authors.yml`:不動作,留言寫「美國(已在名單)」。
-     - 表單有填「作者國家」:是 `geo.yml` 的國家就加一筆 `literature` + `basis: "issue #n"` + `issue: n`(留言「(表單)」)。
-     - 沒填:查 Wikidata,`wbsearchentities`(en、item)→ `wbgetentities` 的 claims,搜尋結果裡第一個是人(P31 = Q5)的,
-       國籍(P27,不算 deprecated)**剛好一個且對得到 `geo.yml` 的 `qid`** 才加一筆 `qid` + `literature` + `basis: "Wikidata P27"` + `issue: n`(留言「(Wikidata P27)」)。
-     - 其他(填的國家不在 `geo.yml`、查不到人、沒國籍或多個國籍、國籍不在 `geo.yml`、連不上 Wikidata):**書照樣發布**,
-       status 是 `published_needs_fix`:留言說明原因、加 `needs-fix`、issue 留著開;編輯 issue 填上國家會重跑。
-       國家不在 `geo.yml` 時,留言說要先在 `geo.yml` 加這一國(`zh`、`subregion`、`at`、`qid`)。
+     - 表單有填「作者國家」且對得到 `geo.yml`(英文鍵或中文名):加一筆 `literature` + `basis: "issue #n"` + `issue: n`(留言「(表單)」)。
+     - 沒填:書照常發布、照常關 issue,留言寫「沒填」(地圖上不會有這本,要補就編輯 issue)。不查網路。
+     - 填了但對不到(打錯或新國家):**書照樣發布**,status 是 `published_needs_fix`:留言說要先在 `geo.yml` 加這一國
+       (`zh`、`subregion`、`at`、`qid`)、加 `needs-fix`、issue 留著開;編輯 issue 會重跑。
      - `authors.yml` 以文字處理(Action 只裝 Pillow,沒有 PyYAML):新條目接在檔尾,其他內容一個位元組都不動。
   6. commit(含 `_data/authors.yml`)→ 呼叫部署 → 留言列出抓到的資料與作者國家 → issue 標題改成「書:<書名>」並關閉
      (`published_needs_fix` 不關)。
@@ -62,6 +60,6 @@ issue 加的書:`read` 為 null(表單不問讀完日期),`added` 是 issue 建�
 表單解析與 label 守門、網址驗證與書號擷取、JSON-LD 解析(fixture)、書目組裝、
 `books_added` / `books.json` / `books_zh.yml` 的新增 / 覆蓋 / 撤下、各事件的狀態與留言、
 `books.py` 合併時 CSV 優先且保留 issue 加的書、列出缺的作者。
-作者國家:已在名單不動、表單填對 / 填錯、Wikidata 單一國籍 / 多重國籍 / 不是人 / 查不到 / 國籍不在 `geo.yml` / 連線失敗(fixture)、
+作者國家:已在名單不動、表單填英文 / 中文 / 對不到 / 沒填、
 `authors.yml` 新增時其他內容一字不差、重跑覆蓋自己的條目、撤下只移除自己的條目、文字解析跟 PyYAML 讀出來一樣。
 網路與 GitHub API 本身不測。

@@ -49,28 +49,7 @@ def data_dir(tmp_path, books_json=None, zh_yml=None, authors_yml=None):
     return d
 
 
-def claim(qid, rank="normal"):
-    return {"mainsnak": {"datavalue": {"value": {"id": qid}}}, "rank": rank}
-
-
-def wikidata(*people, nonhuman=()):
-    """假的 Wikidata:people = (QID, [P27 國家]);nonhuman 排在搜尋結果前面。"""
-    entities = {q: {"claims": {"P31": [claim("Q5")], "P27": [claim(c) for c in nats]}} for q, nats in people}
-    entities |= {q: {"claims": {"P31": [claim("Q7725634")]}} for q in nonhuman}
-    order = list(nonhuman) + [q for q, _ in people]
-
-    def fetch(params):
-        if params["action"] == "wbsearchentities":
-            assert params["search"] == "Raymond Carver" and params["language"] == "en" and params["type"] == "item"
-            return {"search": [{"id": q} for q in order]}
-        assert params["props"] == "claims"
-        return {"entities": {q: entities[q] for q in params["ids"].split("|")}}
-    return fetch
-
-
-CARVER_US = wikidata(("Q219862", ["Q30"]))
-FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=lambda b: "#7a3b1f", measure=lambda b: 0.66,
-                fetch_json=CARVER_US)
+FETCH_OK = dict(fetch_page=lambda i: PAGE, fetch_image=lambda u: b"img", color=lambda b: "#7a3b1f", measure=lambda b: 0.66)
 
 
 # --- 表單 -----------------------------------------------------------------------
@@ -286,9 +265,6 @@ AUTHORS_YML = """# 檔頭註解
   issue: 9
 """
 
-NO_NETWORK = dict(FETCH_OK, fetch_json=lambda p: pytest.fail("must not query Wikidata"))
-
-
 def with_country(country):
     return FORM_BODY + f"\n### 作者國家\n\n{country}\n"
 
@@ -300,14 +276,14 @@ def authors_text(d):
 def test_known_author_untouched(tmp_path):
     text = AUTHORS_YML + '"Raymond Carver":\n  qid: "Q219862"\n  literature: "United States"\n'
     d = data_dir(tmp_path, authors_yml=text)
-    r = add_book.handle(event("opened", body=with_country("Japan")), d, **NO_NETWORK)
+    r = add_book.handle(event("opened", body=with_country("Japan")), d, **FETCH_OK)
     assert r.status == "published" and "美國(已在名單)" in r.comment
     assert authors_text(d) == text
 
 
 def test_form_country_appends_entry_and_keeps_rest_byte_identical(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    r = add_book.handle(event("opened", body=with_country("united kingdom")), d, **NO_NETWORK)
+    r = add_book.handle(event("opened", body=with_country("united kingdom")), d, **FETCH_OK)
     assert r.status == "published" and "英國(表單)" in r.comment
     assert authors_text(d) == AUTHORS_YML + (
         '"Raymond Carver":\n  literature: "United Kingdom"\n  basis: "issue #21"\n  issue: 21\n')
@@ -315,61 +291,33 @@ def test_form_country_appends_entry_and_keeps_rest_byte_identical(tmp_path):
 
 def test_form_country_not_in_geo_still_publishes(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    r = add_book.handle(event("opened", body=with_country("Atlantis")), d, **NO_NETWORK)
+    r = add_book.handle(event("opened", body=with_country("Atlantis")), d, **FETCH_OK)
     assert r.status == "published_needs_fix"
     assert "Atlantis" in r.comment and "geo.yml" in r.comment and "subregion" in r.comment
     assert json.loads((d / "books_added.json").read_text(encoding="utf-8"))[0]["id"] == "11438"
     assert authors_text(d) == AUTHORS_YML
 
 
-def test_wikidata_single_citizenship_in_geo(tmp_path):
+def test_form_country_accepts_chinese_name(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    r = add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=wikidata(("Q219862", ["Q30"]), nonhuman=["Q1"])))
-    assert r.status == "published" and "美國(Wikidata P27)" in r.comment
+    r = add_book.handle(event("opened", body=with_country("美國")), d, **FETCH_OK)
+    assert r.status == "published" and "美國(表單)" in r.comment
     assert authors_text(d) == AUTHORS_YML + (
-        '"Raymond Carver":\n  qid: "Q219862"\n  literature: "United States"\n  basis: "Wikidata P27"\n  issue: 21\n')
+        '"Raymond Carver":\n  literature: "United States"\n  basis: "issue #21"\n  issue: 21\n')
 
 
-def test_wikidata_ignores_deprecated_citizenship(tmp_path):
+def test_blank_country_publishes_and_closes(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-
-    def fetch(params):
-        if params["action"] == "wbsearchentities":
-            return {"search": [{"id": "Q219862"}]}
-        return {"entities": {"Q219862": {"claims": {"P31": [claim("Q5")],
-                                                      "P27": [claim("Q30"), claim("Q145", rank="deprecated")]}}}}
-    assert add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=fetch)).status == "published"
-
-
-@pytest.mark.parametrize("fetch,words", [
-    (wikidata(("Q219862", ["Q30", "Q145"])), ["多個國籍", "美國、英國"]),
-    (wikidata(nonhuman=["Q1", "Q2"]), ["查不到"]),
-    (wikidata(), ["查不到"]),
-    (wikidata(("Q219862", [])), ["查不到"]),
-    (wikidata(("Q219862", ["Q16635"])), ["Q16635", "geo.yml", "subregion"]),
-])
-def test_wikidata_unknown_still_publishes(tmp_path, fetch, words):
-    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    r = add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=fetch))
-    assert r.status == "published_needs_fix"
-    assert all(w in r.comment for w in words) and "作者國家" in r.comment
+    r = add_book.handle(event("opened"), d, **FETCH_OK)
+    assert r.status == "published" and "沒填" in r.comment
     assert authors_text(d) == AUTHORS_YML
     assert json.loads((d / "books.json").read_text(encoding="utf-8"))[0]["id"] == "11438"
 
 
-def test_wikidata_network_error_counts_as_unknown(tmp_path):
-    d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-
-    def boom(params):
-        raise OSError("HTTP 503")
-    r = add_book.handle(event("opened"), d, **dict(FETCH_OK, fetch_json=boom))
-    assert r.status == "published_needs_fix" and "HTTP 503" in r.comment
-
-
 def test_rerun_replaces_own_entry_only(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    add_book.handle(event("opened"), d, **FETCH_OK)
-    r = add_book.handle(event("edited", body=with_country("Canada")), d, **NO_NETWORK)
+    add_book.handle(event("opened", body=with_country("Japan")), d, **FETCH_OK)
+    r = add_book.handle(event("edited", body=with_country("Canada")), d, **FETCH_OK)
     assert r.status == "published" and "加拿大(表單)" in r.comment
     assert authors_text(d) == AUTHORS_YML + (
         '"Raymond Carver":\n  literature: "Canada"\n  basis: "issue #21"\n  issue: 21\n')
@@ -377,15 +325,15 @@ def test_rerun_replaces_own_entry_only(tmp_path):
 
 def test_rerun_unknown_drops_own_stale_entry(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    add_book.handle(event("opened"), d, **FETCH_OK)
-    r = add_book.handle(event("edited", body=with_country("Atlantis")), d, **NO_NETWORK)
+    add_book.handle(event("opened", body=with_country("Japan")), d, **FETCH_OK)
+    r = add_book.handle(event("edited", body=with_country("Atlantis")), d, **FETCH_OK)
     assert r.status == "published_needs_fix"
     assert authors_text(d) == AUTHORS_YML
 
 
 def test_not_planned_removes_only_own_author_entry(tmp_path):
     d = data_dir(tmp_path, authors_yml=AUTHORS_YML)
-    add_book.handle(event("opened"), d, **FETCH_OK)
+    add_book.handle(event("opened", body=with_country("Japan")), d, **FETCH_OK)
     r = add_book.handle(event("closed", state_reason="not_planned"), d)
     assert r.status == "removed"
     assert authors_text(d) == AUTHORS_YML

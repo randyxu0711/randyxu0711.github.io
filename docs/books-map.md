@@ -59,7 +59,7 @@ countries:
 
 - `at`:[經度, 緯度],國名標籤、小國的點、飛近時的中心(原型的 `ANCHOR`)。
 - `topo`:world-atlas 裡的名稱跟我們不同時才寫(United States of America、Czechia、Côte d'Ivoire)。
-- `qid`:給 issue 加書時比對 Wikidata 的國籍(P27)。
+- `qid`:Wikidata ID,方便查證。
 - 分區照 **UN M49**(有統一出處,不用自己上 tag)。以現在的書:北美 72、北歐 47(英國在這裡,M49 的分法)、
   西歐 30、東亞 29、東歐 29(俄羅斯算歐洲)、南歐 22、拉美與加勒比 18、西亞 12、撒哈拉以南非洲 7、東南亞 2、澳紐 1。
 
@@ -216,15 +216,14 @@ countries:
 
 ### 用 issue 加書(`book.yml` → `add_book.py`,規格 `docs/books-issue.md`)
 
-- 表單加一個選填欄位「作者國家」(英文國名,如 `United Kingdom`)。
+- 表單有一個「作者國家」欄位,送出時一起手填(中文或英文國名),一次就完成,不查網路、不分兩階段。
 - 作者已在 `authors.yml`:不動作。
-- 不在的話依序:
-  1. 有填「作者國家」→ 必須是 `geo.yml` 的國家,寫進 `authors.yml`(`basis: "issue #n"`)。
-  2. 沒填 → 用作者名查 Wikidata(`wbsearchentities` → P27),**剛好一個國籍且在 `geo.yml`** 才寫入(附 `qid`、`basis: "Wikidata P27"`)。
-  3. 還是不知道(查不到、多重國籍、國家不在 `geo.yml`、連不上 Wikidata)→ **書照樣發布**,留言說明、加 `needs-fix`、issue 留著開;編輯 issue 填上國家會重跑。
-     國家不在 `geo.yml` 時,留言說要先在 `geo.yml` 加這一國(中文名、次區域、`at`)。
+- 不在的話:
+  1. 填了且對得到 `geo.yml` → 寫進 `authors.yml`(`basis: "issue #n"`)。
+  2. 沒填 → 書照常發布、issue 照常關,留言寫「沒填」;地圖上沒有這本,要補就編輯 issue。
+  3. 填了但對不到(打錯、新國家)→ 書照樣發布,留言說要先在 `geo.yml` 加這一國、加 `needs-fix`、issue 留著開。
 - 撤下(not planned):只移除帶同一個 `issue` 的 `authors.yml` 條目。
-- 留言列出判定結果(「作者國家:英國(Wikidata P27)」),判錯時編輯 issue 填欄位覆蓋。
+- 留言列出判定結果(「作者國家:英國(表單)」)。
 
 ### CSV 重新匯入(`books.py` / `run.sh`)
 
@@ -234,7 +233,7 @@ countries:
 
 - `authors.yml` 每個 `literature` / `counts_as` 都找得到;`geo.yml` 每個國家都對得到 world-atlas 的國名、次區域與洲都存在。
 - `books.json` 裡 CSV 來的書(沒有 `issue` 欄位),作者都在 `authors.yml`(目前 0 缺)。issue 加的書可以暫時沒有(`needs-fix` 會提醒)。
-- issue:表單欄位與 label 守門、填了國家 / 填錯國家 / Wikidata 單一國籍 / 多重國籍 / 查不到(fixture)、撤下只移除自己的條目。網路本身不測。
+- issue:表單欄位與 label 守門、填英文 / 中文 / 對不到 / 沒填、重跑只換自己的條目、撤下只移除自己的條目。
 
 ## 分階段
 
@@ -269,6 +268,8 @@ countries:
   不加按鈕、不加提示字。focus 大小參考地圖 API 的 fit-to-bounds + padding 做法,而不是固定縮放等級。
 - 2026-10-21:focus 時冒出圖釘(使用者提議;focus 只轉過去太單調)。v15 否決的是「整顆地球儀一直插滿圖釘」,這裡只在 focus 的那一國出現。
   釘頭用素色而不是封面(63 張小封面在美國上會變成雜訊),書的身分交給停留時的小卡。
+- 2026-10-21:作者國家不查 Wikidata,改成送出 issue 時手填(使用者:一次填完,不要等抓完再分兩次建置部署)。
+  P27 是公民身分,不等於我們依文學圈的規則,同名也可能抓錯。
 - 2026-10-21:UX 檢查後:
   - 地球儀開著時,工具列只留「← 書架」(+ 手機的卡片鍵);入口鍵在桌面有文字「地圖」。
   - 洲名淡色小字、不帶數字,重疊時讓給國名。
