@@ -1,6 +1,7 @@
 ---
 layout: default
 modules: [layout.js, scene.js, textures.js]
+lazy: [geo.js, globe.js]
 shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 ---
 {%- assign ratings = "5,4,3,2,1,0" | split: "," -%}
@@ -15,6 +16,9 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
   {%- for m in layout.modules %},
   "books3d/{{ m }}": "{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}"
   {%- endfor %}
+  {%- for m in layout.lazy %},
+  "books3d/{{ m }}": "{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}"
+  {%- endfor %}
 }}</script>
 <link rel="modulepreload" href="{{ '/assets/vendor/three/three.module.min.js' | relative_url }}">
 <link rel="modulepreload" href="{{ '/assets/books3d/main.js' | relative_url }}?v={{ v }}">
@@ -24,7 +28,7 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 {%- for m in layout.modules %}
 <link rel="modulepreload" href="{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}">
 {%- endfor %}
-<section class="b3d s3d" id="b3d">
+<section class="b3d s3d" id="b3d" data-atlas="{{ '/assets/vendor/world-atlas/countries-110m.json' | relative_url }}">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
   <div class="b3d-bar" id="b3d-bar" hidden>
     <div class="b3d-keys b3d-views" role="group" aria-label="排法" data-i18n-attr="aria-label:books.view">
@@ -44,6 +48,16 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
       <button type="button" class="key" data-sort-set="{{ name }}" aria-pressed="false" data-i18n="{{ key }}">{{ k[1].zh }}</button>
         {%- endif -%}
       {%- endfor %}
+    </div>
+    <div class="b3d-keys b3d-globes">
+      <button type="button" class="key b3d-globe-key" id="b3d-globe-key">
+        <svg class="g-back" viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3L5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <svg class="g-globe" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 7h10M8 2c2.2 2.4 2.2 7.6 0 10M8 2c-2.2 2.4-2.2 7.6 0 10M4.5 14h7M8 12v2" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+        <span class="lbl" data-i18n="books3d.globe">地圖</span>
+      </button>
+      <button type="button" class="key b3d-map-key" id="b3d-map-key" aria-expanded="false" aria-controls="b3d-map" aria-label="閱讀版圖" data-i18n-attr="aria-label:books3d.map_title">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="3" width="3" height="3" rx=".6" fill="var(--map-5)"/><rect x="1.5" y="7" width="3" height="3" rx=".6" fill="var(--map-3)"/><rect x="1.5" y="11" width="3" height="3" rx=".6" fill="var(--map-1)"/><path d="M6.5 4.5h8M6.5 8.5h6M6.5 12.5h7" stroke="currentColor" stroke-width="1.3"/></svg><span aria-hidden="true">▾</span>
+      </button>
     </div>
   </div>
   <div class="b3d-list" id="b3d-list">
@@ -82,14 +96,16 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js]
 [{%- for b in site.data.books -%}
   {%- assign zh = site.data.books_zh[b.id] -%}
   {%- assign t_zh = zh.title | default: b.title -%}
+  {%- assign geo = site.data.book_geo[b.author] -%}
   {%- unless forloop.first %},{% endunless -%}
   {"id":{{ b.id | jsonify }},"t":{{ b.title | jsonify }},"tz":{{ zh.title | jsonify }},"a":{{ b.author | jsonify }},"az":{{ zh.author | jsonify }},
   "r":{{ b.rating | default: 0 }},"p":{{ b.pages | jsonify }},"d":{{ b.read | jsonify }},"n":{{ b.read_count | default: 1 }},
   "c":{{ b.color | jsonify }},"k":{{ b.ink | jsonify }},"q":{{ b.ratio | default: 0.66 }},"cv":{{ b.cover | jsonify }},"u":{{ b.url | jsonify }},
-  "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }}}
+  "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }},"g":{{ geo.g | jsonify }},"go":{{ geo.go | jsonify }}}
 {%- endfor -%}]
 {%- endcapture %}
 <script type="application/json" id="b3d-data">{{ books_json | replace: "</", "<\/" }}</script>
+<script type="application/json" id="b3d-geo">{{ site.data.books_geo | jsonify | replace: "</", "<\/" }}</script>
 <script>
 addEventListener('error', (e) => {
   const root = document.getElementById('b3d');

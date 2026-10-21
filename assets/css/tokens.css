@@ -54,6 +54,10 @@
   --sticky:       #ecd791;
   --tag-1: #c55347; --tag-2: #547076; --tag-3: #d6b43e; --tag-4: #5f7f4f;  /* 標籤:色相與深淺都拉開,依出現次數分配 */
   --tag-5: #8a5a78; --tag-6: #97acc8; --tag-7: #793327; --tag-8: #c27544;
+  --map-1: #d39a7c; --map-2: #bf7a5b; --map-3: #a65c43; --map-4: #884033; --map-5: #6a2a24;  /* 作者地圖色階:1 / 2–4 / 5–9 / 10–19 / 20+ */
+  --globe-sea: #e0cfae; --globe-land: #f3ecdd; --globe-line: rgb(92 79 69 / 0.5); --globe-grid: #d9ccb2;
+  --globe-table: #c2ae8f; --brass: #b08d57; --wood: #6e5036;
+  --card: var(--face); --card-rim: transparent;
   color-scheme: light;
 }
 
@@ -73,6 +77,10 @@
     --rule: #3e3a33; --redline: #e08a74; --sticky: #c9a95a;
     --tag-1: #e07a68; --tag-2: #7fa3b3; --tag-3: #e0c25a; --tag-4: #8fae78;
     --tag-5: #b88aa6; --tag-6: #b4c6de; --tag-7: #b8584a; --tag-8: #e09a62;
+    --map-1: #9a6038; --map-2: #b9713a; --map-3: #d4853a; --map-4: #ea9c34; --map-5: #f9b730;
+    --globe-sea: #5a4a3b; --globe-land: #8a7a66; --globe-line: rgb(205 187 162 / 0.4); --globe-grid: #6b5a48;
+    --globe-table: #2e2622; --brass: #c29d62; --wood: #4d2f1d;
+    --card: #3a3029; --card-rim: rgb(255 235 210 / 0.09);
     color-scheme: dark;
   }
 }
@@ -90,5 +98,9 @@
   --rule: #3e3a33; --redline: #e08a74; --sticky: #c9a95a;
   --tag-1: #e07a68; --tag-2: #7fa3b3; --tag-3: #e0c25a; --tag-4: #8fae78;
   --tag-5: #b88aa6; --tag-6: #b4c6de; --tag-7: #b8584a; --tag-8: #e09a62;
+  --map-1: #9a6038; --map-2: #b9713a; --map-3: #d4853a; --map-4: #ea9c34; --map-5: #f9b730;
+  --globe-sea: #5a4a3b; --globe-land: #8a7a66; --globe-line: rgb(205 187 162 / 0.4); --globe-grid: #6b5a48;
+  --globe-table: #2e2622; --brass: #c29d62; --wood: #4d2f1d;
+  --card: #3a3029; --card-rim: rgb(255 235 210 / 0.09);
   color-scheme: dark;
 }

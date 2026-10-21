@@ -107,7 +107,42 @@ const SORTS = {
     const sectionLabel = (part) => (letter(part[0]) === '#' ? rowLabel(part) : { kind: 'letters', text: letter(part[0]) });
     return { continuous: true, list, rowLabel, section: letter, sectionLabel };
   },
+  region(books) {
+    const tally = (k) => {
+      const m = new Map();
+      books.forEach((b) => { if (b.sr && b[k]) m.set(b[k], (m.get(b[k]) || 0) + 1); });
+      return m;
+    };
+    const most = (m) => (a, b) => m.get(b) - m.get(a) || a.localeCompare(b);
+    const perCt = tally('ct');
+    const perSr = tally('sr');
+    const perG = tally('g');
+    const ctOf = new Map(books.filter((b) => b.sr).map((b) => [b.sr, b.ct]));
+    const rank = new Map([...perCt.keys()].sort(most(perCt)).map((c, k) => [c, k]));
+    const ids = [...perSr.keys()].sort((a, b) => rank.get(ctOf.get(a)) - rank.get(ctOf.get(b)) || most(perSr)(a, b));
+    const groups = ids.map((id) => ({
+      key: 'region:' + id,
+      label: { kind: 'region', id },
+      list: books.map((b, i) => i).filter((i) => books[i].sr === id).sort((a, b) => most(perG)(books[a].g, books[b].g) || a - b),
+    }));
+    const rest = books.map((b, i) => i).filter((i) => !books[i].sr);
+    if (rest.length) groups.push({ key: 'region:none', label: { kind: 'unplaced' }, list: rest });
+    return groups;
+  },
 };
+
+export function countryRun(L, books, country) {
+  for (let k = 0; k < L.shelves.length; k++) {
+    const s = L.shelves[k];
+    if (s.key === 'region:none' || !s.key.startsWith('region:')) continue;
+    const from = s.list.findIndex((i) => books[i].g === country);
+    if (from < 0) continue;
+    let count = 0;
+    while (from + count < s.list.length && books[s.list[from + count]].g === country) count++;
+    return { shelf: k, key: s.key, from, count };
+  }
+  return null;
+}
 
 function sections(groups, total) {
   const out = [];

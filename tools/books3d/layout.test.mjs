@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { layout, viewSpan, inView, MERGE_YEARS, PAD, GAP, W, SORT_NAMES } from 'books3d/layout.js';
+import { layout, viewSpan, inView, countryRun, MERGE_YEARS, PAD, GAP, W, SORT_NAMES } from 'books3d/layout.js';
 
 const book = (extra = {}) => ({ r: 3, d: '2024-01-01', a: 'Author', p: 300, q: 0.66, c: '#888888', ...extra });
 const many = (n, f) => Array.from({ length: n }, (_, k) => book(f(k)));
@@ -49,13 +49,13 @@ test('grouped sorts keep one shelf per group that slides sideways', () => {
   assert.ok(L.shelves[0].minOffset < 0);
 });
 
-test('four sorts, rating first; pages is gone', () => {
-  assert.deepEqual(SORT_NAMES, ['rating', 'year', 'color', 'author']);
+test('five sorts, rating first, region last; pages is gone', () => {
+  assert.deepEqual(SORT_NAMES, ['rating', 'year', 'color', 'author', 'region']);
 });
 
 test('rail sections cover every book once, in order, sized by book count', () => {
   const books = [...many(9, () => ({ r: 5 })), ...many(71, () => ({ r: 4 })), ...many(20, () => ({ r: 3 }))];
-  for (const sort of ['rating', 'year', 'color', 'author']) {
+  for (const sort of SORT_NAMES) {
     const L = lay(books, sort);
     let from = 0;
     L.sections.forEach((s) => {
@@ -124,4 +124,76 @@ test('inView reports the 1-based ranks visible on a sliding shelf', () => {
 test('inView is null for shelves that fit the screen', () => {
   const L = lay(many(3, () => ({})), 'rating');
   assert.equal(inView(L, 0, 0, 0, 1200), null);
+});
+
+const GEO = {
+  'United Kingdom': ['northern-europe', 'europe'],
+  Sweden: ['northern-europe', 'europe'],
+  France: ['western-europe', 'europe'],
+  Italy: ['southern-europe', 'europe'],
+  'United States': ['northern-america', 'americas'],
+  Canada: ['northern-america', 'americas'],
+  Japan: ['eastern-asia', 'asia'],
+};
+const placed = (g) => (GEO[g] ? { g, sr: GEO[g][0], ct: GEO[g][1] } : { g: g || null, sr: null, ct: null });
+const shelf = () => [
+  ...['Japan', 'Japan', 'Japan'],
+  ...['United States', 'United States', 'United States', 'Canada'],
+  ...['France', 'France'],
+  ...['Sweden', 'United Kingdom', 'Sweden', 'United Kingdom', 'United Kingdom'],
+  ...['Italy'],
+  ...[null, 'Atlantis'],
+].map((g, k) => book({ ...placed(g), id: k }));
+
+test('region groups by subregion, continents by book count, then subregions by count', () => {
+  const L = lay(shelf(), 'region');
+  assert.deepEqual(L.shelves.map((s) => s.key), [
+    'region:northern-europe', 'region:western-europe', 'region:southern-europe',
+    'region:northern-america', 'region:eastern-asia', 'region:none',
+  ]);
+  assert.deepEqual(L.shelves[0].label, { count: 5, kind: 'region', id: 'northern-europe' });
+  assert.deepEqual(L.shelves[5].label, { count: 2, kind: 'unplaced' });
+});
+
+test('region ties fall back to the id', () => {
+  const books = ['France', 'Italy'].map((g) => book(placed(g)));
+  assert.deepEqual(lay(books, 'region').shelves.map((s) => s.key), ['region:southern-europe', 'region:western-europe']);
+});
+
+test('within a region, countries run together by count, then in book order', () => {
+  const books = shelf();
+  const L = lay(books, 'region');
+  assert.deepEqual(L.shelves[0].list.map((i) => books[i].g), ['United Kingdom', 'United Kingdom', 'United Kingdom', 'Sweden', 'Sweden']);
+  assert.deepEqual(L.shelves[0].list, [10, 12, 13, 9, 11]);
+  assert.deepEqual(L.shelves[3].list.map((i) => books[i].g), ['United States', 'United States', 'United States', 'Canada']);
+  assert.deepEqual(L.shelves[5].list, [15, 16]);
+});
+
+test('equal-count countries in a region order by name', () => {
+  const books = ['United States', 'Canada'].map((g) => book(placed(g)));
+  assert.deepEqual(lay(books, 'region').shelves[0].list.map((i) => books[i].g), ['Canada', 'United States']);
+});
+
+test('region sections are the subregions, sized by book count', () => {
+  const L = lay(shelf(), 'region');
+  assert.deepEqual(L.sections.map((s) => [s.key, s.count]), [
+    ['region:northern-europe', 5], ['region:western-europe', 2], ['region:southern-europe', 1],
+    ['region:northern-america', 4], ['region:eastern-asia', 3], ['region:none', 2],
+  ]);
+  assert.equal(L.sections[0].size, 5 / 17);
+});
+
+test('without geo data every book is unplaced', () => {
+  const L = lay(many(4, () => ({})), 'region');
+  assert.deepEqual(L.shelves.map((s) => s.key), ['region:none']);
+});
+
+test('countryRun finds where a country starts on its shelf and how many books it has', () => {
+  const books = shelf();
+  const L = lay(books, 'region');
+  assert.deepEqual(countryRun(L, books, 'Sweden'), { shelf: 0, key: 'region:northern-europe', from: 3, count: 2 });
+  assert.deepEqual(countryRun(L, books, 'Canada'), { shelf: 3, key: 'region:northern-america', from: 3, count: 1 });
+  assert.equal(countryRun(L, books, 'Atlantis'), null);
+  assert.equal(countryRun(L, books, 'Peru'), null);
+  assert.equal(countryRun(lay(books, 'rating'), books, 'Sweden'), null);
 });
