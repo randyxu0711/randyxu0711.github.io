@@ -740,8 +740,11 @@ function run(gl, canvas) {
   }
 
   function syncGo() {
-    goBtn.textContent = view === 'desk' ? `↑ ${t('shares3d.to_cab')}` : view === 'cab' ? '↓' : t('shares3d.hint.close_drawer');
-    goBtn.setAttribute('aria-label', view === 'desk' ? t('shares3d.to_cab') : view === 'cab' ? t('shares3d.to_desk') : t('shares3d.hint.close_drawer'));
+    const v = view === 'desk' || view === 'cab' ? view : 'drawer';
+    const name = t({ desk: 'shares3d.hint.look_up', cab: 'shares3d.hint.look_down', drawer: 'shares3d.hint.close_drawer' }[v]);
+    goBtn.dataset.v = v;
+    goBtn.setAttribute('aria-label', name);
+    goBtn.title = name;
   }
 
   function resolve(hit) {

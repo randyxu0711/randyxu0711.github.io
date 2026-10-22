@@ -83,7 +83,6 @@ shares3d.next:      { zh: "下一張", en: "Next card" }
 shares3d.flip:      { zh: "翻面", en: "Flip" }
 shares3d.open:      { zh: "開原文", en: "Open original" }
 shares3d.put_back:  { zh: "放回去", en: "Put back" }
-shares3d.search:    { zh: "搜尋分享", en: "Search shares" }
 shares3d.search_ph: { zh: "搜尋標題、來源、心得", en: "Search titles, sources, notes" }
 shares3d.matches:   { zh: "{n} 張符合", en: "{n} matching", en_one: "{n} match" }
 shares3d.hint.next:         { zh: "換一張", en: "Next card" }
@@ -95,7 +94,5 @@ shares3d.hint.close_drawer: { zh: "關上抽屜", en: "Close the drawer" }
 shares3d.hint.put_back:     { zh: "放回去", en: "Put back" }
 shares3d.hint.search:       { zh: "搜尋", en: "Search" }
 shares3d.keys:              { zh: "鍵盤操作", en: "Keyboard shortcuts" }
-shares3d.to_cab:   { zh: "目錄櫃", en: "Catalog" }
-shares3d.to_desk:  { zh: "回剪報桌", en: "Back to the desk" }
 
 page.404:        { zh: "找不到這一頁", en: "Page not found" }

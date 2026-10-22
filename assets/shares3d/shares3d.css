@@ -1,7 +1,8 @@
 .sh3d-canvas { transition: filter 300ms, transform 300ms; }
 .sh3d.finding .sh3d-canvas { filter: blur(14px) brightness(0.9); transform: scale(1.04); }
 .sh3d.finding .sh3d-bar { top: var(--sh3d-top, 4.5rem); bottom: auto; padding-top: 0.75rem; }
-.sh3d.finding :is(.sh3d-go, .sh3d-hint, .sh3d-peek, .sh3d-help, .sh3d-keyhelp) { display: none; }
+.sh3d.finding :is(.sh3d-nav, .sh3d-keys, .sh3d-peek, .sh3d-keyhelp) { display: none; }
+.sh3d.finding .sh3d-search { padding-left: 0; border: 0; }
 body:has(.sh3d.finding) .footer { opacity: 0; visibility: hidden; }
 .sh3d-canvas { position: fixed; top: 0; left: 0; right: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; display: block; }
 .sh3d.on .sh3d-list { position: fixed; inset: 0; overflow: hidden; clip-path: inset(50%); pointer-events: none; white-space: nowrap; }
@@ -27,22 +28,30 @@ body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opac
   background: linear-gradient(to bottom, transparent, var(--desk) 3rem);
 }
 .sh3d.finding .sh3d-bar::before { display: none; }
-.sh3d-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem 0.75rem; pointer-events: auto; max-width: 100%; }
-.sh3d-q { width: min(16rem, calc(100vw - 32px)); }
+.sh3d-tools { pointer-events: auto; }
+.sh3d-go:not([data-v="desk"]) :is(.g-up, .g-cab), .sh3d-go:not([data-v="cab"]) .g-down, .sh3d-go:not([data-v="drawer"]) .g-close { display: none; }
+.sh3d-find { position: relative; display: flex; }
+.sh3d-find svg { position: absolute; left: 0.75rem; top: 50%; translate: 0 -50%; width: 0.95rem; height: 0.95rem; color: var(--ink-3); pointer-events: none; }
+.sh3d-q { box-sizing: border-box; width: min(13rem, calc(100vw - 32px)); padding-left: 2.1rem; padding-right: 2.2rem; }
+.sh3d-find kbd {
+  position: absolute; right: 0.65rem; top: 50%; translate: 0 -50%; pointer-events: none;
+  padding: 0.15rem 0.4rem; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--line);
+  font: 400 var(--t-xs) / 1 var(--font-code); color: var(--ink-3);
+}
+.sh3d-q:focus + kbd, .sh3d-q:not(:placeholder-shown) + kbd { display: none; }
+@media (pointer: coarse) { .sh3d-find kbd { display: none; } .sh3d-q { padding-right: 1rem; } }
 @media (max-width: 640px) {
-  .sh3d-tools { flex-wrap: nowrap; width: 100%; }
-  .sh3d-q { flex: 1 1 auto; width: auto; min-width: 0; max-width: 16rem; }
+  .sh3d-tools { width: 100%; max-width: 26rem; }
+  .sh3d-search { flex: 1 1 auto; min-width: 0; }
+  .sh3d-find { flex: 1 1 auto; min-width: 0; }
+  .sh3d-q { width: 100%; min-width: 0; }
 }
 .sh3d-found { font: 400 var(--t-xs) / 1 var(--font-code); color: var(--ink-3); }
 .sh3d.finding .sh3d-found { font-size: var(--t-sm); color: var(--accent); }
-.sh3d-hint {
-  margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.3rem 1rem; max-width: 100%;
-  font: 400 var(--t-xs) / 1.4 var(--font-ui); color: var(--ink-2);
-}
-.sh3d-hint span { white-space: nowrap; }
-.sh3d-hint .count { font-family: var(--font-code); color: var(--accent); }
-.sh3d-help { min-width: 2.2rem; font-family: var(--font-code); }
-@media (pointer: coarse) { .sh3d-help, .sh3d-keyhelp { display: none; } }
+.sh3d-hint { min-width: 7ch; text-align: center; font: 400 var(--t-xs) / 1 var(--font-code); color: var(--accent); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sh3d-hint:empty { display: none; }
+.sh3d-help { font-family: var(--font-code); }
+@media (pointer: coarse) { .sh3d-keys, .sh3d-keyhelp { display: none; } }
 .sh3d-keyhelp {
   margin: 0; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1rem; max-width: min(36rem, 100%);
   padding: 0.5rem 0.85rem; border-radius: 8px; background: var(--face); box-shadow: 0 0 0 1px var(--line), 0 6px 18px var(--drop-far);

@@ -8,3 +8,12 @@ html.js[data-theme="dark"] .s3d:not(.live, .fail)::before { background: var(--un
 .s3d.soft .s3d-canvas { opacity: 0; transition: opacity 450ms cubic-bezier(.3,.7,.2,1); }
 .s3d.soft.live .s3d-canvas { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .s3d.soft .s3d-canvas { transition: none; } }
+
+.s3d-tray { display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: max-content; max-width: calc(100vw - 32px);
+  padding: 0.45rem 0.6rem 0.55rem; border-radius: 22px; background: var(--face);
+  box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 4px 0 0 var(--edge-n), 0 5.5px 0 0 var(--edge-n-deep), 0 16px 30px -12px var(--drop-far); }
+.s3d-tray .key { min-height: 2.25rem; }
+.s3d-group { display: flex; align-items: center; gap: 0.35rem; }
+.s3d-sep { align-self: stretch; padding-left: 0.5rem; border-left: 1px solid var(--line); }
+.s3d-ico { display: inline-grid; grid-auto-flow: column; place-items: center; gap: 0.3rem; min-width: 2.9rem; padding: 0 0.85rem; align-self: stretch; }
+.s3d-ico svg { width: 1.1rem; height: 1.1rem; display: block; }

@@ -47,7 +47,8 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   **不捲動,分三層**:剪報桌(俯角 55°,最新 6 張平放、全部看得到,點一下就拿起)→ `↑` / 往上滾 / 手機往下拉 抬頭看目錄櫃(只依 tag 分組,抽屜不拆格,超過 60 張只放翻到附近的 60 張、跟著滑;格子不要多,細找靠搜尋)→
   點抽屜拉開撥卡(前面的往前倒,滾輪撥)。`Esc` / `↓` / 瀏覽器上一頁退一層(`pushState`,tag 抽屜網址 `#tag-名稱`)。
   **操作要單純**(本質是讀卡片):點一下就拿起(抽屜與卡疊的觸控兩段),點空白處退一層,點標籤 = 直接讀這張、同 tag 的卡疊在後面(拿著時 ← → / 滾輪在這個 tag 裡換,放回去就回桌面);
-  **不放提示句**(介面自己說清楚;撥卡靠拉開抽屜時的示範動畫),提示列只留第幾張 / 共幾張,鍵盤操作收在 `?` 鍵。點擊層 `.sh3d-stage` 必須鋪滿畫面(以前只有內容欄寬,寬螢幕兩側點不到)。
+  **不放提示句**(介面自己說清楚;撥卡靠拉開抽屜時的示範動畫),提示列只留第幾張 / 共幾張,鍵盤操作收在 `?` 鍵。
+    底部工具列是共用托盤:換層鍵只有圖示(桌面 ↑ + 櫃子、櫃子 ↓、抽屜 ✕)+ 張數 | 放大鏡搜尋框(`/` 鍵帽)| `?`。點擊層 `.sh3d-stage` 必須鋪滿畫面(以前只有內容欄寬,寬螢幕兩側點不到)。
   - **剪報卡**:上方 og:image 經 wsrv.nl 轉 webp(帶 CORS)貼進第二張拼貼貼圖,圖到了才淡入,場景不等;下方標題兩行、來源章、日期、編號
     畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色。上緣每個 tag 一片標籤(最多 3 片),抽屜面的色條同色(`--tag-1`～`--tag-8`,依出現次數分配,程式不列 tag;來源章用名稱雜湊)。
     心得便利貼、已開過的勾、封存的紅章。
@@ -87,7 +88,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - **3D 書架是 WebGL**(three.js r170,放在 `assets/vendor/three/`;規格與決策紀錄 `docs/books-webgl.md`):
   `_layouts/books.html` 輸出書的 JSON、一份純 HTML 書單、工具列;程式在 `assets/books3d/`,只有這頁用 import map 載入。
     跟其他場景頁共用的零件在 `assets/scene3d/`(`anim.js`、`colors.js`、`intro.js` 開場亮度曲線、`glsl.js` 打光 / 素描 / 暗房 shader 片段、
-    `geometry.js` 的 `box()`、`scene3d.css` 開場幕);版面 front matter 的 `shared:` 列出要載入的共用模組,import 一律用裸名稱 `scene3d/…`。
+    `geometry.js` 的 `box()`、`scene3d.css` 開場幕與底部工具列托盤 `.s3d-tray` / `.s3d-group` / `.s3d-sep` / `.s3d-ico`,書架與剪報桌共用);版面 front matter 的 `shared:` 列出要載入的共用模組,import 一律用裸名稱 `scene3d/…`。
   books 模組設 `assets: false`,不在每頁載入 `assets/modules/books/`。
   - 檔案:`layout.js`(四種排序(星等、年份、顏色、作者;頁數拿掉了)與分組 → 每本書的位置、索引軌段落、層裡看得到哪幾本,純函式,`tools/books3d/` 測)、`scene.js`(場景、shader、鏡頭、點擊判定)、
     `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)。

@@ -47,16 +47,9 @@
 .b3d-rail-tip .sw { width: 0.7rem; height: 0.7rem; border-radius: 50%; }
 @media (prefers-reduced-motion: reduce) { .b3d-seg::before, .b3d-rail-tip { transition: none; } }
 
-.b3d-bar { position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 30; transform: translateX(-50%);
-  display: flex; justify-content: center; align-items: center; gap: 0.5rem; width: max-content; max-width: calc(100vw - 32px);
-  padding: 0.45rem 0.6rem 0.55rem; border-radius: 22px; background: var(--face);
-  box-shadow: inset 0 1px 0 var(--spec), inset 0 0 0 1px var(--line), 0 4px 0 0 var(--edge-n), 0 5.5px 0 0 var(--edge-n-deep), 0 16px 30px -12px var(--drop-far); }
+.b3d-bar { position: fixed; left: 50%; bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); z-index: 30; transform: translateX(-50%); }
 .b3d-keys { display: flex; gap: 0.35rem; }
 .b3d-sort { display: flex; position: relative; }
-.b3d-bar .key { min-height: 2.25rem; }
-.b3d-view-key, .b3d-globe-key, .b3d-map-key { min-width: 2.9rem; }
-.b3d-view-key { display: inline-grid; place-items: center; align-self: stretch; padding: 0 0.85rem; }
-.b3d-view-key svg { width: 1.1rem; height: 1.1rem; display: block; }
 .b3d-view-key[aria-pressed="true"] .g-spines, .b3d-view-key[aria-pressed="false"] .g-covers { display: none; }
 .b3d-sort-key .cur { margin-right: 0.35rem; }
 .b3d-sorts { display: none; position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(100% + 0.75rem); width: max-content; flex-direction: column; align-items: stretch;
@@ -75,10 +68,7 @@ html.js .b3d:not(.on):not(.fail) .b3d-list { visibility: hidden; }
 .b3d-bar, .b3d-tier, .b3d-arrows, .b3d-rail { transition: opacity 200ms, visibility 200ms; }
 .b3d.holding :is(.b3d-bar, .b3d-tier, .b3d-arrows, .b3d-rail) { opacity: 0; visibility: hidden; pointer-events: none; }
 
-.b3d-globes { align-self: stretch; padding-left: 0.5rem; border-left: 1px solid var(--line); }
-.b3d-globe-key, .b3d-map-key { display: inline-grid; grid-auto-flow: column; place-items: center; gap: 0.3rem; padding: 0 0.85rem; align-self: stretch; }
 .b3d-globe-key .lbl { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.b3d-globe-key svg, .b3d-map-key svg { width: 1.1rem; height: 1.1rem; display: block; }
 .b3d-globe-key .g-back, .b3d.globe .b3d-globe-key .g-globe { display: none; }
 .b3d.globe .b3d-globe-key .g-back { display: block; }
 .b3d.globe :is(.b3d-sort, .b3d-view-key) { display: none; }
