@@ -41,6 +41,7 @@ export function createHeld(t) {
   flipBtn.setAttribute('aria-pressed', 'false');
   openLink.target = '_blank';
   openLink.rel = 'noopener';
+  openLink.hidden = true;
   arch.hidden = true;
   frame.append(card, prevBtn, nextBtn);
   bar.append(flipBtn, openLink, arch, closeBtn);
@@ -113,6 +114,7 @@ export function createHeld(t) {
     }
 
     openLink.href = item.u;
+    openLink.hidden = false;
     arch.hidden = !item.x;
     arch.textContent = t('shares3d.archived');
     if (shown) root.setAttribute('aria-label', item.t);

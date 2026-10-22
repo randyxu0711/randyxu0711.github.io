@@ -1,7 +1,7 @@
 ---
 # 內容在 _data/profile.yml(projects 在 _data/projects.yml);版面在 _includes/about.html。
 # 頁首就是名字,不另外顯示「關於」標題。
-title: 關於
+title: About
 description: "Randy Xu, a software engineer exploring interesting AI applications: projects, experience, and what's on the desk."
 title_key: nav.about
 hide_title: true
