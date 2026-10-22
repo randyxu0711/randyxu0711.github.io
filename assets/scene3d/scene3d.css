@@ -16,4 +16,4 @@ html.js[data-theme="dark"] .s3d:not(.live, .fail)::before { background: var(--un
 .s3d-group { display: flex; align-items: center; gap: 0.35rem; }
 .s3d-sep { align-self: stretch; padding-left: 0.5rem; border-left: 1px solid var(--line); }
 .s3d-ico { display: inline-grid; grid-auto-flow: column; place-items: center; gap: 0.3rem; min-width: 2.9rem; padding: 0 0.85rem; align-self: stretch; }
-.s3d-ico svg { width: 1.1rem; height: 1.1rem; }
+.s3d-ico svg { width: 1.1rem; height: 1.1rem; display: block; }
