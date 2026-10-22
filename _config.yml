@@ -5,7 +5,7 @@ timezone: Asia/Taipei
 
 title: Randy Xu
 description: >-
-  Randy Xu 的個人頁:自己的 projects,與轉發的技術文章。
+  Randy Xu's corner: technical articles worth reading, books I've read, and things I build.
 url: "https://randyxu0711.github.io"
 baseurl: ""
 
@@ -15,7 +15,7 @@ author:
 github:
   username: randyxu0711
 twitter:
-  card: summary      # 分享預覽用方形頭像,不用大圖
+  card: summary_large_image
 
 nav:
   - { title: 分享, key: nav.shares, url: / }
@@ -46,9 +46,9 @@ collections:              # share 不產生內部頁:見 _plugins/no-post-output
 
 defaults:
   - scope: { path: "", type: tabs }
-    values: { layout: page, permalink: /:title/, image: /assets/img/avatar.jpg }
+    values: { layout: page, permalink: /:title/, image: /assets/img/og.png }
   - scope: { path: "", type: pages }
-    values: { image: /assets/img/avatar.jpg }
+    values: { image: /assets/img/og.png }
 
 exclude:
   - docs

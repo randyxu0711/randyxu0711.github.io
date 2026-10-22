@@ -29,6 +29,8 @@
   → 書房近況(研究方向便利貼 + 最近轉發 3 篇 + 最近讀完 3 本)。寬螢幕(≥ 85rem)左側有段落捲軸(閱讀進度 + 跳轉),手機不做。
   技能只寫認得出的工具與業界術語(Tool use、Structured output、MCP、Evals、RAG…),做法交給 project 敘事證明。
 - **版面不寫個人資料**:名字、自介、導覽在 `_config.yml`,projects 在 `_data/projects.yml`,自介全文在 `_tabs/about.md`。
+- **分享預覽卡**(og:image):全站同一張 `assets/img/og.png`(英文、白天配色、書房一角,剪報與書都是抽象的,不放真的文章與書名)。
+  原稿 `docs/og/og.html`,改完跑 `uv run --with playwright python docs/og/render.py` 重出。
 - 沒有 JS 時卡片與連結照樣能用;模組的控制項先 `hidden`,JS 啟動後才顯示(全站有 `[hidden] { display: none !important }`)。
   控制項加 `data-reserve` 的話,有 JS 時(head 給 `<html>` 加 `.js`)先看不見但佔好位置,啟動時版面不會跳。
   **首次繪製就要正確**:會影響版面的狀態(主題、語言、書架排法)在繪製前由行內 script 決定,不要等 defer 的 JS 再改。
