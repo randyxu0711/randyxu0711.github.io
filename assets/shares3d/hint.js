@@ -11,11 +11,18 @@ export function keysFor(stage) {
 
 export function createHint(el, help, t) {
   let last = '';
-  function set(stage, count) {
-    const key = `${stage}|${count || ''}|${document.documentElement.getAttribute('data-lang')}`;
+  function set(stage, count, tag) {
+    const key = `${stage}|${count || ''}|${tag ? tag.name + tag.css : ''}|${document.documentElement.getAttribute('data-lang')}`;
     if (key === last) return;
     last = key;
     el.replaceChildren();
+    if (tag) {
+      const g = document.createElement('span');
+      g.className = 'sh3d-tag';
+      g.style.setProperty('--c', tag.css);
+      g.textContent = tag.name;
+      el.append(g);
+    }
     if (count) {
       const c = document.createElement('span');
       c.className = 'count';
