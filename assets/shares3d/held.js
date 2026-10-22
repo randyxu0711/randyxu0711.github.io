@@ -11,10 +11,9 @@ function el(tag, cls, text) {
   return e;
 }
 
-export function createHeld(t) {
+export function createHeld(t, openLink, tray) {
   const root = el('div', 'held');
   root.setAttribute('role', 'dialog');
-  root.setAttribute('aria-modal', 'true');
   root.setAttribute('aria-hidden', 'true');
 
   const stage = el('div', 'h-stage');
@@ -30,22 +29,12 @@ export function createHeld(t) {
   const frame = el('div', 'h-frame');
   stage.append(frame);
 
-  const bar = el('div', 'h-bar');
   const prevBtn = el('button', 'key h-side h-prev', '‹');
-  const flipBtn = el('button', 'key', t('shares3d.flip'));
-  const openLink = el('a', 'key', `${t('shares3d.open')} ↗`);
-  const arch = el('span', 'h-arch');
-  const closeBtn = el('button', 'key', t('shares3d.put_back'));
   const nextBtn = el('button', 'key h-side h-next', '›');
-  [prevBtn, flipBtn, closeBtn, nextBtn].forEach((b) => { b.type = 'button'; });
-  flipBtn.setAttribute('aria-pressed', 'false');
-  openLink.target = '_blank';
-  openLink.rel = 'noopener';
-  openLink.hidden = true;
-  arch.hidden = true;
+  [prevBtn, nextBtn].forEach((b) => { b.type = 'button'; });
+  const domain = openLink.querySelector('.sh3d-dom');
   frame.append(card, prevBtn, nextBtn);
-  bar.append(flipBtn, openLink, arch, closeBtn);
-  root.append(stage, bar);
+  root.append(stage);
   document.body.append(root);
 
   let listener = () => {};
@@ -56,15 +45,18 @@ export function createHeld(t) {
   let backLabel = null;
   let backAlso = null;
   let opener = null;
+  let peeked = false;
+  let keyboard = false;
   const act = (a, arg) => listener(a, arg);
 
   function applyLabels() {
     prevBtn.setAttribute('aria-label', t('shares3d.prev'));
     nextBtn.setAttribute('aria-label', t('shares3d.next'));
-    flipBtn.textContent = t('shares3d.flip');
-    openLink.textContent = `${t('shares3d.open')} ↗`;
-    closeBtn.textContent = t('shares3d.put_back');
-    if (current) arch.textContent = t('shares3d.archived');
+    if (current) {
+      const name = current.x ? t('shares3d.archived') : `${t('shares3d.open')}: ${domain.textContent}`;
+      openLink.setAttribute('aria-label', name);
+      openLink.title = name;
+    }
     if (current && backLabel) backLabel.textContent = current.n ? t('shares3d.note') : t('shares3d.summary');
     if (current && backAlso) backAlso.textContent = t('shares3d.also_in', current.also.join('、'));
   }
@@ -114,9 +106,8 @@ export function createHeld(t) {
     }
 
     openLink.href = item.u;
-    openLink.hidden = false;
-    arch.hidden = !item.x;
-    arch.textContent = t('shares3d.archived');
+    domain.textContent = new URL(item.u).hostname.replace(/^www\./, '');
+    applyLabels();
     if (shown) root.setAttribute('aria-label', item.t);
   }
 
@@ -126,8 +117,8 @@ export function createHeld(t) {
 
   function setFlip(v) {
     flipped = v;
+    flipper.getAnimations().forEach((a) => a.cancel());
     flipper.classList.toggle('flipped', v);
-    flipBtn.setAttribute('aria-pressed', String(v));
   }
 
   function flip(force) {
@@ -146,7 +137,15 @@ export function createHeld(t) {
     root.setAttribute('aria-hidden', 'false');
     if (current) root.setAttribute('aria-label', current.t);
     root.classList.add('on');
-    if (focus) flipBtn.focus({ preventScroll: true });
+    root.classList.toggle('kb', keyboard);
+    if (!focus) return;
+    card.focus({ preventScroll: true });
+    if (peeked || reduce.matches) return;
+    peeked = true;
+    flipper.animate(
+      [{ transform: 'none' }, { transform: 'rotateY(-24deg)', offset: 0.45 }, { transform: 'none' }],
+      { duration: 900, delay: 350, easing: 'ease-in-out' }
+    );
   }
 
   function paste() {}
@@ -241,9 +240,18 @@ export function createHeld(t) {
     act('flip');
   });
 
+  document.addEventListener('keydown', () => {
+    keyboard = true;
+    root.classList.add('kb');
+  }, true);
+  document.addEventListener('pointerdown', () => {
+    keyboard = false;
+    root.classList.remove('kb');
+  }, true);
+
   document.addEventListener('keydown', (e) => {
     if (shown && e.key === 'Tab') {
-      const stops = [card, ...card.querySelectorAll('.h-tabs button'), prevBtn, nextBtn, ...bar.querySelectorAll('button, a')].filter((n) => !n.hidden);
+      const stops = [card, ...card.querySelectorAll('.h-tabs button'), prevBtn, nextBtn, ...tray].filter((n) => n.offsetParent);
       const i = stops.indexOf(document.activeElement);
       const next = e.shiftKey ? (i <= 0 ? stops.length - 1 : i - 1) : (i < 0 || i === stops.length - 1 ? 0 : i + 1);
       stops[next].focus({ preventScroll: true });
@@ -261,11 +269,6 @@ export function createHeld(t) {
 
   prevBtn.addEventListener('click', () => act('prev'));
   nextBtn.addEventListener('click', () => act('next'));
-  closeBtn.addEventListener('click', () => act('close'));
-  flipBtn.addEventListener('click', () => {
-    flip();
-    act('flip');
-  });
   openLink.addEventListener('click', () => act('open'));
 
   document.addEventListener('langchange', applyLabels);

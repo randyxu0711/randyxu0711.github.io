@@ -16,7 +16,7 @@ const bar = document.getElementById('sh3d-bar');
 const peek = document.getElementById('sh3d-peek');
 const hintEl = document.getElementById('sh3d-hint');
 const qEl = document.getElementById('sh3d-q');
-const found = document.getElementById('sh3d-found');
+const openEl = document.getElementById('sh3d-open');
 const goBtn = document.getElementById('sh3d-go');
 const helpBtn = document.getElementById('sh3d-help');
 const helpEl = document.getElementById('sh3d-keyhelp');
@@ -177,7 +177,7 @@ function run(gl, canvas) {
   const hero = createHero();
   let heroStale = true;
   gl.setHero(hero.mask, hero.photo);
-  const card = createHeld(t);
+  const card = createHeld(t, openEl, [goBtn, qEl, openEl]);
   const hint = createHint(hintEl, helpEl, t);
 
   function shown(k) {
@@ -408,7 +408,7 @@ function run(gl, canvas) {
     held = { entry: e, phase: 'fly', pose: null };
     card.fill(itemFor(e));
     peek.hidden = true;
-    bar.classList.add('holding');
+    syncHolding();
     atlas.want(wanted());
     dirty = true;
     invalidate();
@@ -419,7 +419,7 @@ function run(gl, canvas) {
     card.hide();
     held = null;
     settle = { x: pointer.x, y: pointer.y };
-    bar.classList.remove('holding');
+    syncHolding();
     if (trail) {
       leave(trail.ids);
       trail = null;
@@ -492,10 +492,14 @@ function run(gl, canvas) {
   }
 
   function showFound() {
-    found.hidden = !hits;
-    if (!hits) return;
-    found.textContent = deck ? `${deck.at + 1} / ${deck.ids.length}` : t('shares3d.matches', 0);
     card.el.classList.toggle('stacked', !!deck && deck.ids.length - deck.at > 1);
+    syncHolding();
+    invalidate();
+  }
+
+  function syncHolding() {
+    bar.classList.toggle('holding', !!(held || deck));
+    syncGo();
   }
 
   function openDeck(ids) {
@@ -740,8 +744,8 @@ function run(gl, canvas) {
   }
 
   function syncGo() {
-    const v = view === 'desk' || view === 'cab' ? view : 'drawer';
-    const name = t({ desk: 'shares3d.hint.look_up', cab: 'shares3d.hint.look_down', drawer: 'shares3d.hint.close_drawer' }[v]);
+    const v = hits ? 'search' : held ? 'held' : view === 'desk' || view === 'cab' ? view : 'drawer';
+    const name = t({ desk: 'shares3d.hint.look_up', cab: 'shares3d.hint.look_down', drawer: 'shares3d.hint.close_drawer', held: 'shares3d.put_back', search: 'shares3d.end_search' }[v]);
     goBtn.dataset.v = v;
     goBtn.setAttribute('aria-label', name);
     goBtn.title = name;
@@ -944,11 +948,11 @@ function run(gl, canvas) {
     gl.setLamp(dark && lit, lamp.pos[0], lamp.pos[1], lamp.pos[2], lt.reach);
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
-    const count = s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
+    const count = hits ? (deck ? `${deck.at + 1} / ${deck.ids.length}` : t('shares3d.matches', 0)) : s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
       const sibs = siblings(held.entry);
-      return `${place(sibs, held.entry) + 1} / ${sibs.length}${held.entry.where === 't' ? ` · ${trail.tag}` : ''}`;
+      return `${place(sibs, held.entry) + 1} / ${sibs.length}`;
     })() : '';
-    hint.set(s, count);
+    hint.set(s, count, !hits && held && held.entry.where === 't' ? { name: trail.tag, css: tint('tab', trail.tag).css } : null);
 
     gl.render(cam);
     if (!liveT0) {
@@ -1066,7 +1070,9 @@ function run(gl, canvas) {
 
   goBtn.addEventListener('click', () => {
     if (!lit) return;
-    if (view === 'desk') enter('cab');
+    if (hits) clearSearch();
+    else if (held) release();
+    else if (view === 'desk') enter('cab');
     else back();
   });
   qEl.addEventListener('input', () => setQuery(qEl.value));
@@ -1194,6 +1200,11 @@ function run(gl, canvas) {
   });
   document.addEventListener('keydown', (e) => {
     if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    if (e.key === '/' && (held || hits) && document.activeElement !== qEl) {
+      qEl.focus();
+      e.preventDefault();
+      return;
+    }
     if (deck || hits) {
       if (e.key === 'Escape') {
         clearSearch();
