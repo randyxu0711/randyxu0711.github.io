@@ -87,7 +87,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - **3D 書架是 WebGL**(three.js r170,放在 `assets/vendor/three/`;規格與決策紀錄 `docs/books-webgl.md`):
   `_layouts/books.html` 輸出書的 JSON、一份純 HTML 書單、工具列;程式在 `assets/books3d/`,只有這頁用 import map 載入。
     跟其他場景頁共用的零件在 `assets/scene3d/`(`anim.js`、`colors.js`、`intro.js` 開場亮度曲線、`glsl.js` 打光 / 素描 / 暗房 shader 片段、
-    `geometry.js` 的 `box()`、`scene3d.css` 開場幕);版面 front matter 的 `shared:` 列出要載入的共用模組,import 一律用裸名稱 `scene3d/…`。
+    `geometry.js` 的 `box()`、`scene3d.css` 開場幕與底部工具列托盤 `.s3d-tray` / `.s3d-group` / `.s3d-sep` / `.s3d-ico`,書架與剪報桌共用);版面 front matter 的 `shared:` 列出要載入的共用模組,import 一律用裸名稱 `scene3d/…`。
   books 模組設 `assets: false`,不在每頁載入 `assets/modules/books/`。
   - 檔案:`layout.js`(四種排序(星等、年份、顏色、作者;頁數拿掉了)與分組 → 每本書的位置、索引軌段落、層裡看得到哪幾本,純函式,`tools/books3d/` 測)、`scene.js`(場景、shader、鏡頭、點擊判定)、
     `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)。

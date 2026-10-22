@@ -44,14 +44,17 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
   <div class="sh3d-bar" id="sh3d-bar" hidden>
     <p class="sh3d-peek" id="sh3d-peek" hidden></p>
     <p class="sh3d-keyhelp" id="sh3d-keyhelp" hidden></p>
-    <div class="sh3d-tools">
-      <button type="button" class="key sh3d-go" id="sh3d-go" data-v="desk">
+    <div class="sh3d-tools s3d-tray">
+      <div class="s3d-group sh3d-nav">
+      <button type="button" class="key s3d-ico sh3d-go" id="sh3d-go" data-v="desk">
         <svg class="g-up" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 13.5V2.5M3.5 7L8 2.5 12.5 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <svg class="g-cab" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 1.5h11v12h-11zM2.5 7.5h11M3.5 13.5v1.5M12.5 13.5v1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M6.5 4.5h3M6.5 10.5h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <svg class="g-down" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v11M3.5 9L8 13.5 12.5 9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <svg class="g-close" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
       </button>
       <span class="sh3d-hint" id="sh3d-hint" aria-live="polite"></span>
+      </div>
+      <div class="s3d-group s3d-sep sh3d-search">
       <label class="sh3d-find">
         <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="6.8" cy="6.8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M10.3 10.3L14.5 14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         <input class="groove sh3d-q" id="sh3d-q" type="search" enterkeyhint="search" autocomplete="off"
@@ -60,8 +63,11 @@ modules: [layout.js, scene.js, textures.js, held.js, hint.js]
         <kbd aria-hidden="true">/</kbd>
       </label>
       <span class="sh3d-found" id="sh3d-found" aria-live="polite" hidden></span>
-      <button type="button" class="key sh3d-help" id="sh3d-help" aria-expanded="false" aria-controls="sh3d-keyhelp"
+      </div>
+      <div class="s3d-group s3d-sep sh3d-keys">
+      <button type="button" class="key s3d-ico sh3d-help" id="sh3d-help" aria-expanded="false" aria-controls="sh3d-keyhelp"
         aria-label="{% include t.html k="shares3d.keys" %}" title="{% include t.html k="shares3d.keys" %}" data-i18n-attr="aria-label:shares3d.keys;title:shares3d.keys">?</button>
+      </div>
     </div>
   </div>
 </section>
