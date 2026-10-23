@@ -1,13 +1,16 @@
 import * as THREE from 'three';
-import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
+import { LIGHT, REVEAL, SKETCH, MATTER } from 'scene3d/glsl.js';
 import { box } from 'scene3d/geometry.js';
-import { CARD, IMG, DRAWER, CAB, FOV, WINDOW } from 'shares3d/layout.js';
+import { CARD, IMG, DRAWER, CAB, FOV, WINDOW, ROOM_DESK, deskRoom } from 'shares3d/layout.js';
+import { ROOM, sunDir, lampDir } from 'scene3d/room.js';
 
 const TAB = { W: 30, H: 8, GAP: 2.5, MAX: 3, EDGE: 6 };
 const STICKY = 18;
 const HANDLE = { W: 32, H: 6, D: 6, DROP: 29 };
 const SHADOW = 9;
 const TRAY = { T: 3, SIDE: 34 };
+const LAMP = { REACH: 1400 };
+const ORIGIN = ROOM.DESK.x0 + ROOM.DESK.w / 2;
 
 const FINISH = 'gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, max(uDim, vFade)), uUnlit.rgb, uUnlit.a), 1.0);';
 
@@ -44,6 +47,12 @@ const INST_HEAD = /* glsl */ `
 uniform vec3 uDesk;
 uniform float uDim;
 uniform vec4 uUnlit;
+uniform vec3 uOak;
+uniform vec3 uOakFace;
+uniform vec3 uBrass;
+uniform vec3 uPaperCard;
+uniform vec3 uPaperInk;
+uniform vec3 uPaperInk3;
 varying vec4 vTile;
 varying vec3 vColor;
 varying vec3 vN;
@@ -53,6 +62,7 @@ varying float vFade;
 varying float vHot;
 ${LIGHT}
 ${SKETCH}
+${MATTER}
 `;
 
 const CARD_VERT = INST_VERT.replace('attribute float iHot;', 'attribute float iHot;\nattribute float iPhoto;\nattribute float iHero;\nattribute vec4 iPhotoTile;\nvarying float vPhoto;\nvarying float vHero;\nvarying vec4 vPhotoTile;').replace('vHot = iHot;', 'vHot = iHot;\n  vPhoto = iPhoto;\n  vHero = iHero;\n  vPhotoTile = iPhotoTile;');
@@ -78,21 +88,24 @@ void main() {
   float hp = step(1.5, vHero);
   vec3 m = mix(texture2D(uCards, at).rgb * step(0.0001, vTile.z), texture2D(uHeroMask, vUv).rgb, hm);
   vec3 c = uPaperDeep;
+  float grain = fiber(vUv * vec2(127.0, 104.0));
   if (f == 4) {
     if (ty < ${IMG.H.toFixed(2)}) {
       float r = ${(IMG.H / CARD.H).toFixed(5)};
       vec2 pu = vec2(vUv.x, clamp((vUv.y - (1.0 - r)) / r, 0.0, 1.0));
       vec3 photo = mix(texture2D(uPhotos, vPhotoTile.xy + pu * vPhotoTile.zw).rgb, texture2D(uHeroPhoto, pu).rgb, hp);
-      c = mix(mix(uPaper, uInk3, m.g * 0.7), photo, vPhoto * max(step(0.0001, vPhotoTile.z), hp));
+      c = mix(mix(uPaperCard * grain, uPaperInk3, m.g * 0.7), photo, vPhoto * max(step(0.0001, vPhotoTile.z), hp));
     } else {
-      c = mix(uFace, uInk, m.r);
-      c = mix(c, uInk3, m.g);
+      c = mix(uPaperCard * grain, uPaperInk, m.r);
+      c = mix(c, uPaperInk3, m.g);
       c = mix(c, vColor, m.b * 0.9);
     }
   } else if (f == 5) {
-    c = uPaper;
+    c = uPaperCard * grain;
   }
-  ${FINISH}
+  c *= mix(0.86 + 0.2 * window(vWorld), 1.0, uLamp.w);
+  vec3 l = mix(lit(c, vN), c, hm * uLamp.w);
+  gl_FragColor = vec4(mix(mix(sketch(l, vN, vUv), uDesk, max(uDim, vFade)), uUnlit.rgb, uUnlit.a), 1.0);
 }
 `;
 
@@ -100,6 +113,27 @@ const SOLID_FRAG = /* glsl */ `
 ${INST_HEAD}
 void main() {
   vec3 c = vColor;
+  ${FINISH}
+}
+`;
+
+const WOOD_FRAG = /* glsl */ `
+${INST_HEAD}
+void main() {
+  vec3 c = vColor * wood(vWorld.xy + vec2(vWorld.z * 0.7, 0.0), 0.16);
+  ${FINISH}
+}
+`;
+
+const BRASS_FRAG = /* glsl */ `
+${INST_HEAD}
+void main() {
+  vec3 n = normalize(vN);
+  vec3 v = normalize(cameraPosition - vWorld);
+  float s = pow(max(dot(n, normalize(uLight + v)), 0.0), 18.0);
+  vec3 ld = normalize(uLamp.xyz - vWorld);
+  s = mix(s, 1.6 * pow(max(dot(n, normalize(ld + v)), 0.0), 18.0), uLamp.w);
+  vec3 c = vColor * (0.8 + 1.1 * s);
   ${FINISH}
 }
 `;
@@ -133,16 +167,20 @@ uniform vec3 uEdge;
 ${INST_HEAD}
 void main() {
   int f = int(vFace + 0.5);
-  vec3 c = mix(uEdgeNDeep, uEdge, vHot);
+  vec3 c = mix(uOak, uEdge, vHot) * wood(vWorld.xy + vec2(vWorld.z, 0.0), 0.12);
   if (f == 4) {
     vec3 m = texture2D(uLabels, vTile.xy + vUv * vTile.zw).rgb * step(0.0001, vTile.z);
     float tinted = step(0.001, vColor.r + vColor.g + vColor.b);
     float strip = step(0.94, vUv.y) * step(0.06, vUv.x) * step(vUv.x, 0.94);
     float band = step(0.1797, vUv.x) * step(vUv.x, 0.2148) * step(0.4531, vUv.y) * step(vUv.y, 0.8594);
-    c = mix(uFace, vColor, max(strip, band) * tinted);
-    c = mix(c, mix(uInk3, uEdge, vHot), 0.8 * smoothstep(0.25, 0.45, m.b) * (1.0 - smoothstep(0.7, 0.9, m.b)));
-    c = mix(c, uInk, m.r);
-    c = mix(c, mix(uInk3, uEdge, vHot), m.g);
+    float frame = smoothstep(0.25, 0.45, m.b) * (1.0 - smoothstep(0.7, 0.9, m.b));
+    float card = smoothstep(0.8, 0.95, m.b);
+    c = uOakFace * wood(vWorld.xy + vec2(vTile.x * 997.0, vTile.y * 431.0), 0.14);
+    c = mix(c, uPaperCard * fiber(vUv * vec2(150.0, 75.0)), card);
+    c = mix(c, vColor, max(strip, band) * tinted);
+    c = mix(c, mix(uBrass, uEdge, vHot) * (0.8 + 0.4 * vUv.y), frame);
+    c = mix(c, uPaperInk, m.r);
+    c = mix(c, mix(uPaperInk3, uEdge, vHot), m.g);
   }
   ${FINISH}
 }
@@ -150,9 +188,11 @@ void main() {
 
 const DESK_VERT = /* glsl */ `
 varying vec3 vWorld;
+varying vec3 vN;
 void main() {
   vec4 w = modelMatrix * vec4(position, 1.0);
   vWorld = w.xyz;
+  vN = normal;
   gl_Position = projectionMatrix * viewMatrix * w;
 }
 `;
@@ -160,11 +200,58 @@ void main() {
 const DESK_FRAG = /* glsl */ `
 uniform vec3 uDesk;
 uniform vec4 uUnlit;
+varying vec3 vN;
+${LIGHT}
+${MATTER}
+float box2(vec2 p, vec2 lo, vec2 hi) {
+  vec2 d = max(lo - p, p - hi);
+  return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+}
+void main() {
+  vec3 n = normalize(vN);
+  vec2 p = vWorld.xz;
+  float plank = floor(p.y / 170.0);
+  float g = wood(vec2(p.x + plank * 731.0, p.y), 0.06);
+  if (n.y < 0.5) {
+    vec3 c = lit(uDesk * 0.78 * wood(vWorld.xy * vec2(1.0, 4.0), 0.1), n);
+    gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), 1.0);
+    return;
+  }
+  float d = abs(fract(p.y / 170.0) - 0.5) * 170.0;
+  g *= 1.0 - 0.07 * smoothstep(83.0, 84.6, d);
+  float ao = 1.0 - 0.35 * exp(-max(box2(p, vec2(-uCab.x, uCab.w), vec2(uCab.x, uCab.z)), 0.0) / 22.0);
+  ao *= 1.0 - 0.25 * exp(-(p.y - uDeskBack) / 35.0);
+  float sun = mix(0.8 + 0.28 * window(vWorld), 1.0, uLamp.w);
+  vec3 day = vec3(uAmbient + uKey * max(dot(n, uLight), 0.0));
+  vec3 c = lit(uDesk * g * ao * sun, n) / day;
+  gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), 1.0);
+}
+`.replace('uniform vec4 uUnlit;', 'uniform vec4 uUnlit;\nuniform float uDeskBack;');
+
+const WALL_FRAG = /* glsl */ `
+uniform vec3 uWall;
+uniform vec4 uUnlit;
+${LIGHT}
+${MATTER}
+void main() {
+  vec3 n = vec3(0.0, 0.0, 1.0);
+  vec3 c = uWall * (0.985 + 0.03 * vnoise(vWorld.xy * 0.04));
+  c *= mix(1.0, 0.92, smoothstep(0.0, 1500.0, vWorld.y));
+  float ao = 1.0 - 0.3 * exp(-vWorld.y / 30.0);
+  float cab = max(abs(vWorld.x) - uCab.x, vWorld.y - uCab.y);
+  ao *= 1.0 - 0.3 * exp(-max(cab, 0.0) / 18.0);
+  c *= ao * mix(0.88 + 0.26 * window(vWorld + vec3(0.0, 0.0, 1.0)), 1.0, uLamp.w);
+  c = lit(c, n);
+  gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), 1.0);
+}
+`;
+
+const FLOOR_FRAG = /* glsl */ `
+uniform vec3 uWall;
+uniform vec4 uUnlit;
 ${LIGHT}
 void main() {
-  vec3 n = vec3(0.0, 1.0, 0.0);
-  vec3 day = vec3(uAmbient + uKey * max(dot(n, uLight), 0.0));
-  vec3 c = lit(uDesk, n) / day;
+  vec3 c = lit(uWall * 0.42, vec3(0.0, 1.0, 0.0));
   gl_FragColor = vec4(mix(c, uUnlit.rgb, uUnlit.a), 1.0);
 }
 `;
@@ -229,13 +316,18 @@ export function createScene(n) {
   const camera = new THREE.PerspectiveCamera(FOV, 1, 10, 8000);
 
   const common = {
-    uLight: { value: new THREE.Vector3(-0.25, 0.85, 0.45).normalize() },
-    uAmbient: { value: 0.62 },
+    uLight: { value: new THREE.Vector3(...sunDir('desk')) },
+    uAmbient: { value: 0.76 },
     uKey: { value: 0.42 },
     uLamp: { value: new THREE.Vector4(0, 0, 0, 0) },
     uLampColor: { value: new THREE.Color(1, 0.85, 0.6) },
     uLampReach: { value: 380 },
+    uSun: { value: null },
+    uSill: { value: new THREE.Vector4() },
+    uCab: { value: new THREE.Vector4(0, 0, CAB.Z, CAB.Z - CAB.DEPTH) },
+    uDeskBack: { value: 0 },
   };
+  common.uSun.value = common.uLight.value;
   const colors = {
     uDesk: { value: new THREE.Color() },
     uEdgeNDeep: { value: new THREE.Color() },
@@ -246,6 +338,13 @@ export function createScene(n) {
     uInk3: { value: new THREE.Color() },
     uEdge: { value: new THREE.Color() },
     uDrop: { value: new THREE.Vector4() },
+    uWall: { value: new THREE.Color() },
+    uOak: { value: new THREE.Color() },
+    uOakFace: { value: new THREE.Color() },
+    uBrass: { value: new THREE.Color() },
+    uPaperCard: { value: new THREE.Color() },
+    uPaperInk: { value: new THREE.Color() },
+    uPaperInk3: { value: new THREE.Color() },
     uDim: { value: 0 },
     uUnlit: { value: new THREE.Vector4(0, 0, 0, 0) },
     uSketch: { value: new THREE.Vector4(0, 0, 1, 9) },
@@ -271,21 +370,42 @@ export function createScene(n) {
   const flatAttrs = { iTile: 4, iInner: 2, iFade: 1 };
   const flatGeo = (w, h) => new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
 
-  const desk = new THREE.Mesh(flatGeo(8000, 8000), material(DESK_VERT, DESK_FRAG));
-  desk.position.z = -1000;
+  const desk = new THREE.Mesh(new THREE.BoxGeometry(ROOM_DESK.W, ROOM_DESK.T, 1), material(DESK_VERT, DESK_FRAG));
   scene.add(desk);
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(8000, 4000), material(DESK_VERT, WALL_FRAG));
+  scene.add(wall);
+  const lamp = new THREE.Vector3();
+  function setRoom(room) {
+    const { back, front } = room;
+    const wallZ = back;
+    desk.scale.z = front - back;
+    desk.position.set(0, -ROOM_DESK.T / 2, (front + back) / 2);
+    wall.position.set(0, 2000 - ROOM_DESK.H, back);
+    common.uDeskBack.value = back;
+    const w = ROOM.WINDOW;
+    common.uSill.value.set(-ORIGIN, w.sill - ROOM.DESK.top, wallZ + w.z0, w.z1 - w.z0);
+    const d = lampDir('desk');
+    const reach = Math.hypot(...ROOM.DESK_LAMP.map((k, n) => k - [ORIGIN, ROOM.DESK.top, ROOM.DESK.z0 + ROOM.DESK.d / 2][n]));
+    lamp.set(d[0] * reach, d[1] * reach, wallZ + ROOM.DESK.z0 + ROOM.DESK.d / 2 + d[2] * reach);
+  }
+  const floorMesh = new THREE.Mesh(flatGeo(8000, 8000), material(DESK_VERT, FLOOR_FRAG));
+  floorMesh.position.set(0, -ROOM_DESK.H, 0);
+  scene.add(floorMesh);
+  setRoom(deskRoom({ cab: { z: CAB.Z, depth: CAB.DEPTH } }));
 
   const maxDrawers = n + 32;
   const maxCards = n + WINDOW;
   const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, flatAttrs);
   const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), material(CARD_VERT, CARD_FRAG), maxCards, Object.assign({ iPhoto: 1, iHero: 1, iPhotoTile: 4 }, solidAttrs));
   const solidMat = material(INST_VERT, SOLID_FRAG);
+  const woodMat = material(INST_VERT, WOOD_FRAG);
+  const brassMat = material(INST_VERT, BRASS_FRAG);
   const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), material(INST_VERT, TAB_FRAG), maxCards * TAB.MAX, solidAttrs);
   const stickies = instanced(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), solidMat, maxCards, solidAttrs);
-  const tray = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 4, solidAttrs);
-  const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), solidMat, 1, solidAttrs);
+  const tray = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), woodMat, 4, solidAttrs);
+  const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), woodMat, 1, solidAttrs);
   const fronts = instanced(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), material(INST_VERT, DRAWER_FRAG), maxDrawers, solidAttrs);
-  const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), solidMat, maxDrawers, solidAttrs);
+  const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), brassMat, maxDrawers, solidAttrs);
 
   const tabOwner = [];
   const tabSlot = [];
@@ -295,7 +415,7 @@ export function createScene(n) {
   const _e = new THREE.Euler();
   const _p = new THREE.Vector3();
   const _s = new THREE.Vector3(1, 1, 1);
-  const tint = { sticky: [1, 1, 0.6], body: [0.5, 0.5, 0.5], handle: [0.4, 0.4, 0.4], edge: [0.8, 0.6, 0.3] };
+  const tint = { sticky: [1, 1, 0.6], body: [0.5, 0.5, 0.5], handle: [0.4, 0.4, 0.4], edge: [0.8, 0.6, 0.3], oak: [0.5, 0.4, 0.3] };
 
   function pose(m, x, y, z, rx, ry, sx = 1, sy = 1, sz = 1) {
     _e.set(rx, ry, 0, 'YXZ');
@@ -386,6 +506,8 @@ export function createScene(n) {
   }
 
   function setCabinet(cab, fade = 0) {
+    common.uCab.value.set(cab.width / 2, cab.height, cab.z, cab.z - cab.depth);
+    setRoom(deskRoom({ cab }));
     pose(_m, 0, 0, cab.z - cab.depth / 2, 0, 0, cab.width, cab.height, cab.depth);
     body.setMatrixAt(0, _m);
     body.count = 1;
@@ -414,7 +536,7 @@ export function createScene(n) {
       tray.setMatrixAt(k, _m);
       tray.geometry.attributes.iFade.setX(k, t.fade || 0);
     });
-    paint(tray, tray.count, tint.handle);
+    paint(tray, tray.count, tint.oak);
     touch(tray, 'iFade');
   }
 
@@ -483,20 +605,28 @@ export function createScene(n) {
     tint.edge = t.edge.slice(0, 3);
     colors.uDrop.value.set(t['drop-near'][0], t['drop-near'][1], t['drop-near'][2], t['drop-near'][3]);
     tint.sticky = t.sticky.slice(0, 3);
-    tint.body = t['edge-n'].slice(0, 3);
-    tint.handle = t['edge-n-deep'].slice(0, 3);
+    set('uWall', t.wall);
+    set('uOak', t.oak);
+    set('uOakFace', t['oak-face']);
+    set('uBrass', t.brass);
+    set('uPaperCard', t['paper-card']);
+    set('uPaperInk', t['paper-ink']);
+    set('uPaperInk3', t['paper-ink-3']);
+    tint.body = t.oak.slice(0, 3);
+    tint.oak = t.oak.slice(0, 3);
+    tint.handle = t.brass.slice(0, 3);
     paint(body, body.count, tint.body);
     paint(stickies, stickies.count, tint.sticky);
-    paint(tray, tray.count, tint.handle);
+    paint(tray, tray.count, tint.oak);
     common.uLampColor.value.setRGB(t.lamp[0], t.lamp[1], t.lamp[2]);
     unlitColor.setRGB(t.unlit[0], t.unlit[1], t.unlit[2]);
     colors.uUnlit.value.set(unlitColor.r, unlitColor.g, unlitColor.b, view.unlit);
     applyClear();
   }
 
-  function setLamp(on, x = 0, y = 0, z = 0, reach = 380) {
-    common.uLamp.value.set(x, y, z, on ? 1 : 0);
-    common.uLampReach.value = reach;
+  function setLamp(on) {
+    common.uLamp.value.set(lamp.x, lamp.y, lamp.z, on ? 1 : 0);
+    common.uLampReach.value = LAMP.REACH;
     view.lamp = on;
     applyClear();
   }

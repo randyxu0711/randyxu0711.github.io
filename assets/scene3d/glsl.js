@@ -76,7 +76,7 @@ float window(vec3 p) {
   float t = (uSill.x - p.x) / uSun.x;
   vec3 h = p + uSun * t;
   float soft = 0.012 * t;
-  vec2 size = vec2(uSill.w, uSill.w * 0.75);
+  vec2 size = vec2(uSill.w);
   vec2 q = vec2(h.z - uSill.z, h.y - uSill.y);
   vec2 e = min(q, size - q);
   float inside = smoothstep(-soft, soft, min(e.x, e.y));
