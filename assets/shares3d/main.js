@@ -983,6 +983,7 @@ function run(gl, canvas) {
     gl.setColors(tokens);
     const d = tokens.desk;
     dark = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
+    gl.setLamp(dark && lit, dark);
     tints.clear();
     if (held || deck) {
       const it = deck ? deckItem() : itemFor(held.entry);

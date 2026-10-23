@@ -316,8 +316,11 @@ export function createScene(n) {
   floorMesh.position.set(0, -ROOM_DESK.H, 0);
   scene.add(desk, wall, floorMesh);
   const _w = new THREE.Vector3();
+  let roomKey = '';
   function setRoom(r) {
     const { back, front } = r;
+    if (roomKey === back + '/' + front) return;
+    roomKey = back + '/' + front;
     desk.scale.z = front - back;
     desk.position.set(0, -ROOM_DESK.T / 2, (front + back) / 2);
     wall.position.set(0, 2000 - ROOM_DESK.H, back);
@@ -580,7 +583,7 @@ export function createScene(n) {
 
   function setLamp(on, night = on) {
     if (view.lamp === on && view.night === night) return;
-    lamp.visible = on;
+    lamp.visible = night;
     lamp.intensity = on ? LIGHTS.LAMP : 0;
     sun.visible = !night;
     sky.intensity = night ? LIGHTS.SKY_NIGHT : LIGHTS.SKY_DAY;

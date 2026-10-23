@@ -509,7 +509,8 @@ export function createScene(books, dims) {
 
   function setLamp(on, night = on) {
     if (lights.on === on && lights.night === night) return;
-    lamp.visible = on;
+    lamp.visible = night;
+    lamp.intensity = on ? LIGHTS.LAMP : 0;
     sun.visible = !night;
     sky.intensity = night ? LIGHTS.SKY_NIGHT : LIGHTS.SKY_DAY;
     lights.on = on;
