@@ -175,3 +175,32 @@ test('back covers the row height', () => { const L = layout(books, opts); const 
 - [ ] **Step 5: 驗證**:同 Task 4 Step 5(直立 / 陳列兩種排法、星等 / 年份分組都拍);索引軌、拿起、換排法、地圖鍵照常
 - [ ] **Step 6: Commit** — `feat(books): 書櫃放進書房:櫃體、背後的窗光、右邊的落地燈`
 - [ ] **Step 7: 交給使用者實測**;全部通過後更新記憶 `room-materials-followup`,問使用者要不要開 PR
+
+---
+
+## 修訂(2026-10-23):統一用 three.js 內建燈、材質、陰影
+
+Task 1–3 照舊有效(`room.js`、材質 token、`deskRoom`)。Task 4 的自寫 shader 版已 commit(`14babbd`),由 Task 7 用內建方式重做;Task 5、6 由 Task 8、9 取代。規格見 `docs/study-room.md`〈渲染方式〉。
+
+### Task 7: 剪報桌改用內建燈與材質(里程碑)
+
+**Files:** Modify `assets/shares3d/scene.js`、`assets/scene3d/glsl.js`(`window()` / `blocked()` 拿掉,留 `wood` / `fiber`);Create `assets/scene3d/lights.js`。
+
+**Interfaces:**
+- Produces: `assets/scene3d/lights.js` 匯出 `windowGobo(cols: number, rows: number, bar: number) → THREE.CanvasTexture`(白底、窗框黑線,給 `SpotLight.map`);`roomLights(scene, { sun: number[3], lamp: number[3], target: number[3], reach: number }) → { sky, window, lamp, setNight(on: boolean), setColors(tok) }`(白天:`window` 開、`lamp` 關;夜間反之;`sky` 晝夜不同強度)。
+- `scene.js` 對外介面不變(`setLamp(on)`、`setCabinet`、`setColors`…),main.js 不動。
+
+- [ ] **Step 1**:renderer 開 `shadowMap`(PCFSoft);桌、牆、地板、目錄櫃、抽屜、拉手、托盤改 `MeshStandardMaterial`(木頭 roughness ~0.7、黃銅 metalness ~0.6),木紋 / 紙纖維用 `onBeforeCompile` 乘到 `diffuseColor`
+- [ ] **Step 2**:剪報卡、tag 標籤、便利貼改 `MeshStandardMaterial` + `onBeforeCompile`:把原本 `CARD_FRAG` 的上色(拼貼、遮罩、照片)放進 `diffuseColor`,把淡出 / 霧化 / 暗幕 / 素描放在輸出前;instance 屬性沿用
+- [ ] **Step 3**:燈用 `roomLights`;西窗 SpotLight 放在 `sunDir('desk')` 方向約 4m、掛 `windowGobo(4, 3, …)`、投影;檯燈 SpotLight 在 `lampDir('desk')`、投影;拿掉手寫窗光與 drop shadow 平面(陰影改由陰影貼圖產生;淡出的卡不投影:`customDepthMaterial` 依 fade 丟棄)
+- [ ] **Step 4**:夜間拿起的卡維持紙色(Task 4 的 ruling 照舊:hero 卡不吃檯燈明暗)
+- [ ] **Step 5: 驗證**:Node 測試、建置 + htmlproofer、晝夜 × 1440 / 360 / 390 / 430 截圖(桌面層、櫃子層)、切換主題、拿起卡片換手;Playwright 在 390 寬量 2 秒的 rAF 間隔(換層動畫中)記進 ledger,跟 Task 4 版本比
+- [ ] **Step 6: Commit** — `refactor(shares): 剪報桌改用 three.js 內建燈、材質與陰影`;交使用者實測
+
+### Task 8: 地球儀(里程碑)
+
+同原 Task 5,但燈改用 `roomLights`(西窗 SpotLight 從 `sunDir('globe')`、落地燈從 `lampDir('globe')`),跟剪報桌同一套參數;矮櫃 `--oak`、牆 `--wall`;國家色階晝夜仍分得出 5 級。
+
+### Task 9: 書櫃(里程碑)
+
+同原 Task 6 的 `carcass(shelves)`(含測試),場景改內建:書的 InstancedMesh 改 `MeshStandardMaterial` + `onBeforeCompile`(封面拼貼、書脊字、淡入、暗幕 / 素描照舊),櫃體與層板投影;燈用 `roomLights`(白天 `sunDir('books')` 柔光、夜間落地燈依〈還沒定〉的 A / B)。注意 `docs/books-webgl.md`〈書架效能〉:材質不能全部 dispose、`compileAsync` 預熱照舊。
