@@ -3,6 +3,9 @@ import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpo
 import { readTokens } from 'scene3d/colors.js';
 import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
 import { clamp, lerp, easeInOut } from 'scene3d/anim.js';
+import { sunDir, lampDir } from 'scene3d/room.js';
+import { standard } from 'scene3d/standard.js';
+import { MATTER } from 'scene3d/glsl.js';
 
 const TW = 4096;
 const TH = 2048;
@@ -14,12 +17,13 @@ const RING = 1.07;
 const DOT = 13;
 const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
+const CABINET = { W: 4.67, D: 2.33, H: 5, BACK: -1.2 };
 const MIN_SPREAD = 0.08;
 const PIN_N = 80;
 const PIN_PX = 6;
 const PIN_RISE = 260;
 const PIN_STAGGER = 18;
-const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'globe-table', 'brass', 'wood', 'edge', 'desk', 'paper', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
+const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'oak', 'wall', 'brass', 'wood', 'edge', 'desk', 'paper', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
 const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid'];
 
 const css = (c) => 'rgb(' + c.slice(0, 3).map((v) => Math.round(v * 255)).join(' ') + ')';
@@ -57,11 +61,14 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 1, far: 40 });
-  const key = new THREE.SpotLight(0xffd6a6, 0, 0, 0.42, 0.75, 0);
-  key.position.set(0, 4.2, 2.2);
-  key.target.position.set(0, -0.4, 0);
+  sun.position.set(...sunDir('globe').map((k) => k * 10));
+  const key = new THREE.SpotLight(0xffd6a6, 0, 0, 0.6, 0.75, 0);
+  key.position.set(...lampDir('globe').map((k) => k * 4));
+  key.target.position.set(0, -0.3, 0);
+  key.shadow.mapSize.set(1024, 1024);
+  Object.assign(key.shadow.camera, { near: 0.5, far: 12 });
   const glow = new THREE.PointLight(0xffc690, 0, 10, 1.2);
-  glow.position.set(0, 2.2, -1.8);
+  glow.position.set(-2.2, 1.2, CABINET.BACK + 0.4);
   scene.add(hemi, sun, sun.target, key, key.target, glow);
 
   const canvas2d = (w, h) => {
@@ -116,7 +123,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   const brass = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.6 });
   const wood = new THREE.MeshStandardMaterial({ roughness: 0.6 });
-  const table = new THREE.MeshStandardMaterial({ roughness: 0.9 });
+  const table = standard({ params: { roughness: 0.8 }, head: MATTER, color: 'diffuseColor.rgb *= wood(vec2(vWorld.x + vWorld.z * 0.7, vWorld.y + vWorld.z) * 150.0, 0.1);' });
   const wallM = new THREE.MeshStandardMaterial({ roughness: 1, emissive: 0xffffff, emissiveIntensity: 0 });
   const ring = new THREE.Mesh(new THREE.TorusGeometry(RING, 0.016, 10, 160, Math.PI * 1.25), brass);
   ring.rotation.z = -Math.PI / 2 - 0.35;
@@ -125,11 +132,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const base = new THREE.Mesh(new THREE.CylinderGeometry(0.46, 0.53, 0.12, 48), wood);
   base.position.y = -RING - 0.32;
   base.castShadow = true;
-  const desk = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.08, 2.0), table);
-  desk.position.y = -RING - 0.42;
+  const desk = new THREE.Mesh(new THREE.BoxGeometry(CABINET.W, CABINET.H, CABINET.D), table);
+  desk.position.set(0, -RING - 0.38 - CABINET.H / 2, CABINET.BACK + CABINET.D / 2);
   desk.receiveShadow = true;
+  desk.castShadow = true;
   const wall = new THREE.Mesh(new THREE.PlaneGeometry(60, 400), wallM);
-  wall.position.z = -3;
+  wall.position.z = CABINET.BACK - 0.01;
   wall.receiveShadow = true;
   root3.add(ring, post, base, desk, wall);
 
@@ -460,10 +468,10 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     brass.metalness = night ? 0.55 : 0.6;
     wood.color.setRGB(...tok.wood.slice(0, 3));
     wood.roughness = night ? 0.4 : 0.6;
-    table.color.setRGB(...tok['globe-table'].slice(0, 3));
-    wallM.color.setRGB(...tok.desk.slice(0, 3));
-    wallM.emissive.setRGB(...tok.desk.slice(0, 3));
-    wallM.emissiveIntensity = night ? 0.22 : 0.3;
+    table.color.setRGB(...tok.oak.slice(0, 3));
+    wallM.color.setRGB(...tok.wall.slice(0, 3));
+    wallM.emissive.setRGB(...tok.wall.slice(0, 3));
+    wallM.emissiveIntensity = night ? 0.22 : 0.05;
     wallMat.color.setRGB(...dark(tok.edge, 0.85).slice(0, 3));
     ballMat.emissiveIntensity = night ? 0.8 : 0;
     glowU.value = night ? 0.8 : 0;
@@ -475,6 +483,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     sun.intensity = night ? 0.1 : 1.4;
     sun.castShadow = !night;
     key.intensity = night ? 3 : 0;
+    key.castShadow = night;
     glow.intensity = night ? 7 : 0;
     stale = true;
     if (S.mode !== 'off') fresh();
