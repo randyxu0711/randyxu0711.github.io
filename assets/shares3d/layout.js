@@ -272,6 +272,13 @@ export function cabCam(aspect, a = BASE, bottom = -1, top = 1) {
 export const PULL = CAB.DEPTH - 60;
 export const LEAN = { FORWARD: 0.62, BACK: -0.35, FRONT: 64, FLOOR: 6 };
 
+export function drawerSink(top, out) {
+  const over = top - (DRAWER.H / 2 - 3);
+  if (over <= 0) return 0;
+  const t = Math.min(1, Math.max(0, (out + 10) / 30));
+  return over * (1 - t * t * (3 - 2 * t));
+}
+
 export function drawerOut(cab, k) {
   const s = cab.slots[k];
   return { x: s.x, y: s.y, z: cab.z + PULL };

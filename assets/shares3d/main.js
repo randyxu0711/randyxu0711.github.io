@@ -3,7 +3,7 @@ import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
-  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
+  drawerOut, drawerCards, drawerSink, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -256,7 +256,10 @@ function run(gl, canvas) {
     const local = drawerCards(w.n, at - w.start)[e.j - w.start];
     const r = local.rx + nudgeOf(e, at);
     const h = CARD.H / 2;
-    return { x: f.x, y: f.y + local.y + (Math.cos(r) - Math.cos(local.rx)) * h, z: f.z + local.z + (Math.sin(r) - Math.sin(local.rx)) * h, q: quat(r, 0) };
+    const y = local.y + (Math.cos(r) - Math.cos(local.rx)) * h;
+    const z = local.z + (Math.sin(r) - Math.sin(local.rx)) * h;
+    const sink = drawerSink(y + Math.cos(r) * h, fronts[e.k] + z + Math.sin(r) * h);
+    return { x: f.x, y: f.y + y - sink, z: f.z + z, q: quat(r, 0) };
   }
 
   function nudgeOf(e, at) {
