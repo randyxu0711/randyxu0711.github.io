@@ -923,7 +923,7 @@ function run(gl, canvas) {
       dirty = false;
     }
 
-    gl.setLamp(dark && lit);
+    gl.setLamp(dark && lit, dark);
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
     const count = hits ? (deck ? `${deck.at + 1} / ${deck.ids.length}` : t('shares3d.matches', 0)) : s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {

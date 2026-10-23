@@ -62,27 +62,4 @@ float wood(vec2 p, float amt) {
 float fiber(vec2 p) {
   return 0.985 + 0.02 * vnoise(p * 0.9) + 0.01 * vnoise(p * 5.0) - 0.015;
 }
-uniform vec3 uSun;
-uniform vec4 uSill;
-uniform vec4 uCab;
-float blocked(vec3 p) {
-  vec3 lo = (vec3(-uCab.x, -1.0, uCab.w) - p) / uSun;
-  vec3 hi = (vec3(uCab.x, uCab.y, uCab.z) - p) / uSun;
-  vec3 a = min(lo, hi);
-  vec3 b = max(lo, hi);
-  return step(max(max(a.x, a.y), max(a.z, 0.5)), min(min(b.x, b.y), b.z));
-}
-float window(vec3 p) {
-  float t = (uSill.x - p.x) / uSun.x;
-  vec3 h = p + uSun * t;
-  float soft = 0.012 * t;
-  vec2 size = vec2(uSill.w);
-  vec2 q = vec2(h.z - uSill.z, h.y - uSill.y);
-  vec2 e = min(q, size - q);
-  float inside = smoothstep(-soft, soft, min(e.x, e.y));
-  vec2 pane = size / vec2(4.0, 3.0);
-  vec2 bar = abs(fract(q / pane + 0.5) - 0.5) * pane;
-  float frame = smoothstep(16.0 - soft, 16.0 + soft, min(bar.x, bar.y));
-  return inside * frame * (1.0 - blocked(p));
-}
 `;

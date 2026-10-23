@@ -58,7 +58,8 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
     心得便利貼、已開過的勾、封存的紅章。
   - 頁面不捲動(舞台一個畫面高),footer 固定成工具列下面的一行(後面有 `--desk` 漸層底)。桌面是 `--desk` 的木板桌,櫃子與抽屜是橡木(`--oak`)。
   - 拿起 = 3D 卡飛到 `held.js` 的 HTML 卡位置後換手(同版面的剪報卡);翻面看心得 / 摘要;← → / 左右滑換一張。
-  - 主角之外淡出;光照房間平面圖固定(`docs/study-room.md`,`assets/scene3d/room.js`):白天只有左邊的西窗(窗格影子投在桌上與剪報上)、夜間只有桌子左側的檯燈,燈與窗都不畫、不跟游標或主角移動。
+  - 主角之外淡出;光照房間平面圖固定(`docs/study-room.md`,`assets/scene3d/room.js`):白天只有左邊的西窗(遠處的 `SpotLight` 掛窗格 gobo `scene3d/gobo.js`,窗格與目錄櫃的影子由陰影貼圖產生)、夜間只有桌子左側的檯燈(投影的 `SpotLight`),燈與窗都不畫、不跟游標或主角移動。
+    材質是 three.js 內建 `MeshStandardMaterial`,剪報拼貼、遮罩上色、淡出、開場用 `scene3d/standard.js` 的 `onBeforeCompile` 接進去;離開桌面的卡不吃打光(維持紙色,跟 HTML 卡換手不跳色)。
     書桌有範圍(`deskRoom`,牆跟著 `cab.z` 走,不能用 `CAB.Z`)、牆、地板;剪報與拿起的 HTML 卡晝夜都是紙(`--paper-card`),目錄櫃是橡木 + 黃銅;底部提示列(`hint.js`)與換層按鈕。`/` 搜尋:背景霧化,符合的卡疊成牌疊左右翻。
   - 純函式在 `layout.js`(桌上 / 分組 / 櫃子 / 鏡頭 / 撥卡 / 搜尋 / 縮圖網址),用 `node:test` 測(`tools/shares3d/`)。窄螢幕(直立)桌面與櫃子改 2 欄。
   - **保底**:`share-card.html` 的格狀清單(縮圖磁磚 + 停留浮出心得)照常輸出,沒有 JS / WebGL 失敗時顯示;有 JS 時視覺隱藏,Tab 到一張 = 場景裡移過去,Enter 拿起。
