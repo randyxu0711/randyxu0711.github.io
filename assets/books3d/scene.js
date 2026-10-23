@@ -1,15 +1,19 @@
 import * as THREE from 'three';
-import { W, LIP } from 'books3d/layout.js';
-import { LIGHT, REVEAL, SKETCH } from 'scene3d/glsl.js';
+import { W, LIP, carcass } from 'books3d/layout.js';
+import { REVEAL, SKETCH, MATTER } from 'scene3d/glsl.js';
 import { box } from 'scene3d/geometry.js';
+import { standard } from 'scene3d/standard.js';
+import { sunDir, lampDir } from 'scene3d/room.js';
 
 export const SHELF_FRONT = 10;
 export const SHELF_DEPTH = W + 30;
 const SHADOW = 30;
 const DIST = 1.5;
 const EYE = 0.25;
+const BACK_T = 8;
+const LIGHTS = { SKY_DAY: 1.9, SKY_NIGHT: 0.9, SUN: 1.4, LAMP: 5.5, LAMP_ANGLE: 0.9 };
 
-const BOOK_VERT = /* glsl */ `
+const BOOK_ATTRS = /* glsl */ `
 attribute float face;
 #ifdef HELD
 uniform vec3 iColor;
@@ -29,42 +33,41 @@ varying vec3 vInk;
 varying vec4 vState;
 varying vec4 vCover;
 varying vec4 vSpine;
-varying vec3 vN;
 varying vec3 vLocal;
 varying vec3 vSize;
-varying vec2 vUv;
 varying float vFace;
-varying vec3 vWorld;
-void main() {
-  mat4 m = modelMatrix;
-#ifdef USE_INSTANCING
-  m = m * instanceMatrix;
-#endif
-  vec4 w = m * vec4(position, 1.0);
-  vWorld = w.xyz;
-  vSize = vec3(length(m[0].xyz), length(m[1].xyz), length(m[2].xyz));
-  vN = mat3(m) * normal;
-  vLocal = position;
-  vUv = uv;
-  vFace = face;
-  vColor = iColor;
-  vInk = iInk;
-  vState = iState;
-  vCover = iCover;
-  vSpine = iSpine;
-  gl_Position = projectionMatrix * viewMatrix * w;
-}
 `;
 
-const BOOK_FRAG = /* glsl */ `
+const BOOK_VERTEX = /* glsl */ `
+mat4 bm = modelMatrix;
+#ifdef USE_INSTANCING
+bm = bm * instanceMatrix;
+#endif
+vSize = vec3(length(bm[0].xyz), length(bm[1].xyz), length(bm[2].xyz));
+vLocal = position;
+vFace = face;
+vColor = iColor;
+vInk = iInk;
+vState = iState;
+vCover = iCover;
+vSpine = iSpine;
+`;
+
+const SCENE_HEAD = /* glsl */ `
+uniform vec3 uDesk;
+uniform vec3 uLight;
+uniform float uDim;
+uniform vec4 uUnlit;
+${SKETCH}
+${MATTER}
+`;
+
+const BOOK_HEAD = SCENE_HEAD + `
 uniform vec3 uPaper;
 uniform vec3 uPaperDeep;
 uniform vec3 uEdge;
 uniform sampler2D uCovers;
 uniform sampler2D uSpines;
-uniform vec3 uDesk;
-uniform float uDim;
-uniform vec4 uUnlit;
 #ifdef HELD
 uniform sampler2D uBack;
 #endif
@@ -73,13 +76,9 @@ varying vec3 vInk;
 varying vec4 vState;
 varying vec4 vCover;
 varying vec4 vSpine;
-varying vec3 vN;
 varying vec3 vLocal;
 varying vec3 vSize;
-varying vec2 vUv;
 varying float vFace;
-${LIGHT}
-${SKETCH}
 float stripes(float x) {
   float s = x / 3.0;
   float aa = clamp(fwidth(s) * 1.5, 0.0, 1.0);
@@ -92,84 +91,77 @@ vec3 spineShade(vec3 c, float u) {
     : mix(vec4(1.0, 1.0, 1.0, 0.1), vec4(0.0, 0.0, 0.0, 0.22), (u - 0.78) / 0.22);
   return mix(c, g.rgb, g.a);
 }
-void main() {
-  int f = int(vFace + 0.5);
-  float lx = vLocal.x * vSize.x;
-  float ly = vLocal.y * vSize.y;
-  float lz = vLocal.z * vSize.z;
-  vec3 c = vColor;
-  if (f == 2 || f == 5) {
-    float board = step(vSize.x * 0.5 - 1.3, abs(lx));
-    if (f == 2) board = max(board, step(vSize.z * 0.5 - 2.0, lz));
-    c = mix(mix(uPaper, uPaperDeep, stripes(lx + vSize.x * 0.5)), vColor, board);
-  } else if (f == 3) {
-    c = uPaperDeep;
-  } else if (f == 4) {
-    c = spineShade(c, vUv.x);
-    if (vState.w > 0.0) c = mix(c, vInk, vState.w * texture2D(uSpines, vSpine.xy + vec2(vUv.x, 1.0 - vUv.y) * vSpine.zw).r);
-  } else if (f == 0) {
-    if (vState.x > 0.0) c = mix(c, texture2D(uCovers, vCover.xy + vUv * vCover.zw).rgb, vState.x);
-    float u = vUv.x;
-    c = mix(c, vec3(0.0), 0.22 * (1.0 - smoothstep(0.0, 0.06, u)));
-    c = mix(c, vec3(1.0), 0.08 * smoothstep(0.06, 0.08, u) * (1.0 - smoothstep(0.08, 0.13, u)));
-  } else if (f == 1) {
+`;
+
+const BOOK_COLOR = /* glsl */ `
+int f = int(vFace + 0.5);
+float lx = vLocal.x * vSize.x;
+float ly = vLocal.y * vSize.y;
+float lz = vLocal.z * vSize.z;
+vec3 c = vColor;
+if (f == 2 || f == 5) {
+  float board = step(vSize.x * 0.5 - 1.3, abs(lx));
+  if (f == 2) board = max(board, step(vSize.z * 0.5 - 2.0, lz));
+  c = mix(mix(uPaper, uPaperDeep, stripes(lx + vSize.x * 0.5)), vColor, board);
+} else if (f == 3) {
+  c = uPaperDeep;
+} else if (f == 4) {
+  c = spineShade(c, vUv.x);
+  if (vState.w > 0.0) c = mix(c, vInk, vState.w * texture2D(uSpines, vSpine.xy + vec2(vUv.x, 1.0 - vUv.y) * vSpine.zw).r);
+} else if (f == 0) {
+  if (vState.x > 0.0) c = mix(c, texture2D(uCovers, vCover.xy + vUv * vCover.zw).rgb, vState.x);
+  float u = vUv.x;
+  c = mix(c, vec3(0.0), 0.22 * (1.0 - smoothstep(0.0, 0.06, u)));
+  c = mix(c, vec3(1.0), 0.08 * smoothstep(0.06, 0.08, u) * (1.0 - smoothstep(0.08, 0.13, u)));
+} else if (f == 1) {
 #ifdef HELD
-    c = texture2D(uBack, vUv).rgb;
+  c = texture2D(uBack, vUv).rgb;
 #else
-    c = mix(c, vec3(1.0), 0.06);
+  c = mix(c, vec3(1.0), 0.06);
 #endif
-  }
-  if (f == 0 || f == 4) c = mix(c, uEdge, vState.y * (1.0 - smoothstep(2.6, 3.6, ly)));
-  if (f != 2 && f != 3) c *= mix(1.0, mix(0.8, 1.0, smoothstep(0.0, 14.0, ly)), vState.z);
-  gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);
 }
+if (f == 0 || f == 4) c = mix(c, uEdge, vState.y * (1.0 - smoothstep(2.6, 3.6, ly)));
+if (f != 2 && f != 3) c *= mix(1.0, mix(0.8, 1.0, smoothstep(0.0, 14.0, ly)), vState.z);
+diffuseColor.rgb = c;
 `;
 
-const SHELF_VERT = /* glsl */ `
+const FINISH = /* glsl */ `
+gl_FragColor.rgb = mix(mix(sketch(gl_FragColor.rgb, inverseTransformDirection(normal, viewMatrix), vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a);
+`;
+
+const HELD_FINISH = 'gl_FragColor.rgb = diffuseColor.rgb * (0.78 + 0.27 * max(dot(inverseTransformDirection(normal, viewMatrix), uLight), 0.0));';
+
+const SHELF_ATTRS = /* glsl */ `
 attribute float face;
-varying vec3 vN;
 varying vec3 vLocal;
 varying float vFace;
-varying vec2 vUv;
-varying vec3 vWorld;
-void main() {
-  mat4 m = modelMatrix * instanceMatrix;
-  vUv = uv;
-  vWorld = (m * vec4(position, 1.0)).xyz;
-  vN = mat3(m) * normal;
-  vLocal = position;
-  vFace = face;
-  gl_Position = projectionMatrix * viewMatrix * m * vec4(position, 1.0);
-}
 `;
 
-const SHELF_FRAG = /* glsl */ `
+const SHELF_HEAD = SCENE_HEAD + `
 uniform vec3 uShelf;
-uniform vec3 uDesk;
-uniform vec3 uEdgeN;
-uniform float uDim;
-uniform vec4 uUnlit;
-varying vec3 vN;
 varying vec3 vLocal;
 varying float vFace;
-varying vec2 vUv;
-${LIGHT}
-${SKETCH}
-void main() {
-  int f = int(vFace + 0.5);
-  vec3 c = uShelf;
-  if (f == 2) {
-    float t = clamp((${SHELF_FRONT.toFixed(1)} - vLocal.z) / ${(SHELF_FRONT + SHELF_DEPTH).toFixed(1)}, 0.0, 1.0);
-    c = mix(uShelf, mix(uShelf, uDesk, 0.45), t);
-  } else if (f == 4) {
-    c = mix(uShelf, uEdgeN, step(vLocal.y, -${(LIP * 0.64).toFixed(1)}));
-    c = mix(c, vec3(1.0), 0.35 * (1.0 - smoothstep(0.0, 1.2, -vLocal.y)));
-  } else {
-    c = uEdgeN;
-  }
-  gl_FragColor = vec4(mix(mix(sketch(lit(c, vN), vN, vUv), uDesk, uDim), uUnlit.rgb, uUnlit.a), 1.0);
-}
 `;
+
+const SHELF_COLOR = /* glsl */ `
+int f = int(vFace + 0.5);
+vec3 c = uShelf * wood(vec2(vWorld.x, vWorld.z * 3.0 + vWorld.y), 0.14);
+if (f == 4) c = mix(c, vec3(1.0), 0.25 * (1.0 - smoothstep(0.0, 1.2, -vLocal.y)));
+else if (f != 2) c *= 0.85;
+diffuseColor.rgb = c;
+`;
+
+const CASE_ATTRS = /* glsl */ `
+attribute float iTone;
+varying float vTone;
+`;
+
+const CASE_HEAD = SCENE_HEAD + `
+uniform vec3 uShelf;
+varying float vTone;
+`;
+
+const CASE_COLOR = 'diffuseColor.rgb = uShelf * vTone * wood(vec2(vWorld.x + vWorld.z, vWorld.y * 0.2), 0.12);';
 
 const SHADOW_VERT = /* glsl */ `
 varying float vT;
@@ -195,6 +187,8 @@ export function createScene(books, dims) {
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   const canvas = renderer.domElement;
 
   const scene = new THREE.Scene();
@@ -202,12 +196,7 @@ export function createScene(books, dims) {
   scene.add(camera);
 
   const common = {
-    uLight: { value: new THREE.Vector3(-0.3, 0.55, 0.78).normalize() },
-    uAmbient: { value: 0.6 },
-    uKey: { value: 0.5 },
-    uLamp: { value: new THREE.Vector4(0, 0, 0, 0) },
-    uLampColor: { value: new THREE.Color(1, 0.85, 0.6) },
-    uLampReach: { value: 500 },
+    uLight: { value: new THREE.Vector3(...sunDir('books')) },
   };
   const colors = {
     uPaper: { value: new THREE.Color() },
@@ -225,12 +214,24 @@ export function createScene(books, dims) {
     uInk: { value: new THREE.Color() },
   };
 
+  const sky = new THREE.HemisphereLight(0xffffff, 0xffffff, LIGHTS.SKY_DAY);
+  const sun = new THREE.DirectionalLight(0xffffff, LIGHTS.SUN);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.bias = -0.0005;
+  sun.shadow.normalBias = 1.5;
+  const lamp = new THREE.SpotLight(0xffffff, LIGHTS.LAMP, 0, LIGHTS.LAMP_ANGLE, 1, 0);
+  lamp.castShadow = true;
+  lamp.shadow.mapSize.set(1024, 1024);
+  lamp.shadow.bias = -0.0005;
+  lamp.shadow.normalBias = 1.5;
+  lamp.visible = false;
+  scene.add(sky, sun, sun.target, lamp, lamp.target);
+  const lights = { on: false, night: false };
+
+  const uniforms = Object.assign({}, common, colors);
   const n = books.length;
-  const bookMat = new THREE.ShaderMaterial({
-    uniforms: Object.assign({}, common, colors),
-    vertexShader: BOOK_VERT,
-    fragmentShader: BOOK_FRAG,
-  });
+  const bookMat = standard({ params: { roughness: 0.8 }, uniforms, attrs: BOOK_ATTRS, vertex: BOOK_VERTEX, head: BOOK_HEAD, color: BOOK_COLOR, finish: FINISH });
   const bookGeo = box(-0.5, 0.5, 0, 1, -0.5, 0.5);
   const iColor = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3);
   const iInk = new THREE.InstancedBufferAttribute(new Float32Array(n * 3), 3);
@@ -250,19 +251,30 @@ export function createScene(books, dims) {
   Object.keys(attrs).forEach((k) => bookGeo.setAttribute(k, attrs[k]));
   const bookMesh = new THREE.InstancedMesh(bookGeo, bookMat, n);
   bookMesh.frustumCulled = false;
+  bookMesh.castShadow = true;
+  bookMesh.receiveShadow = true;
   bookMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   scene.add(bookMesh);
 
   const MAX_SHELVES = n + 8;
-  const shelfMat = new THREE.ShaderMaterial({
-    uniforms: Object.assign({}, common, colors),
-    vertexShader: SHELF_VERT,
-    fragmentShader: SHELF_FRAG,
-  });
+  const shelfMat = standard({ params: { roughness: 0.7 }, uniforms, attrs: SHELF_ATTRS, vertex: 'vLocal = position; vFace = face;', head: SHELF_HEAD, color: SHELF_COLOR, finish: FINISH });
   const shelfMesh = new THREE.InstancedMesh(box(0, 1, -LIP, 0, -SHELF_DEPTH, SHELF_FRONT), shelfMat, MAX_SHELVES);
   shelfMesh.frustumCulled = false;
   shelfMesh.count = 0;
+  shelfMesh.castShadow = true;
+  shelfMesh.receiveShadow = true;
   scene.add(shelfMesh);
+
+  const caseGeo = box(0, 1, 0, 1, 0, 1);
+  const iTone = new THREE.InstancedBufferAttribute(new Float32Array(MAX_SHELVES * 3), 1);
+  caseGeo.setAttribute('iTone', iTone);
+  const caseMat = standard({ params: { roughness: 0.75 }, uniforms, attrs: CASE_ATTRS, vertex: 'vTone = iTone;', head: CASE_HEAD, color: CASE_COLOR, finish: FINISH });
+  const caseMesh = new THREE.InstancedMesh(caseGeo, caseMat, MAX_SHELVES * 3);
+  caseMesh.frustumCulled = false;
+  caseMesh.count = 0;
+  caseMesh.castShadow = true;
+  caseMesh.receiveShadow = true;
+  scene.add(caseMesh);
 
   const shadowGeo = new THREE.PlaneGeometry(1, SHADOW);
   shadowGeo.translate(0.5, -LIP - SHADOW / 2, SHELF_FRONT - 1);
@@ -318,12 +330,9 @@ export function createScene(books, dims) {
     iCover: { value: new THREE.Vector4() },
     iSpine: { value: new THREE.Vector4() },
   });
-  const held = new THREE.Mesh(bookGeo, new THREE.ShaderMaterial({
-    uniforms: heldUniforms,
-    vertexShader: BOOK_VERT,
-    fragmentShader: BOOK_FRAG,
-    defines: { HELD: '' },
-  }));
+  const heldMat = standard({ params: { roughness: 0.8 }, uniforms: heldUniforms, attrs: BOOK_ATTRS, vertex: BOOK_VERTEX, head: BOOK_HEAD, color: BOOK_COLOR, finish: HELD_FINISH + FINISH });
+  heldMat.defines.HELD = '';
+  const held = new THREE.Mesh(bookGeo, heldMat);
   held.matrixAutoUpdate = false;
   held.frustumCulled = false;
   held.visible = false;
@@ -416,13 +425,23 @@ export function createScene(books, dims) {
     }
     shelfMesh.instanceMatrix.needsUpdate = true;
     shadowMesh.instanceMatrix.needsUpdate = true;
+    const parts = carcass(list.slice(0, shelfMesh.count));
+    caseMesh.count = parts.length;
+    parts.forEach((q, k) => {
+      if (q.kind === 'back') _m.makeScale(q.w, q.h, BACK_T).setPosition(q.x, q.y, -SHELF_DEPTH - BACK_T);
+      else _m.makeScale(q.w, q.h, SHELF_DEPTH + SHELF_FRONT).setPosition(q.x, q.y, -SHELF_DEPTH);
+      caseMesh.setMatrixAt(k, _m);
+      iTone.setX(k, q.kind === 'back' ? 0.62 : 1);
+    });
+    caseMesh.instanceMatrix.needsUpdate = true;
+    iTone.needsUpdate = true;
   }
 
   function setColors(t) {
     colors.uPaper.value.setRGB(...t.paper);
     colors.uPaperDeep.value.setRGB(...t['paper-deep']);
     colors.uEdge.value.setRGB(...t.edge);
-    colors.uShelf.value.setRGB(...t.shelf);
+    colors.uShelf.value.setRGB(...t.oak);
     colors.uDesk.value.setRGB(...t.desk);
     colors.uEdgeN.value.setRGB(...t['edge-n']);
     colors.uDrop.value.set(...t['drop-near']);
@@ -430,7 +449,8 @@ export function createScene(books, dims) {
     desk.setRGB(...t.desk);
     unlit.setRGB(...t.unlit);
     setUnlit(colors.uUnlit.value.w);
-    common.uLampColor.value.setRGB(...t.lamp);
+    lamp.color.setRGB(...t.lamp);
+    sky.groundColor.setRGB(...t.desk);
   }
 
   function setSketch(r) {
@@ -460,6 +480,24 @@ export function createScene(books, dims) {
     camera.far = far;
     camera.projectionMatrix.makePerspective(-cam.span / 2 * k, cam.span / 2 * k, EYE * hv * k, (EYE - 1) * hv * k, near, far);
     camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    aimLights(cam.cx, eyeY + (EYE - 0.5) * hv, Math.max(cam.span, hv));
+  }
+
+  function aimLights(cx, cy, size) {
+    const d = sunDir('books');
+    const far = size * 2;
+    sun.target.position.set(cx, cy, 0);
+    sun.position.set(cx + d[0] * far, cy + d[1] * far, d[2] * far);
+    Object.assign(sun.shadow.camera, { left: -size * 0.7, right: size * 0.7, top: size * 0.7, bottom: -size * 0.7, near: far * 0.5, far: far * 1.6 });
+    sun.shadow.camera.updateProjectionMatrix();
+    sun.target.updateMatrixWorld();
+    const l = lampDir('books');
+    const reach = size * 1.1;
+    lamp.position.set(cx + l[0] * reach, cy + l[1] * reach, l[2] * reach);
+    lamp.target.position.set(cx + size * 0.12, cy, 0);
+    lamp.shadow.camera.near = reach * 0.3;
+    lamp.shadow.camera.far = reach * 2.5;
+    lamp.target.updateMatrixWorld();
   }
 
   const raycaster = new THREE.Raycaster();
@@ -471,20 +509,13 @@ export function createScene(books, dims) {
     return hit ? hit.instanceId : -1;
   }
 
-  const lampPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -120);
-  function setLamp(on, x, y, span) {
-    common.uLamp.value.w = on ? 1 : 0;
-    if (!on) return;
-    ndc.set(x / size.w * 2 - 1, 1 - y / size.h * 2);
-    raycaster.setFromCamera(ndc, camera);
-    const p = raycaster.ray.intersectPlane(lampPlane, _v);
-    if (p) common.uLamp.value.set(p.x, p.y, p.z, 1);
-    common.uLampReach.value = span * 0.55;
-  }
-
-  function setLampAt(on, x, y, z, reach) {
-    common.uLamp.value.set(x, y, z, on ? 1 : 0);
-    common.uLampReach.value = reach;
+  function setLamp(on, night = on) {
+    if (lights.on === on && lights.night === night) return;
+    lamp.visible = on;
+    sun.visible = !night;
+    sky.intensity = night ? LIGHTS.SKY_NIGHT : LIGHTS.SKY_DAY;
+    lights.on = on;
+    lights.night = night;
   }
 
   function pickHeld(x, y) {
@@ -508,5 +539,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, setLampAt, warm };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, warm };
 }

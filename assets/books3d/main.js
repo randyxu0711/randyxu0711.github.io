@@ -35,7 +35,7 @@ const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const n = books.length;
 const VIEW_KEY = 'books3d-view';
 const SORT_KEY = 'books3d-sort';
-const TOKENS = ['desk', 'shelf', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near', 'unlit', 'ink', 'lamp'];
+const TOKENS = ['desk', 'shelf', 'oak', 'paper', 'paper-deep', 'edge', 'edge-n', 'drop-near', 'unlit', 'ink', 'lamp'];
 const SHUFFLE = 1600;
 const FADE = 0.3;
 const STAGGER = 400;
@@ -1174,13 +1174,7 @@ async function start() {
   }
 
   function placeLamp() {
-    if (held && held.phase !== 'down') {
-      const h = dims[held.i].h;
-      gl.setLampAt(lampOn && lit, heldPose.x, heldPose.y + h * 1.1, heldPose.z + h * 1.3, h * 2.2);
-      return;
-    }
-    const hover = window.matchMedia('(hover: hover)').matches && pointer.time;
-    gl.setLamp(lampOn && lit && !(globe && globe.active), hover ? pointer.x : canvas.clientWidth / 2, hover ? pointer.y : window.innerHeight / 2, m.span);
+    gl.setLamp(lampOn && lit && !(globe && globe.active), lampOn);
   }
 
   const nav = document.querySelector('.nav');

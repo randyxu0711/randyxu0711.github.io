@@ -8,7 +8,7 @@ export const ROOM = {
   DESK,
   WINDOW,
   DESK_LAMP: [DESK.x0 + 120, DESK.top + 500, DESK.z0 + 300],
-  FLOOR_LAMP: [3400, 1500, 4000],
+  FLOOR_LAMP: [2700, 1500, 3500],
   BOOKCASE: [3440, 1300, 2100],
   GLOBE: [1900, 900, 4000],
 };

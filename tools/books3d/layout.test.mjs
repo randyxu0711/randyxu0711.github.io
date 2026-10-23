@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { layout, viewSpan, inView, countryRun, MERGE_YEARS, PAD, GAP, W, SORT_NAMES } from 'books3d/layout.js';
+import { layout, viewSpan, inView, countryRun, carcass, SIDE, LIP, MERGE_YEARS, PAD, GAP, W, SORT_NAMES } from 'books3d/layout.js';
 
 const book = (extra = {}) => ({ r: 3, d: '2024-01-01', a: 'Author', p: 300, q: 0.66, c: '#888888', ...extra });
 const many = (n, f) => Array.from({ length: n }, (_, k) => book(f(k)));
@@ -196,4 +196,36 @@ test('countryRun finds where a country starts on its shelf and how many books it
   assert.equal(countryRun(L, books, 'Atlantis'), null);
   assert.equal(countryRun(L, books, 'Peru'), null);
   assert.equal(countryRun(lay(books, 'rating'), books, 'Sweden'), null);
+});
+
+const rows = [{ x: -100, y: 0, length: 900 }, { x: 40, y: -300, length: 600 }, { x: 0, y: -620, length: 700 }];
+
+test('every shelf gets a back and two sides', () => {
+  const parts = carcass(rows);
+  assert.equal(parts.length, rows.length * 3);
+  assert.equal(parts.filter((p) => p.kind === 'back').length, rows.length);
+});
+
+test('sides flank the shelf ends', () => {
+  rows.forEach((s, k) => {
+    const [l, r] = carcass(rows).slice(k * 3, k * 3 + 3).filter((p) => p.kind === 'side');
+    assert.equal(l.x + l.w, s.x);
+    assert.equal(r.x, s.x + s.length);
+    assert.equal(l.w, SIDE);
+  });
+});
+
+test('backs reach the underside of the shelf above', () => {
+  const backs = carcass(rows).filter((p) => p.kind === 'back');
+  for (let k = 1; k < rows.length; k++) {
+    assert.equal(backs[k].y, rows[k].y);
+    assert.equal(backs[k].y + backs[k].h, rows[k - 1].y - LIP);
+    assert.equal(backs[k].w, rows[k].length);
+  }
+  assert.ok(backs[0].h > 0);
+});
+
+test('a lone shelf still gets a back', () => {
+  const [back] = carcass([{ x: 0, y: 0, length: 500 }]);
+  assert.ok(back.h > 100);
 });
