@@ -119,10 +119,6 @@ if (int(vFace + 0.5) == 4) c = mix(c, ink, texture2D(uLabels, vTile.xy + vUv * v
 diffuseColor.rgb = c;
 `;
 
-const DRAWER_HEAD = INST_HEAD + `
-uniform sampler2D uLabels;
-`;
-
 const DRAWER_COLOR = /* glsl */ `
 int f = int(vFace + 0.5);
 vec3 c = mix(uOak, uEdge, vHot) * wood(vWorld.xy + vec2(vWorld.z, 0.0), 0.12);
@@ -181,6 +177,28 @@ diffuseColor.rgb = c * ao;
 `;
 
 const FLOOR_COLOR = 'diffuseColor.rgb = uWall * 0.42;';
+
+const KIND_ATTRS = 'attribute float kind;\nvarying float vKind;\n';
+const ROOM_COLOR = `
+if (vKind < 0.5) {
+${DESK_COLOR}
+} else if (vKind < 1.5) {
+${WALL_COLOR}
+} else {
+${FLOOR_COLOR}
+}
+`;
+const PART_HEAD = TAB_HEAD + 'varying float vKind;\n';
+const PART_COLOR = `
+if (vKind > 3.5) {
+${DRAWER_COLOR}
+} else if (vKind > 2.5) {
+${TAB_COLOR}
+} else {
+  diffuseColor.rgb = vColor * (abs(vKind - 1.0) < 0.5 ? wood(vWorld.xy + vec2(vWorld.z * 0.7, 0.0), 0.16) : 1.0);
+}
+`;
+const PART_SURFACE = 'if (vKind > 3.5 || abs(vKind - 1.0) < 0.5) { roughnessFactor = 0.7; } else if (abs(vKind - 2.0) < 0.5) { metalnessFactor = 0.45; roughnessFactor = 0.35; }';
 
 const FLAT_VERT = /* glsl */ `
 attribute vec4 iTile;
@@ -274,7 +292,8 @@ export function createScene(n) {
   const uniforms = Object.assign({}, common, colors);
   const material = (vertexShader, fragmentShader, extra = {}) => new THREE.ShaderMaterial(Object.assign({ uniforms, vertexShader, fragmentShader }, extra));
   const inst = (head, color, params = {}, attrs = INST_ATTRS, finish = FINISH) => standard({ params: Object.assign({ roughness: 0.85 }, params), uniforms, attrs, vertex: attrs === INST_ATTRS ? INST_VERTEX : INST_VERTEX + ' vPhoto = iPhoto; vHero = iHero; vPhotoTile = iPhotoTile;', head, color, finish });
-  const room = (color, params = {}) => standard({ params: Object.assign({ roughness: 0.9 }, params), uniforms, head: ROOM_HEAD, color, finish: ROOM_FINISH });
+  const kinded = (geo, k) => geo.setAttribute('kind', new THREE.BufferAttribute(new Float32Array(geo.attributes.position.count).fill(k), 1)) && geo;
+  const roomMat = standard({ params: { roughness: 0.95 }, uniforms, attrs: KIND_ATTRS, vertex: 'vKind = kind;', head: ROOM_HEAD + 'varying float vKind;\n', color: ROOM_COLOR, finish: ROOM_FINISH });
   const depth = fadeDepth();
 
   const sky = new THREE.HemisphereLight(0xffffff, 0xffffff, LIGHTS.SKY_DAY);
@@ -308,11 +327,11 @@ export function createScene(n) {
   const flatAttrs = { iTile: 4, iInner: 2, iFade: 1 };
   const flatGeo = (w, h) => new THREE.PlaneGeometry(w, h).rotateX(-Math.PI / 2);
 
-  const desk = new THREE.Mesh(new THREE.BoxGeometry(ROOM_DESK.W, ROOM_DESK.T, 1), room(DESK_COLOR));
+  const desk = new THREE.Mesh(kinded(new THREE.BoxGeometry(ROOM_DESK.W, ROOM_DESK.T, 1), 0), roomMat);
   desk.receiveShadow = true;
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(8000, 4000), room(WALL_COLOR, { roughness: 1 }));
+  const wall = new THREE.Mesh(kinded(new THREE.PlaneGeometry(8000, 4000), 1), roomMat);
   wall.receiveShadow = true;
-  const floorMesh = new THREE.Mesh(flatGeo(8000, 8000), room(FLOOR_COLOR, { roughness: 1 }));
+  const floorMesh = new THREE.Mesh(kinded(flatGeo(8000, 8000), 2), roomMat);
   floorMesh.position.set(0, -ROOM_DESK.H, 0);
   scene.add(desk, wall, floorMesh);
   const _w = new THREE.Vector3();
@@ -350,15 +369,13 @@ export function createScene(n) {
   const maxCards = n + WINDOW;
   const shadows = instanced(flatGeo(1, 1), material(FLAT_VERT, SHADOW_FRAG, { transparent: true, depthWrite: false }), 40, flatAttrs);
   const cards = instanced(box(-CARD.W / 2, CARD.W / 2, -CARD.H / 2, CARD.H / 2, -CARD.T / 2, CARD.T / 2), inst(CARD_HEAD, CARD_COLOR, { roughness: 0.95 }, CARD_ATTRS, 'gl_FragColor.rgb = mix(gl_FragColor.rgb, diffuseColor.rgb, max(hm, smoothstep(30.0, 150.0, vWorld.y)));' + FINISH), maxCards, Object.assign({ iPhoto: 1, iHero: 1, iPhotoTile: 4 }, solidAttrs));
-  const solidMat = inst(INST_HEAD, 'diffuseColor.rgb = vColor;');
-  const woodMat = inst(INST_HEAD, 'diffuseColor.rgb = vColor * wood(vWorld.xy + vec2(vWorld.z * 0.7, 0.0), 0.16);', { roughness: 0.7 });
-  const brassMat = inst(INST_HEAD, 'diffuseColor.rgb = vColor;', { roughness: 0.35, metalness: 0.45 });
-  const tabs = instanced(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), inst(TAB_HEAD, TAB_COLOR), maxCards * TAB.MAX, solidAttrs);
-  const stickies = instanced(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), solidMat, maxCards, solidAttrs);
-  const tray = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), woodMat, 4, solidAttrs);
-  const body = instanced(box(-0.5, 0.5, 0, 1, -0.5, 0.5), woodMat, 1, solidAttrs);
-  const fronts = instanced(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), inst(DRAWER_HEAD, DRAWER_COLOR, { roughness: 0.7 }), maxDrawers, solidAttrs);
-  const handles = instanced(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), brassMat, maxDrawers, solidAttrs);
+  const partMat = standard({ params: { roughness: 0.85 }, uniforms, attrs: INST_ATTRS + KIND_ATTRS, vertex: INST_VERTEX + ' vKind = kind;', head: PART_HEAD, color: PART_COLOR, surface: PART_SURFACE, finish: FINISH });
+  const tabs = instanced(kinded(box(-TAB.W / 2, TAB.W / 2, 0, TAB.H, -CARD.T / 2, CARD.T / 2), 3), partMat, maxCards * TAB.MAX, solidAttrs);
+  const stickies = instanced(kinded(box(-STICKY / 2, STICKY / 2, -STICKY / 2, STICKY / 2, 0, 0.3), 0), partMat, maxCards, solidAttrs);
+  const tray = instanced(kinded(box(-0.5, 0.5, 0, 1, -0.5, 0.5), 1), partMat, 4, solidAttrs);
+  const body = instanced(kinded(box(-0.5, 0.5, 0, 1, -0.5, 0.5), 1), partMat, 1, solidAttrs);
+  const fronts = instanced(kinded(box(-DRAWER.W / 2, DRAWER.W / 2, -DRAWER.H / 2, DRAWER.H / 2, 0, DRAWER.D), 4), partMat, maxDrawers, solidAttrs);
+  const handles = instanced(kinded(box(-HANDLE.W / 2, HANDLE.W / 2, -HANDLE.H / 2, HANDLE.H / 2, 0, HANDLE.D), 2), partMat, maxDrawers, solidAttrs);
   [cards, tabs, tray, body, fronts, handles].forEach((mesh) => {
     mesh.castShadow = true;
     mesh.receiveShadow = true;

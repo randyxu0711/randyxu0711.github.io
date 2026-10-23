@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-export function standard({ params = {}, uniforms = {}, attrs = '', vertex = '', head = '', color = '', finish = '' }) {
+export function standard({ params = {}, uniforms = {}, attrs = '', vertex = '', head = '', color = '', surface = '', finish = '' }) {
   const m = new THREE.MeshStandardMaterial(params);
   m.defines = Object.assign({ USE_UV: '' }, m.defines);
-  const key = attrs + vertex + head + color + finish;
+  const key = attrs + vertex + head + color + surface + finish;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, uniforms);
     sh.vertexShader = sh.vertexShader
@@ -20,6 +20,7 @@ ${vertex}`);
     sh.fragmentShader = sh.fragmentShader
       .replace('#include <common>', `#include <common>\nvarying vec3 vWorld;\n${head}`)
       .replace('#include <map_fragment>', `#include <map_fragment>\n${color}`)
+      .replace('#include <metalnessmap_fragment>', `#include <metalnessmap_fragment>\n${surface}`)
       .replace('#include <dithering_fragment>', `#include <dithering_fragment>\n${finish}`);
   };
   m.customProgramCacheKey = () => key;
