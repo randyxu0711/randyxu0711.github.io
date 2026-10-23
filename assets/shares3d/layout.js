@@ -104,6 +104,12 @@ function ndc(pos, look, aspect, pt) {
   return [dot(right) / depth / (TAN * aspect), dot(up) / depth / TAN];
 }
 
+export const ROOM_DESK = { W: 1600, T: 32, H: 740, FRONT: 520, GAP: 10 };
+
+export function deskRoom(a) {
+  return { back: a.cab.z - a.cab.depth - ROOM_DESK.GAP, front: ROOM_DESK.FRONT, width: ROOM_DESK.W };
+}
+
 export function arrange(nDesk, nDrawers, narrow) {
   const cols = narrow ? 2 : DESK.COLS;
   const rows = Math.max(1, Math.ceil(nDesk / cols));

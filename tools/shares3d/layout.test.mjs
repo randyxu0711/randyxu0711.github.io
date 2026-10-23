@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG, PLATE,
-  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots,
+  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots, ROOM_DESK, deskRoom,
 } from 'shares3d/layout.js';
 
 const share = (d, extra = {}) => ({ d, s: 'example.com', g: [], ...extra });
@@ -302,3 +302,22 @@ test('櫃子:4 欄,超過 16 格 5 欄;上排在高處', () => {
   assert.ok(c.slots.every((s) => s.y + DRAWER.H / 2 <= c.height - CAB.TOP && s.y - DRAWER.H / 2 >= CAB.BASE));
 });
 
+
+test('wall sits right behind the catalog', () => {
+  for (const narrow of [false, true]) {
+    const a = arrange(6, 8, narrow);
+    assert.equal(deskRoom(a).back, a.cab.z - a.cab.depth - ROOM_DESK.GAP);
+  }
+});
+
+test('desk front clears the front row of clippings', () => {
+  for (const narrow of [false, true]) {
+    const a = arrange(6, 8, narrow);
+    assert.ok(deskRoom(a).front > a.front + CARD.H / 2 + 100);
+  }
+});
+
+test('desk is wider than the catalog', () => {
+  const a = arrange(6, 20, false);
+  assert.ok(deskRoom(a).width > a.cab.width + 400);
+});
