@@ -250,12 +250,9 @@ export function createScene(n) {
   };
   const colors = {
     uDesk: { value: new THREE.Color() },
-    uEdgeNDeep: { value: new THREE.Color() },
     uFace: { value: new THREE.Color() },
-    uPaper: { value: new THREE.Color() },
     uPaperDeep: { value: new THREE.Color() },
     uInk: { value: new THREE.Color() },
-    uInk3: { value: new THREE.Color() },
     uEdge: { value: new THREE.Color() },
     uDrop: { value: new THREE.Vector4() },
     uWall: { value: new THREE.Color() },
@@ -555,12 +552,9 @@ export function createScene(n) {
     const set = (name, v) => colors[name].value.setRGB(v[0], v[1], v[2]);
     set('uDesk', t.desk);
     set('uFace', t.face);
-    set('uPaper', t.paper);
     set('uPaperDeep', t['paper-deep']);
     set('uInk', t.ink);
-    set('uInk3', t['ink-3']);
     set('uEdge', t.edge);
-    set('uEdgeNDeep', t['edge-n-deep']);
     tint.edge = t.edge.slice(0, 3);
     colors.uDrop.value.set(t['drop-near'][0], t['drop-near'][1], t['drop-near'][2], t['drop-near'][3]);
     tint.sticky = t.sticky.slice(0, 3);

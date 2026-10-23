@@ -204,7 +204,6 @@ export function createScene(books, dims) {
     uEdge: { value: new THREE.Color() },
     uShelf: { value: new THREE.Color() },
     uDesk: { value: new THREE.Color() },
-    uEdgeN: { value: new THREE.Color() },
     uDrop: { value: new THREE.Vector4() },
     uCovers: { value: null },
     uSpines: { value: null },
@@ -443,7 +442,6 @@ export function createScene(books, dims) {
     colors.uEdge.value.setRGB(...t.edge);
     colors.uShelf.value.setRGB(...t.oak);
     colors.uDesk.value.setRGB(...t.desk);
-    colors.uEdgeN.value.setRGB(...t['edge-n']);
     colors.uDrop.value.set(...t['drop-near']);
     colors.uInk.value.setRGB(...t.ink);
     desk.setRGB(...t.desk);

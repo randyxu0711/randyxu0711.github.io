@@ -1,22 +1,3 @@
-export const LIGHT = /* glsl */ `
-uniform vec3 uLight;
-uniform float uAmbient;
-uniform float uKey;
-uniform vec4 uLamp;
-uniform vec3 uLampColor;
-uniform float uLampReach;
-varying vec3 vWorld;
-vec3 lit(vec3 c, vec3 n) {
-  vec3 nn = normalize(n);
-  vec3 day = vec3(uAmbient + uKey * max(dot(nn, uLight), 0.0));
-  vec3 d = uLamp.xyz - vWorld;
-  float dist = length(d);
-  float fall = 1.0 / (1.0 + pow(dist / uLampReach, 2.0));
-  vec3 lamp = day * 0.4 + uLampColor * (1.3 * max(dot(nn, d / dist), 0.0) * fall);
-  return c * mix(day, lamp, uLamp.w);
-}
-`;
-
 export const REVEAL = /* glsl */ `
 uniform vec4 uSketch;
 float sketchAmount() {
