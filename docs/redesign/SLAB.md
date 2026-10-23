@@ -67,6 +67,14 @@
 | `--accent` | 當成文字的訊號色 | `#793327` | `#e3a07c` |
 | `--unlit` / `--lamp` | 夜間暗幕 / 檯燈 | `#0c0806` / `#e6bc8a` | 同左 |
 | `--tag-1`～`--tag-8` | 標籤 | Etruscan 紅、Medici 藍、Ocher、綠、紫褐、Salvia 藍、Russet、肉桂 | 各調亮一階 |
+| `--wall` | 書房的牆(場景) | `#d8ccb4` | `#160f0b` |
+| `--oak` / `--oak-face` | 目錄櫃、書櫃的橡木(場景) | `#9a744e` / `#ad875f` | `#3e2a1b` / `#4c3423` |
+| `--paper-card` | 剪報、名牌、拿起的卡:晝夜都是紙 | `#f4ecda` | `#dccdb0` |
+| `--paper-ink` / `--paper-ink-3` | 紙上的字(晝夜都深) | `#2a1f19` / `#5c4f45` | `#2a1f19` / `#5a4b3e` |
+
+場景材質 token(`--wall` 以下)跟介面 token 分開:介面板(工具列、HTML 卡框)用 `--face` / `--card`,3D 房間裡的東西用材質 token(房間配置見 `docs/study-room.md`)。
+明度階(L\*)照「一層一個角色、一階」排:夜間 牆 5 < 桌 9 < 橡木 19 / 24 < 紙 83;白天 橡木 52 / 59 < 牆 82 < 桌 89 < 紙 94。
+紙上的字對比:`--paper-ink` 晝 13.6、夜 10.2;`--paper-ink-3` 晝 6.7、夜 5.3(WCAG AA 4.5 以上)。木色是試作時對著截圖調的,不是事典色。
 
 ## 材質(`assets/css/slab.css`,取代 `gel.css`)
 
