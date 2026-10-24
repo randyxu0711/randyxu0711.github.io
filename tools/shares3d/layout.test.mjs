@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   CARD, DESK, CAB, DRAWER, WINDOW, FOV, PITCH, IMG, PLATE,
-  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots,
+  recent, thumb, groups, drawerWindow, cabinet, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, TRAIL, tagged, trailDepth, trailPose, trailShown, mainName, tagOf, tagSlots, ROOM_DESK, deskRoom, drawerSink,
 } from 'shares3d/layout.js';
 
 const share = (d, extra = {}) => ({ d, s: 'example.com', g: [], ...extra });
@@ -302,3 +302,45 @@ test('櫃子:4 欄,超過 16 格 5 欄;上排在高處', () => {
   assert.ok(c.slots.every((s) => s.y + DRAWER.H / 2 <= c.height - CAB.TOP && s.y - DRAWER.H / 2 >= CAB.BASE));
 });
 
+
+test('wall sits right behind the catalog', () => {
+  for (const narrow of [false, true]) {
+    const a = arrange(6, 8, narrow);
+    assert.equal(deskRoom(a).back, a.cab.z - a.cab.depth - ROOM_DESK.GAP);
+  }
+});
+
+test('desk front clears the front row of clippings', () => {
+  for (const narrow of [false, true]) {
+    const a = arrange(6, 8, narrow);
+    assert.ok(deskRoom(a).front > a.front + CARD.H / 2 + 100);
+  }
+});
+
+test('desk is wider than the catalog', () => {
+  const a = arrange(6, 20, false);
+  assert.ok(deskRoom(a).width > a.cab.width + 400);
+});
+
+test('cards inside the cabinet sink below the drawer top', () => {
+  const top = DRAWER.H / 2 + 28;
+  assert.ok(top - drawerSink(top, -40) <= DRAWER.H / 2 - 2);
+});
+
+test('cards clear of the cabinet face stand at full height', () => {
+  assert.equal(drawerSink(DRAWER.H / 2 + 28, 40), 0);
+});
+
+test('sinking eases as the card leaves the cabinet', () => {
+  const top = DRAWER.H / 2 + 28;
+  let last = Infinity;
+  for (let z = -30; z <= 30; z += 2) {
+    const s = drawerSink(top, z);
+    assert.ok(s <= last + 1e-9);
+    last = s;
+  }
+});
+
+test('cards that already fit never sink', () => {
+  assert.equal(drawerSink(DRAWER.H / 2 - 10, -40), 0);
+});

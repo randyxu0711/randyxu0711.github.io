@@ -104,6 +104,12 @@ function ndc(pos, look, aspect, pt) {
   return [dot(right) / depth / (TAN * aspect), dot(up) / depth / TAN];
 }
 
+export const ROOM_DESK = { W: 1600, T: 32, H: 740, FRONT: 520, GAP: 10 };
+
+export function deskRoom(a) {
+  return { back: a.cab.z - a.cab.depth - ROOM_DESK.GAP, front: ROOM_DESK.FRONT, width: ROOM_DESK.W };
+}
+
 export function arrange(nDesk, nDrawers, narrow) {
   const cols = narrow ? 2 : DESK.COLS;
   const rows = Math.max(1, Math.ceil(nDesk / cols));
@@ -265,6 +271,13 @@ export function cabCam(aspect, a = BASE, bottom = -1, top = 1) {
 
 export const PULL = CAB.DEPTH - 60;
 export const LEAN = { FORWARD: 0.62, BACK: -0.35, FRONT: 64, FLOOR: 6 };
+
+export function drawerSink(top, out) {
+  const over = top - (DRAWER.H / 2 - 3);
+  if (over <= 0) return 0;
+  const t = Math.min(1, Math.max(0, (out + 10) / 30));
+  return over * (1 - t * t * (3 - 2 * t));
+}
 
 export function drawerOut(cab, k) {
   const s = cab.slots[k];

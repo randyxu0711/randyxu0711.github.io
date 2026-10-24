@@ -3,7 +3,7 @@ import { ease, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
 import {
   CARD, recent, thumb, groups, arrange, deskPose, liftPose, deskCam, deskAll, cabCam, mainName, tagOf, tagSlots,
-  drawerOut, drawerCards, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
+  drawerOut, drawerCards, drawerSink, drawerWindow, WINDOW, focusDrawer, matches, PULL, LEAN, tagged, trailDepth, trailPose, trailShown,
 } from 'shares3d/layout.js';
 import { createScene, quat, blend } from 'shares3d/scene.js';
 import { createAtlas, createLabels, createHero, loadFonts } from 'shares3d/textures.js';
@@ -24,7 +24,7 @@ const list = document.getElementById('sh3d-list');
 const items = JSON.parse(document.getElementById('sh3d-data').textContent);
 const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
 const coarse = window.matchMedia('(pointer: coarse)');
-const TOKENS = ['desk', 'face', 'paper', 'paper-deep', 'edge', 'edge-n', 'edge-n-deep', 'ink', 'ink-3', 'redline', 'sticky', 'drop-near', 'unlit', 'lamp', 'tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5', 'tag-6', 'tag-7', 'tag-8'];
+const TOKENS = ['desk', 'face', 'paper-deep', 'edge', 'ink', 'redline', 'sticky', 'drop-near', 'unlit', 'lamp', 'tag-1', 'tag-2', 'tag-3', 'tag-4', 'tag-5', 'tag-6', 'tag-7', 'tag-8', 'wall', 'oak', 'oak-face', 'brass', 'paper-card', 'paper-ink', 'paper-ink-3'];
 const SEEN_KEY = 'seen-links';
 const MISS = 0.6;
 const LIFT = 4;
@@ -115,7 +115,6 @@ function run(gl, canvas) {
   let nudge = null;
   let nudged = false;
   const cam = { pos: null, look: null };
-  const lamp = { pos: null };
   const pointer = { x: 0, y: 0, on: false, moved: false };
   const tints = new Map();
   const poses = new Map();
@@ -162,7 +161,7 @@ function run(gl, canvas) {
     if (!tints.has(id)) {
       tokens = tokens || readTokens(TOKENS);
       const c = tokens['tag-' + (slots.get(key) || tagOf(key))];
-      const rgb = kind === 'stamp' ? c.slice(0, 3).map((v, i) => v * 0.7 + tokens.ink[i] * 0.3) : c.slice(0, 3);
+      const rgb = kind === 'stamp' ? c.slice(0, 3).map((v, i) => v * 0.7 + tokens['paper-ink'][i] * 0.3) : c.slice(0, 3);
       tints.set(id, { css: `rgb(${rgb.map((v) => Math.round(v * 255)).join(' ')})`, rgb });
     }
     return tints.get(id);
@@ -257,7 +256,10 @@ function run(gl, canvas) {
     const local = drawerCards(w.n, at - w.start)[e.j - w.start];
     const r = local.rx + nudgeOf(e, at);
     const h = CARD.H / 2;
-    return { x: f.x, y: f.y + local.y + (Math.cos(r) - Math.cos(local.rx)) * h, z: f.z + local.z + (Math.sin(r) - Math.sin(local.rx)) * h, q: quat(r, 0) };
+    const y = local.y + (Math.cos(r) - Math.cos(local.rx)) * h;
+    const z = local.z + (Math.sin(r) - Math.sin(local.rx)) * h;
+    const sink = drawerSink(y + Math.cos(r) * h, fronts[e.k] + z + Math.sin(r) * h);
+    return { x: f.x, y: f.y + y - sink, z: f.z + z, q: quat(r, 0) };
   }
 
   function nudgeOf(e, at) {
@@ -364,21 +366,6 @@ function run(gl, canvas) {
     if (view === 'cab') return cabCam(aspect, a, bottom, top);
     if (trail) return deskCam(heroCard(), aspect, a, bottom, top);
     return deskAll(desk.map((i, slot) => deskPose(slot, items[i].i, a)), aspect, a, bottom, top);
-  }
-
-  function lampTarget(s) {
-    if (s === 'held' && held && held.pose) {
-      const h = held.pose;
-      return { pos: [cam.pos[0] + (h.x - cam.pos[0]) * 0.4, cam.pos[1] + (h.y - cam.pos[1]) * 0.4 + 60, cam.pos[2] + (h.z - cam.pos[2]) * 0.4], reach: 260 };
-    }
-    if (focus) {
-      const f = frontPose(focus.k);
-      return { pos: [f.x, f.y + 170, f.z + 40], reach: 300 };
-    }
-    if (view === 'cab') return { pos: [0, cab.height + 120, cab.z + 260], reach: 520 };
-    if (!trail) return { pos: [0, 320, a.front + 60 - (a.rows - 1) * 70], reach: 560 };
-    const p = heroCard();
-    return { pos: [p.x, p.y + 220, p.z + 130], reach: 360 };
   }
 
   function siblings(e) {
@@ -939,13 +926,7 @@ function run(gl, canvas) {
       dirty = false;
     }
 
-    const lt = lampTarget(s);
-    if (!lamp.pos || reduce.matches) lamp.pos = lt.pos.slice();
-    else {
-      for (let q = 0; q < 3; q++) lamp.pos[q] = approach(lamp.pos[q], lt.pos[q], dt, 6);
-      if (gap(lamp.pos, lt.pos) > 0.5 && dark) busy = true;
-    }
-    gl.setLamp(dark && lit, lamp.pos[0], lamp.pos[1], lamp.pos[2], lt.reach);
+    gl.setLamp(dark && lit, dark);
     if (intro && liveT0 && stepLight(t0)) busy = true;
 
     const count = hits ? (deck ? `${deck.at + 1} / ${deck.ids.length}` : t('shares3d.matches', 0)) : s === 'drawer' ? `${focus.cur + 1} / ${drawers[focus.k].ids.length}` : s === 'held' ? (() => {
@@ -1002,6 +983,7 @@ function run(gl, canvas) {
     gl.setColors(tokens);
     const d = tokens.desk;
     dark = 0.2126 * d[0] + 0.7152 * d[1] + 0.0722 * d[2] < 0.3;
+    gl.setLamp(dark && lit, dark);
     tints.clear();
     if (held || deck) {
       const it = deck ? deckItem() : itemFor(held.entry);

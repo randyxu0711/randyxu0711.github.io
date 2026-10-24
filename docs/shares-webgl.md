@@ -3,6 +3,17 @@
 狀態:2026-10-14 實作完成並取代首頁(`index.html` 用 `shares` 版面);開發時的 `/shares-3d/` 已移除。實作計畫在 `docs/superpowers/plans/`。
 示意稿(拋棄式,只看手感):https://claude.ai/artifact/NGzTJE8uGaiA1zVcJ7JWT4
 
+## v2.4(2026-10-23):剪報桌放進書房
+
+房間配置、光源、材質以 `docs/study-room.md` 為準;下面跟以前衝突的以這段為準。
+
+- 書桌有範圍(1600 寬、32 厚、前緣在 z 520),後緣貼北牆,牆跟著目錄櫃(`deskRoom(a)`);桌外是低 740 的地板。
+- 用 three.js 內建燈、`MeshStandardMaterial` 與陰影貼圖(`scene3d/standard.js` 的 `onBeforeCompile` 接剪報上色與開場效果)。
+- 白天只有西窗:遠處的 `SpotLight` 從 `sunDir('desk')` 方向打、掛窗格 gobo(4 × 3,`scene3d/gobo.js` 依窗的實際位置投影畫出),窗格與目錄櫃的影子由陰影貼圖產生;天光是 `HemisphereLight`。
+- 夜間檯燈固定在桌子左側(`lampDir('desk')`),不再跟著游標、抽屜或拿起的卡移動;離開桌面的卡(拿起、飛行中)不吃打光,維持紙色,跟 HTML 卡換手不跳色。
+- 剪報與 HTML 卡晝夜都是紙(`--paper-card` / `--paper-ink`);目錄櫃橡木、名牌是紙卡嵌黃銅框、拉手黃銅。
+- 抽屜裡的卡比抽屜高(104 對 75),還在櫃子裡時往下沉到抽屜高度內(`drawerSink`),隨抽屜離開櫃面才平滑升起,拉開 / 關上都不穿出櫃體。
+
 ## v2.3(2026-10-22):單卡併進托盤
 
 拿起一張卡(桌面、抽屜、tag 卡疊、搜尋牌疊)都是同一種「單卡」,搜尋只是搜尋框裡有字。下面跟 v2.2 以前衝突的以這段為準。

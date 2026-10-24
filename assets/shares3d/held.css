@@ -1,4 +1,5 @@
 .held {
+  --face: var(--paper-card); --ink: var(--paper-ink); --ink-3: var(--paper-ink-3); --paper: var(--paper-card);
   position: fixed; inset: 0; z-index: 60; display: flex; flex-direction: column; align-items: center;
   padding: env(safe-area-inset-top, 0px) max(16px, env(safe-area-inset-right, 0px)) env(safe-area-inset-bottom, 0px) max(16px, env(safe-area-inset-left, 0px));
   background: transparent; pointer-events: none; opacity: 0; visibility: hidden;

@@ -10,6 +10,7 @@
 - **三層 token**:`_config.yml` 的 `appearance`(模式、厚度)→ `assets/css/tokens.css`(Liquid 注入,晝夜兩套語意 token;
   配色是「老書房」:白天和田三造《配色事典》#249 的奶油與赤褐,夜間皮革棕,規則見 `docs/redesign/SLAB.md`)
   → 元件。**元件 CSS 只引用語意 token,不寫色碼**(書脊 / 封面的顏色來自資料,例外)。
+  3D 房間裡的東西用材質 token(`--wall`、`--oak`、`--oak-face`、`--paper-card`、`--paper-ink`),跟介面的 `--face` / `--card` 分開。
 - **桌面與板材**(`assets/css/slab.css`):頁面是桌面(`--desk`),卡片、書、project、按鍵都是 `.slab` 板;
   立體感 = 上緣反光 + 底下側面(`--th` 厚度)+ 兩層陰影。另有 `.key`(按鍵,按下沉進桌面)、`.groove`(輸入框凹槽)、
   `.coin`(圓形頭像)。**訊號色(赤褐)只用在三個時刻**:精選卡、游標停留 / 鍵盤聚焦(側面亮成訊號色)、按下的狀態;
@@ -55,9 +56,11 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   - **剪報卡**:上方 og:image 經 wsrv.nl 轉 webp(帶 CORS)貼進第二張拼貼貼圖,圖到了才淡入,場景不等;下方標題兩行、來源章、日期、編號
     畫成遮罩(R 標題、G 次要文字、B 印章)在 shader 裡上色。上緣每個 tag 一片標籤(最多 3 片),抽屜面的色條同色(`--tag-1`～`--tag-8`,依出現次數分配,程式不列 tag;來源章用名稱雜湊)。
     心得便利貼、已開過的勾、封存的紅章。
-  - 頁面不捲動(舞台一個畫面高),footer 固定成工具列下面的一行(後面有 `--desk` 漸層底)。桌面是頁面底色,櫃子與抽屜同書架的暖中性色。
+  - 頁面不捲動(舞台一個畫面高),footer 固定成工具列下面的一行(後面有 `--desk` 漸層底)。桌面是 `--desk` 的木板桌,櫃子與抽屜是橡木(`--oak`)。
   - 拿起 = 3D 卡飛到 `held.js` 的 HTML 卡位置後換手(同版面的剪報卡);翻面看心得 / 摘要;← → / 左右滑換一張。
-  - 主角之外淡出、夜間檯燈跟著主角走;底部提示列(`hint.js`)與換層按鈕。`/` 搜尋:背景霧化,符合的卡疊成牌疊左右翻。
+  - 主角之外淡出;光照房間平面圖固定(`docs/study-room.md`,`assets/scene3d/room.js`):白天只有左邊的西窗(遠處的 `SpotLight` 掛窗格 gobo `scene3d/gobo.js`,窗格與目錄櫃的影子由陰影貼圖產生)、夜間只有桌子左側的檯燈(投影的 `SpotLight`),燈與窗都不畫、不跟游標或主角移動。
+    材質是 three.js 內建 `MeshStandardMaterial`,剪報拼貼、遮罩上色、淡出、開場用 `scene3d/standard.js` 的 `onBeforeCompile` 接進去;離開桌面的卡不吃打光(維持紙色,跟 HTML 卡換手不跳色)。
+    書桌有範圍(`deskRoom`,牆跟著 `cab.z` 走,不能用 `CAB.Z`)、牆、地板;剪報與拿起的 HTML 卡晝夜都是紙(`--paper-card`),目錄櫃是橡木 + 黃銅;底部提示列(`hint.js`)與換層按鈕。`/` 搜尋:背景霧化,符合的卡疊成牌疊左右翻。
   - 純函式在 `layout.js`(桌上 / 分組 / 櫃子 / 鏡頭 / 撥卡 / 搜尋 / 縮圖網址),用 `node:test` 測(`tools/shares3d/`)。窄螢幕(直立)桌面與櫃子改 2 欄。
   - **保底**:`share-card.html` 的格狀清單(縮圖磁磚 + 停留浮出心得)照常輸出,沒有 JS / WebGL 失敗時顯示;有 JS 時視覺隱藏,Tab 到一張 = 場景裡移過去,Enter 拿起。
 - og:title 結尾重複的網站名稱(「 - 網站名」「 | Blog | 網站名」)由 `share.py` 的 `clean_title` 拿掉;issue 填的標題覆蓋不動。
@@ -96,7 +99,9 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   - 檔案:`layout.js`(四種排序(星等、年份、顏色、作者;頁數拿掉了)與分組 → 每本書的位置、索引軌段落、層裡看得到哪幾本,純函式,`tools/books3d/` 測)、`scene.js`(場景、shader、鏡頭、點擊判定)、
     `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)。
   - 書是一個 InstancedMesh,一次繪製;厚度 = 頁數 ÷ 11、高度 = 封面寬 ÷ `ratio`。顏色從 token 讀(1px canvas 填色再讀像素),主題切換時重讀。
-    夜間模式自動開檯燈(跟著游標,拿起書時移到書前上方)。
+    書房配置(`docs/study-room.md`):書櫃有櫃體(`carcass(shelves)`:每層背板 + 兩側側板,跟著層板滑)、層板與櫃體是橡木(`--oak`)。
+    three.js 內建 `MeshStandardMaterial`(封面拼貼、書脊字、開場用 `scene3d/standard.js` 的 `onBeforeCompile` 接進去)+ 陰影貼圖;
+    白天是窗戶從身後來的柔光(`sunDir('books')`),夜間是右前方的落地燈(跟著畫面,不跟游標);拿起的書用固定柔光,不吃場景打光。
   - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑,
     層標題顯示畫面裡是第幾本到第幾本 / 共幾本(`inView`)與一條細線。年份不到 12 本的跟相鄰的小年份併成區間。
     右緣有索引軌:目前排序的段落(`sections`),每段長度與本數成比例,點 / 拖曳就捲過去,標籤只在停留、拖曳、聚焦時浮出。

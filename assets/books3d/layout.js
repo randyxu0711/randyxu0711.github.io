@@ -3,6 +3,7 @@ export const GAP = 3;
 export const PAD = 18;
 export const LIP = 14;
 export const ROW_GAP = 64;
+export const SIDE = 18;
 export const GROUP_GAP = 90;
 export const MERGE_YEARS = 12;
 const HUES = [[45, 'red'], [80, 'orange'], [120, 'yellow'], [180, 'green'], [285, 'blue'], [330, 'purple'], [361, 'pink']];
@@ -245,4 +246,17 @@ export function layout(books, { view, sort, width, gutter, head }) {
   });
 
   return { view, sort, grouped, shelves, items, order: shelves.flatMap((s) => s.list), sections: sections(groups, books.length), height: -cursor + ROW_GAP };
+}
+
+export function carcass(list) {
+  const first = list.length > 1 ? list[0].y - LIP - list[1].y : 260;
+  return list.flatMap((s, k) => {
+    const top = k > 0 ? list[k - 1].y - LIP : s.y + first;
+    const y = s.y - LIP;
+    return [
+      { kind: 'back', x: s.x, y: s.y, w: s.length, h: top - s.y },
+      { kind: 'side', x: s.x - SIDE, y, w: SIDE, h: top - y },
+      { kind: 'side', x: s.x + s.length, y, w: SIDE, h: top - y },
+    ];
+  });
 }
