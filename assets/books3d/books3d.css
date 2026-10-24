@@ -26,7 +26,7 @@
 .b3d-arrow.next { right: 30px; }
 .b3d-arrow:hover { transform: translateY(calc(-50% - 1px)); }
 
-.b3d-rail { position: fixed; z-index: 30; right: 0; top: calc(var(--nav-h, 4rem) + 1rem); bottom: calc(var(--bar-h, 3.5rem) + 2rem + env(safe-area-inset-bottom, 0px)); width: 22px;
+.b3d-rail { position: fixed; z-index: 30; right: 0; top: calc(var(--nav-h, 4rem) + 1rem); bottom: calc(var(--bar-h, 3.5rem) + 2rem + env(safe-area-inset-bottom, 0px)); width: 28px;
   touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .b3d-rail-track { position: absolute; inset: 0; }
 .b3d-seg { position: absolute; left: 0; width: 100%; margin: 0; padding: 0; border: 0; background: none; cursor: pointer; outline: none; }
