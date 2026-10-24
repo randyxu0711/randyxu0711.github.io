@@ -17,3 +17,19 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - run: node --import ./tools/scene3d/hooks.mjs --test tools/scene3d/intro.test.mjs tools/scene3d/text.test.mjs tools/scene3d/room.test.mjs tools/shares3d/layout.test.mjs tools/shares3d/interact.test.mjs tools/shares3d/hint.test.mjs tools/books3d/layout.test.mjs tools/books3d/geo.test.mjs
+  site:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.4
+          bundler-cache: true
+      - run: bundle exec jekyll b
+        env:
+          JEKYLL_ENV: "production"
+      - run: |
+          bundle exec htmlproofer _site \
+            \-\-disable-external \
+            \-\-ignore-urls "/^http:\/\/127.0.0.1/,/^http:\/\/0.0.0.0/,/^http:\/\/localhost/"
