@@ -19,9 +19,9 @@ test('globe: sun from the right and behind', () => {
   assert.ok(x > 0.5 && z > 0);
 });
 
-test('desk lamp is front-left of the desk', () => {
+test('desk lamp is high on the left, reaching toward the reader', () => {
   const [x, y, z] = lampDir('desk');
-  assert.ok(x < 0 && y > 0 && z < 0);
+  assert.ok(x < 0 && y > 0.5 && z > 0);
 });
 
 test('books floor lamp is on the right', () => {
