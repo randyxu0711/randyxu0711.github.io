@@ -11,8 +11,9 @@ const STICKY = 18;
 const HANDLE = { W: 32, H: 6, D: 6, DROP: 29 };
 const SHADOW = 9;
 const TRAY = { T: 3, SIDE: 34 };
+const WHITE = new THREE.Color(1, 1, 1);
 const ORIGIN = ROOM.DESK.x0 + ROOM.DESK.w / 2;
-const LIGHTS = { SKY_DAY: 1.7, SKY_NIGHT: 1.0, SUN: 2.9, SUN_FAR: 20000, LAMP: 3.2e6, LAMP_ANGLE: 1.05, BAR: 34, SOFT: 3 };
+const LIGHTS = { SKY_DAY: 1.7, SKY_NIGHT: 1.7, SUN: 2.9, SUN_FAR: 20000, LAMP: 2e6, LAMP_ANGLE: 1.05, BOUNCE: 0.6, SKY_WHITE: 0.4, BAR: 34, SOFT: 3 };
 
 const INST_ATTRS = /* glsl */ `
 attribute float face;
@@ -592,10 +593,20 @@ export function createScene(n) {
     paint(stickies, stickies.count, tint.sticky);
     paint(tray, tray.count, tint.oak);
     lamp.color.setRGB(t.lamp[0], t.lamp[1], t.lamp[2]);
-    sky.groundColor.setRGB(t.desk[0], t.desk[1], t.desk[2]);
     unlitColor.setRGB(t.unlit[0], t.unlit[1], t.unlit[2]);
     colors.uUnlit.value.set(unlitColor.r, unlitColor.g, unlitColor.b, view.unlit);
+    setSky();
     applyClear();
+  }
+
+  function setSky() {
+    if (!view.night) {
+      sky.color.copy(WHITE);
+      sky.groundColor.copy(colors.uDesk.value);
+      return;
+    }
+    sky.color.copy(lamp.color).lerp(WHITE, LIGHTS.SKY_WHITE);
+    sky.groundColor.copy(lamp.color).multiplyScalar(LIGHTS.BOUNCE);
   }
 
   function setLamp(on, night = on) {
@@ -606,6 +617,7 @@ export function createScene(n) {
     sky.intensity = night ? LIGHTS.SKY_NIGHT : LIGHTS.SKY_DAY;
     view.lamp = on;
     view.night = night;
+    setSky();
     applyClear();
   }
 
