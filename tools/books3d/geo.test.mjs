@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, pinSpots, SMALL } from 'books3d/geo.js';
+import { globeSpot, reach, classOf, decode, unwrap, area, dirOf, lonLatOfUv, toPixel, distAt, zoomAt, spread, focusDist, cull, ranking, nearestAngle, contains, pinSpots, SMALL } from 'books3d/geo.js';
 
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, a + ' ≉ ' + b);
 
@@ -118,4 +118,15 @@ test('pin spots fall inside the country, keep apart and are deterministic', () =
   assert.ok(min > 1.5, 'min gap ' + min);
   assert.deepEqual(pinSpots(polys, 30), a);
   assert.deepEqual(pinSpots(polys, 0), []);
+});
+
+test('globeSpot puts the globe straight to the right, past the screen, so the turn walks forward', () => {
+  for (const [vw, vh] of [[1280, 800], [1920, 1080], [390, 844]]) {
+    const span = 1000;
+    const { R, x, corner } = globeSpot(span, vw, vh);
+    assert.ok(x - reach(vw / vh) * R > 0, 'walks forward after turning');
+    assert.ok(corner > span / 2, 'corner is off screen');
+    near(corner, x + 1.2 * R);
+  }
+  assert.ok(globeSpot(1000, 390, 844).R > globeSpot(1000, 1280, 800).R);
 });

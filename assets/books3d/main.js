@@ -1,6 +1,7 @@
 import { layout, viewSpan, inView, countryRun, thickness, height, W, PAD, GAP, LIP, SORT_NAMES } from 'books3d/layout.js';
 import { readTokens, hexRgb, watchTheme } from 'scene3d/colors.js';
-import { createScene } from 'books3d/scene.js';
+import { createScene, SHELF_FRONT } from 'books3d/scene.js';
+import { globeSpot } from 'books3d/geo.js';
 import { createTextures, loadFonts, drawBack, bigCover, titleOf, authorOf, lang } from 'books3d/textures.js';
 import { ease, easeInOut, lerp, clamp, approach } from 'scene3d/anim.js';
 import { introK, introLevels, LIGHT_MIN, LIGHT_MAX } from 'scene3d/intro.js';
@@ -155,6 +156,7 @@ async function start() {
     cam.span = m.span;
     const L = layout(books, { view: state.view, sort: state.sort, width: m.span, gutter: m.gutter, head: m.head });
     state.L = L;
+    gl.setCorner(globeSpot(m.span, m.vw, window.innerHeight).corner);
     stage.style.height = Math.ceil(L.height * m.ppu) + 'px';
 
     const pivots = L.shelves.map((s) => {
@@ -1174,7 +1176,7 @@ async function start() {
   }
 
   function placeLamp() {
-    gl.setLamp(lampOn && lit && !(globe && globe.active), lampOn);
+    gl.setLamp(lampOn && lit, lampOn);
   }
 
   const nav = document.querySelector('.nav');
@@ -1280,6 +1282,7 @@ async function start() {
       })).then((g) => {
         globe = g;
         globe.colors(lampOn);
+        g.warm();
         globe.card.addEventListener('click', (e) => {
           if (e.target.closest('button[data-k]')) closeMap(false);
         });
@@ -1295,8 +1298,9 @@ async function start() {
       if (held) drop();
       clearMark();
       setHover(-1);
-      const R = m.span / (canvas.clientWidth <= 640 ? 3.5 : 7.2);
-      g.open({ x: m.span / 2 + 5 * R, y: gl.camera.position.y, z: gl.view.D * 0.4 }, R);
+      const { R, x } = globeSpot(m.span, m.vw, window.innerHeight);
+      const z = gl.view.D;
+      g.open({ x, y: -state.L.height / 2, z }, R, (SHELF_FRONT - z) / R);
       root.classList.add('globe');
       globeLabel('books3d.globe_back');
       if (canvas.clientWidth > 640) openMap();
