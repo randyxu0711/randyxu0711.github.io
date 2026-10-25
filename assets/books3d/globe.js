@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, STEPS, FOCUS } from 'books3d/geo.js';
+import { FOV, RING, reach, decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, STEPS, FOCUS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
 import { clamp, lerp, easeInOut } from 'scene3d/anim.js';
@@ -10,10 +10,9 @@ import { MATTER } from 'scene3d/glsl.js';
 const TW = 4096;
 const TH = 2048;
 const NEAR = 1.55;
-const FOV = 30;
 const TAN = Math.tan((FOV / 2) * Math.PI / 180);
-const TURN = 1100;
-const RING = 1.07;
+const TURN = 1800;
+const STEP = 0.15;
 const DOT = 13;
 const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
@@ -136,7 +135,11 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   desk.position.set(0, -RING - 0.38 - CABINET.H / 2, CABINET.BACK + CABINET.D / 2);
   desk.receiveShadow = true;
   desk.castShadow = true;
-  const wall = new THREE.Mesh(new THREE.PlaneGeometry(60, 400), wallM);
+  const wallG = new THREE.PlaneGeometry(1, 400);
+  wallG.translate(0.5, 0, 0);
+  const wall = new THREE.Mesh(wallG, wallM);
+  wall.position.x = -30;
+  wall.scale.x = 60;
   wall.position.z = CABINET.BACK - 0.01;
   wall.receiveShadow = true;
   root3.add(ring, post, base, desk, wall);
@@ -453,6 +456,23 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     paintLift();
   }
 
+  function warm() {
+    fresh();
+    [mapT, emitT, dropT].forEach((x) => renderer.initTexture(x));
+    camera.position.set(0, 0, far());
+    camera.quaternion.identity();
+    camera.aspect = aspect();
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    return renderer.compileAsync(scene, camera).then(() => {
+      const rt = new THREE.WebGLRenderTarget(64, 64);
+      renderer.setRenderTarget(rt);
+      renderer.render(scene, camera);
+      renderer.setRenderTarget(null);
+      rt.dispose();
+    });
+  }
+
   renderer.domElement.addEventListener('webglcontextrestored', () => {
     [mapT, emitT, dropT].forEach((x) => { x.needsUpdate = true; });
     invalidate();
@@ -600,7 +620,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   const S = { mode: 'off', p: 0, t0: 0, G: new THREE.Vector3(), R: 1, yaw: 0, tilt: 0, yawT: 0, tiltT: 0, vel: 0, z: 0, zT: 0, h: 0 };
   let hover = null;
   let focused = null;
-  const far = () => Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect()));
+  const far = () => reach(aspect());
   const aspect = () => window.innerWidth / Math.max(1, window.innerHeight);
   const dist = () => distAt(S.z, 1, NEAR, far());
   const pinDist = (c) => focusDist(c.spread, TAN, aspect(), aspect() < 1 ? 0.85 : FOCUS);
@@ -624,9 +644,11 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     invalidate();
   }
 
-  function open(G, R) {
+  function open(G, R, front) {
     S.G.copy(G);
     S.R = R;
+    wall.position.x = front;
+    wall.scale.x = 30 - front;
     if (S.mode === 'off') {
       S.yaw = S.yawT = 0;
       S.tilt = S.tiltT = 0;
@@ -674,10 +696,19 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     target.far = 300;
     target.updateProjectionMatrix();
     const sc = shelfCamera();
-    _p.copy(sc.position).sub(S.G).divideScalar(S.R).applyQuaternion(qR);
-    camera.position.lerpVectors(_p, target.position, e);
+    const back = easeInOut(clamp(e / 0.35, 0, 1));
+    const turn = easeInOut(clamp((e - 0.1) / 0.6, 0, 1));
+    const rise = easeInOut(clamp((e - 0.4) / 0.15, 0, 1));
+    const walk = easeInOut(clamp((e - 0.45) / 0.55, 0, 1));
+    _p.copy(sc.position);
+    _p.z += sc.position.z * STEP * back;
+    _p.sub(S.G).divideScalar(S.R).applyQuaternion(qR);
+    const y = lerp(_p.y, target.position.y, rise);
+    camera.position.lerpVectors(_p, target.position, walk);
+    camera.position.y = y;
     _q.copy(qR);
-    camera.quaternion.slerpQuaternions(_q, target.quaternion, e);
+    camera.quaternion.slerpQuaternions(_q, target.quaternion, turn);
+    e = walk;
     const a = sc.projectionMatrix.elements;
     const b = target.projectionMatrix.elements;
     const out = camera.projectionMatrix.elements;
@@ -750,7 +781,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       dropMat.opacity = clamp(S.h / LIFT, 0, 1);
     }
     spin.rotation.set(S.tilt, S.yaw, 0, 'XYZ');
-    const e = easeInOut(S.p);
+    const e = S.p;
     sceneCam(e);
     if (S.mode === 'on' && pointer.in && pointer.moved && !drag) {
       pointer.moved = false;
@@ -1103,6 +1134,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     colors,
     keydown,
     card,
+    warm,
     get active() { return S.mode !== 'off'; },
     get on() { return S.mode === 'on'; },
   };

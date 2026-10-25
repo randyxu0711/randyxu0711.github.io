@@ -11,6 +11,7 @@ const SHADOW = 30;
 const DIST = 1.5;
 const EYE = 0.25;
 const BACK_T = 8;
+const SIDE_T = 18;
 const LIGHTS = { SKY_DAY: 1.9, SKY_NIGHT: 0.9, SUN: 1.4, LAMP: 5.5, LAMP_ANGLE: 0.9 };
 
 const BOOK_ATTRS = /* glsl */ `
@@ -275,6 +276,13 @@ export function createScene(books, dims) {
   caseMesh.receiveShadow = true;
   scene.add(caseMesh);
 
+  let rows = [];
+  let corner = null;
+  function setCorner(x) {
+    corner = x;
+    setShelves(rows);
+  }
+
   const shadowGeo = new THREE.PlaneGeometry(1, SHADOW);
   shadowGeo.translate(0.5, -LIP - SHADOW / 2, SHELF_FRONT - 1);
   const shadowMat = new THREE.ShaderMaterial({
@@ -414,7 +422,9 @@ export function createScene(books, dims) {
     colors.uSpines.value = spines;
   }
 
-  function setShelves(list) {
+  function setShelves(next) {
+    rows = next;
+    const list = corner === null ? rows : rows.map((r) => ({ ...r, length: Math.max(r.length, corner - SIDE_T - r.x) }));
     shelfMesh.count = shadowMesh.count = Math.min(list.length, MAX_SHELVES);
     for (let k = 0; k < shelfMesh.count; k++) {
       const s = list[k];
@@ -432,6 +442,14 @@ export function createScene(books, dims) {
       caseMesh.setMatrixAt(k, _m);
       iTone.setX(k, q.kind === 'back' ? 0.62 : 1);
     });
+    if (corner !== null && parts.length) {
+      const top = Math.max(...parts.map((q) => q.y + q.h));
+      const bottom = Math.min(...parts.map((q) => q.y));
+      _m.makeScale(SIDE_T, top - bottom, SHELF_DEPTH + BACK_T + SHELF_FRONT).setPosition(corner - SIDE_T, bottom, -SHELF_DEPTH - BACK_T);
+      caseMesh.setMatrixAt(parts.length, _m);
+      iTone.setX(parts.length, 1);
+      caseMesh.count++;
+    }
     caseMesh.instanceMatrix.needsUpdate = true;
     iTone.needsUpdate = true;
   }
@@ -472,7 +490,7 @@ export function createScene(books, dims) {
     camera.position.set(cam.cx, eyeY, D);
     camera.updateMatrixWorld();
     const near = Math.max(1, D * 0.05);
-    const far = D + SHELF_DEPTH + 400;
+    const far = D * 2 + SHELF_DEPTH + 400;
     const k = near / D;
     camera.near = near;
     camera.far = far;
@@ -538,5 +556,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, warm };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, warm, setCorner };
 }

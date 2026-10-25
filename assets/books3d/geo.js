@@ -1,6 +1,8 @@
 export const STEPS = [1, 2, 5, 10, 20];
 export const SMALL = 0.001;
 export const FOCUS = 0.4;
+export const FOV = 30;
+export const RING = 1.07;
 
 export const classOf = (n) => STEPS.filter((s) => n >= s).length - 1;
 
@@ -53,6 +55,17 @@ export function unwrap(ring) {
 }
 
 const RAD = Math.PI / 180;
+const TAN = Math.tan((FOV / 2) * RAD);
+
+export function reach(aspect) {
+  return Math.max((RING + 0.5) / 0.82 / TAN, 1.25 / 0.94 / (TAN * aspect));
+}
+
+export function globeSpot(span, vw, vh) {
+  const R = span / (vw <= 640 ? 3.5 : 7.2);
+  const x = reach(vw / vh) * R + span * 0.3;
+  return { R, x, corner: x + 1.2 * R };
+}
 
 function ringArea(ring) {
   let s = 0;

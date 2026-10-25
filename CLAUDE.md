@@ -99,7 +99,7 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
   - 檔案:`layout.js`(四種排序(星等、年份、顏色、作者;頁數拿掉了)與分組 → 每本書的位置、索引軌段落、層裡看得到哪幾本,純函式,`tools/books3d/` 測)、`scene.js`(場景、shader、鏡頭、點擊判定)、
     `textures.js`(封面拼貼貼圖、書脊字貼圖、封底)、`main.js`(狀態、動畫、互動)。
   - 書是一個 InstancedMesh,一次繪製;厚度 = 頁數 ÷ 11、高度 = 封面寬 ÷ `ratio`。顏色從 token 讀(1px canvas 填色再讀像素),主題切換時重讀。
-    書房配置(`docs/study-room.md`):書櫃有櫃體(`carcass(shelves)`:每層背板 + 兩側側板,跟著層板滑)、層板與櫃體是橡木(`--oak`)。
+    書房配置(`docs/study-room.md`):書櫃有櫃體(`carcass(shelves)`:每層背板 + 兩側側板,跟著層板滑;右端延伸到通往地球儀的牆角,`geo.js` 的 `globeSpot`)、層板與櫃體是橡木(`--oak`)。
     three.js 內建 `MeshStandardMaterial`(封面拼貼、書脊字、開場用 `scene3d/standard.js` 的 `onBeforeCompile` 接進去)+ 陰影貼圖;
     白天是窗戶從身後來的柔光(`sunDir('books')`),夜間是右前方的落地燈(跟著畫面,不跟游標);拿起的書用固定柔光,不吃場景打光。
   - 頁面照常捲動,鏡頭跟著捲動位置;分組排序(星等、年份)每組一條長層板,比畫面寬時層板自己左右滑,
