@@ -1303,7 +1303,6 @@ async function start() {
       g.open({ x, y: -state.L.height / 2, z }, R, (SHELF_FRONT - z) / R);
       root.classList.add('globe');
       globeLabel('books3d.globe_back');
-      if (canvas.clientWidth > 640) openMap();
       placeLamp();
       invalidate();
     });
