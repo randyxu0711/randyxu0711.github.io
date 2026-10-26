@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { FOV, RING, reach, decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, STEPS, FOCUS } from 'books3d/geo.js';
+import { FOV, RING, reach, decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, FOCUS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
 import { clamp, lerp, easeInOut } from 'scene3d/anim.js';
@@ -46,7 +46,9 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     const list = [...C.values()].filter((x) => (sub.get(x.g.subregion) || {}).continent === c.id);
     const dir = list.reduce((v, x) => v.addScaledVector(x.dir, x.count), new THREE.Vector3()).normalize();
     return { ...c, list, dir, count: list.reduce((s, x) => s + x.count, 0) };
-  }).filter((c) => c.list.length);
+  }).filter((c) => c.list.length).sort((a, b) => b.count - a.count);
+  const contOf = new Map(conts.flatMap((c) => c.list.map((x) => [x.country, c.id])));
+  let openC = conts[0].id;
   const nameOf = (k) => (lang() === 'zh' ? C.get(k).g.zh : k);
 
   renderer.shadowMap.enabled = true;
@@ -585,16 +587,23 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     labelEls.forEach((l) => { l.w = 0; });
     stripText();
     card.setAttribute('aria-label', t('books3d.map_title'));
-    const steps = STEPS.map((s, k) => (k === STEPS.length - 1 ? s + '+' : s === STEPS[k + 1] - 1 ? String(s) : s + '–' + (STEPS[k + 1] - 1)));
-    card.innerHTML = '<div class="b3d-map-head"><h2>' + esc(t('books3d.map_title')) + '</h2><span>' + esc(t('books3d.map_countries', C.size)) + '</span></div>'
-      + '<div class="b3d-ramp"><i class="none"></i><b></b>' + STEPS.map((s, k) => '<i style="--c:var(--map-' + (k + 1) + ')"></i>').join('') + '</div>'
-      + '<div class="b3d-ramp n"><span>' + esc(t('books3d.map_none')) + '</span><b></b>' + steps.map((s) => '<span>' + s + '</span>').join('') + '</div>'
-      + '<div class="b3d-rank-wrap"><ol class="b3d-rank">' + [...C.values()].map((c) => '<li><button type="button" data-k="' + esc(c.country) + '" aria-label="' + esc(nameOf(c.country) + ', ' + t('books.count', c.count)) + '"><i style="--c:var(--map-' + (c.cls + 1) + ')"></i><span class="nm">' + esc(nameOf(c.country)) + '</span><span class="ct">' + c.count + '</span></button></li>').join('') + '</ol><i class="b3d-thumb" aria-hidden="true"></i></div>'
-      + '<div class="b3d-map-foot">' + esc(t('books3d.map_total', total)) + '</div>';
+    const name = (c) => c[lang()] || c.en;
+    const max = ranks[0].count;
+    card.innerHTML = '<div class="b3d-map-head"><h2>' + esc(t('books3d.map_title')) + '</h2><span>' + esc(t('books3d.map_countries', C.size) + ' · ' + t('books.count', total)) + '</span></div>'
+      + '<div class="b3d-share">' + conts.map((c) => '<button type="button" tabindex="-1" aria-hidden="true" data-c="' + c.id + '" style="flex:' + c.count + '"' + (c.id === openC ? ' class="on"' : '') + '></button>').join('') + '</div>'
+      + conts.map((c) => '<section class="b3d-cont"><button type="button" class="b3d-cont-h" data-c="' + c.id + '" aria-expanded="' + (c.id === openC) + '"><span class="nm">' + esc(name(c)) + '</span><span class="ct">' + esc(t('books.count', c.count) + ' · ' + t('books3d.map_countries', c.list.length)) + '</span><svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3 5l4 4 4-4"/></svg></button>'
+        + (c.id === openC ? '<div class="b3d-rank-wrap"><ol class="b3d-rank">' + c.list.map((x) => '<li><button type="button" data-k="' + esc(x.country) + '" aria-label="' + esc(nameOf(x.country) + ', ' + t('books.count', x.count)) + '"><span class="nm">' + esc(nameOf(x.country)) + '</span><i style="--c:var(--map-' + (x.cls + 1) + ');--w:' + (x.count / max * 100).toFixed(1) + '%"></i><span class="ct">' + x.count + '</span></button></li>').join('') + '</ol><i class="b3d-thumb" aria-hidden="true"></i></div>' : '')
+        + '</section>').join('');
     rank = card.querySelector('.b3d-rank');
-    rank.addEventListener('scroll', scrollThumb, { passive: true });
+    if (rank) rank.addEventListener('scroll', scrollThumb, { passive: true });
     requestAnimationFrame(scrollThumb);
     markRows();
+  }
+  function openCont(id) {
+    openC = openC === id ? null : id;
+    const f = document.activeElement && document.activeElement.closest('.b3d-map') && document.activeElement.dataset.c;
+    text();
+    if (f) card.querySelector('.b3d-cont-h[data-c="' + f + '"]').focus();
   }
   const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
   let rank = null;
@@ -915,6 +924,7 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     face(c.dir);
     S.zT = clamp(zoomAt(pinDist(c), 1, NEAR, far()), 0, 1);
     focused = k;
+    if (openC !== contOf.get(k)) openCont(contOf.get(k));
     setPins(k);
     setLift([...new Set([k, hover])].filter(Boolean));
     invalidate();
@@ -1097,7 +1107,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   });
   card.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-k]');
-    if (b) act(b.dataset.k);
+    if (b) return act(b.dataset.k);
+    const h = e.target.closest('button[data-c]');
+    if (!h) return;
+    const c = conts.find((x) => x.id === h.dataset.c);
+    if (openC !== c.id) focusContinent(c);
+    openCont(c.id);
   });
 
   function keydown(e) {
