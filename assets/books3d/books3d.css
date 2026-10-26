@@ -159,4 +159,7 @@ html[data-lang="en"] .b3d-rank button { --nm: 7.6rem; }
 body:has(.b3d.on) .footer-inner { padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)); }
 .footer { transition: opacity 200ms, visibility 200ms; }
 body:has(.b3d.globe) .footer { opacity: 0; visibility: hidden; }
+html.js:has(.b3d:not(.fail)) { scrollbar-width: none; }
+html.js:has(.b3d:not(.fail))::-webkit-scrollbar { display: none; }
+html:has(.b3d.globe) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .b3d-labels, .b3d-lab, .b3d-thumb, .b3d-strip-row button { transition: none; } }
