@@ -1302,6 +1302,7 @@ async function start() {
       const z = gl.view.D;
       g.open({ x, y: -state.L.height / 2, z }, R, (SHELF_FRONT - z) / R);
       root.classList.add('globe');
+      document.documentElement.classList.remove('nav-up');
       globeLabel('books3d.globe_back');
       placeLamp();
       invalidate();
