@@ -1,4 +1,4 @@
-// 中英切換(導覽列的語言鍵)。<html data-lang> 由 head 的行內 script 在繪製前設定;這支換掉 data-i18n 標記的文字。
+// 中英切換(導覽列的語言開關)。<html data-lang> 由 head 的行內 script 在繪製前設定;這支換掉 data-i18n 標記的文字。
 // 標記方式:
 //   data-i18n="鍵"                 換掉元素的文字
 //   data-i18n-attr="屬性:鍵;屬性:鍵"  換掉屬性(placeholder、aria-label…)
@@ -29,13 +29,8 @@
       });
     });
     root.lang = lang() === 'en' ? 'en' : 'zh-Hant';
-    // 語言鍵顯示「另一個語言」
     document.querySelectorAll('[data-lang-toggle]').forEach(function (b) {
-      var other = lang() === 'en' ? 'zh' : 'en';
-      b.textContent = other === 'en' ? 'EN' : '中';
-      b.lang = other === 'en' ? 'en' : 'zh-Hant';
-      b.setAttribute('aria-label', t('lang.switch_to'));
-      b.title = t('lang.switch_to');
+      b.setAttribute('aria-checked', String(lang() === 'en'));
     });
   }
   function set(l) {
