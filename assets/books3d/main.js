@@ -1348,7 +1348,7 @@ async function start() {
     else openMap();
   });
   window.addEventListener('pointerdown', (e) => {
-    if (mapKey.getAttribute('aria-expanded') !== 'true' || mapKey.contains(e.target) || (globe && globe.card.contains(e.target))) return;
+    if (mapKey.getAttribute('aria-expanded') !== 'true' || mapKey.contains(e.target) || (globe && globe.card.contains(e.target)) || e.target.closest('.nav')) return;
     e.stopPropagation();
     closeMap(false);
     const swallow = (ev) => { ev.stopPropagation(); };
