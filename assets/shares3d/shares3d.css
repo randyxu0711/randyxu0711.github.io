@@ -18,7 +18,7 @@ body:has(.sh3d.on:not(.lit)) .footer, body:has(.sh3d-bar.holding) .footer { opac
 
 .sh3d-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; pointer-events: none;
-  padding: 0.5rem 16px calc(env(safe-area-inset-bottom, 0px) + 1.9rem);
+  padding: 0.5rem 16px calc(env(safe-area-inset-bottom, 0px) + 2.75rem);
   display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
   transition: opacity 250ms, visibility 250ms;
 }

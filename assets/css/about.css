@@ -1,4 +1,4 @@
-.as { --stick: calc(var(--nav-h, 4.5rem) + 1.5rem); }
+.as { --stick: calc(var(--nav-vis) + 1.5rem); }
 
 .as-cover { padding: clamp(1rem, 4vw, 3rem) 0 clamp(4rem, 10vw, 7rem); }
 .as-card {
@@ -47,7 +47,7 @@
 .as-projects > .as-h { position: static; margin-bottom: 1rem; }
 .as-proj { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 4rem; }
 .as-proj + .as-proj { margin-top: 6rem; }
-.as-stage { --ox: -14px; --oy: -14px; position: sticky; top: max(var(--stick), calc(50svh + var(--nav-h, 4.5rem) / 2 - 13rem)); align-self: start; }
+.as-stage { --ox: -14px; --oy: -14px; position: sticky; top: max(var(--stick), calc(50svh + var(--nav-vis) / 2 - 13rem)); align-self: start; }
 .as-stack { position: relative; aspect-ratio: 16 / 10; }
 .as-shot { position: absolute; inset: 0; margin: 0; z-index: var(--z, 0);
   transition: transform 700ms cubic-bezier(.2,.75,.2,1), opacity 450ms; }
@@ -160,7 +160,7 @@
   .as-now-grid { grid-template-columns: 1fr; }
   .as-list { padding-top: 0; }
   .as-proj { grid-template-columns: 1fr; gap: 0; }
-  .as-stage { --ox: 0px; --oy: -9px; top: var(--nav-h, 5.5rem); z-index: 5; background: var(--desk); padding: 1rem 0 0.5rem; margin: 0 -16px; padding-inline: 32px; }
+  .as-stage { --ox: 0px; --oy: -9px; top: var(--nav-vis); z-index: 5; background: var(--desk); padding: 1rem 0 0.5rem; margin: 0 -16px; padding-inline: 32px; }
   .as-stack { width: min(100%, 34rem); margin: 0 auto; }
   .as-foot { margin-top: 0.9rem; flex-wrap: nowrap; align-items: start; gap: 0.75rem; }
   .as-count { flex: none; white-space: nowrap; }

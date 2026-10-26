@@ -1,8 +1,7 @@
-// 板材的互動:游標傾斜、導覽列捲動後變玻璃、主題鍵(跟系統 → 晝 → 夜)、語言鍵。
+// 板材的互動:游標傾斜、導覽列(捲動收起、手機的偏好面板)、主題開關(沒選過就跟系統)。
 // 主題偏好存在 localStorage('theme'),head 的行內 script 負責繪製前套用;語言由 i18n.js 負責。
 (function () {
   var root = document.documentElement;
-  var t = function (key, n) { return window.siteI18n ? window.siteI18n.t(key, n) : key; };
 
   // ── 游標傾斜:data-tilt 的值是最大角度 ──
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -40,37 +39,56 @@
     }).catch(function () {});
   }
 
-  // ── 導覽列:頁面在頂端時融入桌面,捲動後變成霧面玻璃 ──
+  // ── 導覽列:往下捲就收起來,往上捲就出現(只動 transform;跟著它的 sticky 元素讀 --nav-vis) ──
   var nav = document.querySelector('.nav');
-  // 頁首放一條 8px 高的看不見的線,捲到它離開畫面才加陰影;不用每次捲動都跑 JS
-  if (nav && 'IntersectionObserver' in window) {
-    var mark = document.createElement('div');
-    mark.setAttribute('aria-hidden', 'true');
-    mark.style.cssText = 'position:absolute;top:0;left:0;width:1px;height:8px;pointer-events:none;visibility:hidden';
-    document.body.prepend(mark);
-    new IntersectionObserver(function (es) { nav.classList.toggle('glass', !es[0].isIntersecting); }).observe(mark);
+  var tools = nav && nav.querySelector('.nav-tools');
+  var prefsKey = nav && nav.querySelector('.nav-prefs-key');
+  var setPrefs = function (open) {
+    if (!prefsKey) return;
+    tools.classList.toggle('open', open);
+    prefsKey.setAttribute('aria-expanded', String(open));
+  };
+  if (nav) {
+    var lastY = scrollY, ticking = false;
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () {
+        ticking = false;
+        var y = scrollY, dy = y - lastY;
+        if (Math.abs(dy) < 6 && y > nav.offsetHeight) return;
+        lastY = y;
+        var up = y > nav.offsetHeight && dy > 0 && !nav.contains(document.activeElement);
+        if (up) setPrefs(false);
+        root.classList.toggle('nav-up', up);
+      });
+    }, { passive: true });
+    nav.addEventListener('focusin', function () { root.classList.remove('nav-up'); });
   }
 
-  // ── 主題鍵 ──
-  var themeBtn = document.querySelector('[data-theme-cycle]');
+  // ── 手機:語言與主題收在一顆鍵裡,點開往下長出面板 ──
+  if (prefsKey) {
+    prefsKey.addEventListener('click', function () { setPrefs(prefsKey.getAttribute('aria-expanded') !== 'true'); });
+    document.addEventListener('click', function (e) { if (!tools.contains(e.target)) setPrefs(false); });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && tools.classList.contains('open')) { setPrefs(false); prefsKey.focus(); }
+    });
+    prefsKey.hidden = false;
+  }
+
+  // ── 主題開關:沒選過就跟系統,點了才存 ──
+  var themeBtn = document.querySelector('[data-theme-toggle]');
   if (themeBtn) {
-    var order = ['system', 'light', 'dark'];
-    var current = function () { return root.getAttribute('data-theme') || 'system'; };
-    var paint = function () {
-      var c = current();
-      // SVG 沒有 .hidden 屬性,要直接設 attribute
-      themeBtn.querySelectorAll('[data-icon]').forEach(function (i) { i.toggleAttribute('hidden', i.getAttribute('data-icon') !== c); });
-      var label = t('theme.cycle', t('theme.' + c));
-      themeBtn.setAttribute('aria-label', label);
-      themeBtn.title = label;
-    };
+    var dark = window.matchMedia('(prefers-color-scheme: dark)');
+    var current = function () { return root.getAttribute('data-theme') || (dark.matches ? 'dark' : 'light'); };
+    var paint = function () { themeBtn.setAttribute('aria-checked', String(current() === 'dark')); };
     themeBtn.addEventListener('click', function () {
-      var next = order[(order.indexOf(current()) + 1) % order.length];
-      if (next === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', next);
+      var next = current() === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
       try { localStorage.setItem('theme', next); } catch (e) {}
       paint();
     });
-    document.addEventListener('langchange', paint);
+    dark.addEventListener('change', paint);
     themeBtn.hidden = false;
     paint();
   }

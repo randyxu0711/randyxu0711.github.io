@@ -24,16 +24,21 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .main { max-width: 68rem; margin: 0 auto; padding: 2.25rem 16px 6rem; }
 @media (max-width: 600px) { .main { padding-top: 1.25rem; } }
 
-/* ── 導覽列:頁面在頂端時融入桌面;捲動後底下浮出一條細陰影,跟內容分開 ──
-   底色一直是不透明的桌面色:半透明加模糊(backdrop-filter)每一格都要重算底下的內容,
-   書架有上千個 3D 面,iPhone 上捲動會卡 */
+/* ── 導覽列:房間的門楣,一條不透明的桌面色,下緣用漸層融進底下的場景(跟剪報桌底部的 footer 同一種收法) ──
+   底色不透明:半透明加模糊(backdrop-filter)每一格都要重算底下的內容,書架有上千個 3D 面,iPhone 上捲動會卡。
+   往下捲就收起來(slab.js 加 html.nav-up);跟著導覽列的 sticky / fixed 元素用 --nav-vis(看得到的高度),同一條動畫一起滑 */
+@property --nav-up { syntax: "<number>"; inherits: true; initial-value: 0; }
+html { --nav-vis: calc(var(--nav-h, 4.5rem) * (1 - var(--nav-up))); transition: --nav-up 320ms cubic-bezier(.2,.7,.2,1); }
+html.nav-up { --nav-up: 1; }
 .nav {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   background: var(--desk);
-  transition: box-shadow 250ms;
+  transition: transform 320ms cubic-bezier(.2,.7,.2,1);
 }
-.nav.glass { box-shadow: inset 0 1px 0 var(--spec), 0 1px 0 var(--line), 0 10px 24px -18px var(--drop-far); }
-.nav-inner { max-width: 68rem; margin: 0 auto; padding: 0.7rem 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.75rem; }
+/* 平常不帶 transform:有的話它會變成 fixed 元素(手機的偏好面板)的定位框,首頁 body 的 overflow: hidden 就會切掉面板 */
+html.nav-up .nav { transform: translateY(calc(-100% - env(safe-area-inset-top, 0px) - 1rem)); }
+.nav::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 1rem; pointer-events: none; background: linear-gradient(var(--desk), transparent); }
+.nav-inner { max-width: 68rem; margin: 0 auto; padding: 0.7rem 16px; display: flex; align-items: center; gap: 1.75rem; }
 /* 站名是簽名(只下載用到的字母);字型載不到時退回一般字體。又大又重,右邊多留 1rem 才不會跟頁籤擠在一起 */
 .nav-name { font-family: var(--font-sign), var(--font-ui); font-size: 2.1rem; line-height: 1; padding-top: 0.2rem; margin-right: 1rem; color: var(--ink); text-decoration: none; }
 .nav-links { display: flex; gap: 1.6rem; list-style: none; margin: 0; padding: 0; font-size: 1.06rem; }
@@ -42,16 +47,32 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 .nav-links a[aria-current="page"] { color: var(--ink); font-weight: 500; }
 /* 目前頁:底下一片很薄的琥珀板 */
 .nav-links a[aria-current="page"]::after { content: ""; position: absolute; left: 0; right: 0; bottom: -3px; height: 3px; border-radius: 3px; background: var(--edge); }
-.nav-tools { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
-/* 手機:固定兩行,不靠自動換行(否則每頁的換行位置不同)。
-   第一行名字 + 按鍵,第二行三個連結平均分配;連結的可點範圍往上下撐開到 44px,版面高度不變 */
+.nav-tools { position: relative; margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
+/* 桌面:兩個開關直接排出來,名稱只給螢幕閱讀器;偏好鍵只在手機出現 */
+.nav-prefs { display: flex; align-items: center; gap: 0.5rem; }
+.nav-pref-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.nav-tools .nav-prefs-key { display: none; }
+/* 手機:一行。簽名 + 三個頁籤 + 偏好鍵;頁籤的可點範圍往上下撐開到 44px,版面高度不變。
+   兩個開關收進偏好鍵,點開往下長出面板(書架排序選單的同一種面板,Esc / 點外面收起) */
 @media (max-width: 600px) {
-  .nav-inner { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0.35rem 1rem; padding: 0.55rem 16px 0.3rem; }
-  .nav-name { font-size: 1.75rem; margin-right: 0; justify-self: start; }
-  .nav-inner > nav { grid-column: 1 / -1; grid-row: 2; }
-  .nav-links { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 0; text-align: center; }
-  .nav-links a { display: inline-block; padding: 0.6rem 0.5rem; margin: -0.6rem 0; }
-  .nav-links a[aria-current="page"]::after { left: 0.5rem; right: 0.5rem; bottom: calc(0.6rem - 0.2rem - 3px); }
+  .nav-inner { gap: 1rem; padding: 0.5rem 16px; }
+  .nav-name { font-size: 1.6rem; margin-right: 0; }
+  .nav-links { gap: 1rem; font-size: 0.95rem; }
+  .nav-links a { display: inline-block; padding: 0.75rem 0; margin: -0.75rem 0; }
+  .nav-links a[aria-current="page"]::after { bottom: calc(0.75rem - 0.2rem - 3px); }
+  .nav-tools .nav-prefs-key { display: inline-grid; }
+  .nav-prefs { display: none; position: fixed; right: 16px; top: calc(env(safe-area-inset-top, 0px) + var(--nav-h, 3.125rem) + 0.5rem); flex-direction: column; align-items: stretch; gap: 0.6rem;
+    padding: 0.75rem 0.9rem; border-radius: 16px; background: var(--face); box-shadow: 0 0 0 1px var(--line), 0 6px 18px var(--drop-far);
+    transform-origin: top right; }
+  .nav-tools.open .nav-prefs { display: flex; animation: nav-prefs-in 180ms cubic-bezier(.2,.7,.2,1); }
+  .nav-pref { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; }
+  .nav-pref-name { position: static; width: auto; height: auto; overflow: visible; clip-path: none; font-size: var(--t-sm); color: var(--ink-2); }
+  .nav-prefs-key[aria-expanded="true"] { --th: 0px; transform: translateY(var(--th-key)); box-shadow: inset 0 1px 2px var(--drop-near), inset 0 0 0 1px var(--edge); }
+}
+@keyframes nav-prefs-in { from { opacity: 0; transform: translateY(-4px) scale(0.96); } }
+@media (prefers-reduced-motion: reduce) {
+  html, .nav { transition: none; }
+  .nav-tools.open .nav-prefs { animation: none; }
 }
 
 /* ── 共用小元件 ── */
@@ -71,6 +92,9 @@ html:not([data-lang="en"]) .lang-en, html[data-lang="en"] .lang-zh { display: no
 /* ── footer ── */
 .footer-inner { max-width: 68rem; margin: 0 auto; padding: 1.5rem 16px 2.5rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.25rem 1rem; font-size: var(--t-xs); color: var(--ink-3); }
 .footer-inner a { color: var(--ink-3); padding: 0.6rem 0; margin: -0.6rem 0; }
+/* footer 裡的按鈕(清除已開過的紀錄)跟連結同一個淡墨色:不常用的設定不該比旁邊的連結搶眼 */
+.footer-inner .linkbtn { color: var(--ink-3); padding: 0.6rem 0; margin: -0.6rem 0; text-underline-offset: auto; }
+.footer-inner :is(a, .linkbtn):hover { color: var(--ink); }
 
 /* ── share 卡 ── */
 /* 一般卡是固定形狀的磁磚:縮圖 1.91:1 + 兩行標題 + 一行來源,同一排一樣高,任何寬度都不會忽空忽密。

@@ -7,12 +7,9 @@ nav.books:       { zh: "書架", en: "Books" }
 nav.about:       { zh: "關於", en: "About" }
 
 theme.group:     { zh: "主題", en: "Theme" }
-theme.system:    { zh: "跟系統", en: "Auto" }
-theme.light:     { zh: "晝", en: "Light" }
-theme.dark:      { zh: "夜", en: "Dark" }
+theme.dark:      { zh: "夜間", en: "Dark mode" }
 lang.group:      { zh: "語言", en: "Language" }
-lang.switch_to:  { zh: "切換成英文", en: "Switch to Chinese" }
-theme.cycle:     { zh: "主題:{n}(點一下切換)", en: "Theme: {n} (click to change)" }
+nav.prefs:       { zh: "語言與主題", en: "Language & theme" }
 
 shelf.label:     { zh: "分享的文章", en: "Shared articles" }
 shelf.none:      { zh: "還沒有分享的文章。", en: "No shared articles yet." }

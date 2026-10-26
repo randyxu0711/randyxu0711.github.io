@@ -14,8 +14,10 @@
 - **桌面與板材**(`assets/css/slab.css`):頁面是桌面(`--desk`),卡片、書、project、按鍵都是 `.slab` 板;
   立體感 = 上緣反光 + 底下側面(`--th` 厚度)+ 兩層陰影。另有 `.key`(按鍵,按下沉進桌面)、`.groove`(輸入框凹槽)、
   `.coin`(圓形頭像)。**訊號色(赤褐)只用在三個時刻**:精選卡、游標停留 / 鍵盤聚焦(側面亮成訊號色)、按下的狀態;
-  平常的側面是暖中性色,書的側面是紙色。`data-tilt` 的板會朝游標傾斜(`assets/js/slab.js`,也管導覽列捲動後的陰影與主題鍵)。
-  導覽列底色不透明、不用 `backdrop-filter`(每格都要重算底下的 3D 書架,iPhone 捲動會卡)。
+  平常的側面是暖中性色,書的側面是紙色。`data-tilt` 的板會朝游標傾斜(`assets/js/slab.js`,也管導覽列與主題開關)。
+  導覽列底色不透明、不用 `backdrop-filter`(每格都要重算底下的 3D 書架,iPhone 捲動會卡),下緣用漸層融進場景;往下捲收起、往上捲出現(`html.nav-up`),
+  跟著它的 sticky / fixed 元素用 `--nav-vis`(看得到的高度)。手機一行:簽名 + 頁籤(文字,不用圖示)+ 偏好鍵,語言與主題的開關(`.switch`,凹槽裡一顆按鍵板)收在偏好鍵的面板裡;桌面直接排出來。
+  主題只有晝 / 夜兩段,沒選過就跟系統。
 - **模組與插槽**:`_config.yml` 的 `modules:` 一行一個模組,註解掉就關掉。版面用 `{% include slot.html name="…" %}`
   預留插槽(`header-tools` / `before-shelf` / `after-shelf` / `card-meta` / `footer`),
   模組片段在 `_includes/modules/<m>/<slot>.html`,樣式與 JS 在 `assets/modules/<m>/<m>.{css,js}`(每頁都載入;模組設 `assets: false` 就不載入)。

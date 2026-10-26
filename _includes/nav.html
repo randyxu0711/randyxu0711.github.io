@@ -19,12 +19,18 @@
     </nav>
     <div class="nav-tools">
       {% include slot.html name="header-tools" %}
-      <button type="button" class="key round" data-lang-toggle hidden data-reserve>EN</button>
-      <button type="button" class="key round" data-theme-cycle hidden data-reserve>
-        <svg data-icon="system" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 2a6 6 0 0 1 0 12z" fill="currentColor"/></svg>
-        <svg data-icon="light" viewBox="0 0 16 16" aria-hidden="true" hidden><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <svg data-icon="dark" viewBox="0 0 16 16" aria-hidden="true" hidden><path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z" fill="currentColor"/></svg>
+      <button type="button" class="key round nav-prefs-key" aria-expanded="false" aria-controls="nav-prefs" data-i18n-attr="aria-label:nav.prefs;title:nav.prefs" aria-label="語言與主題" title="語言與主題" hidden data-reserve>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5h12M2 11h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="10.5" cy="5" r="2" fill="var(--face)" stroke="currentColor" stroke-width="1.5"/><circle cx="5.5" cy="11" r="2" fill="var(--face)" stroke="currentColor" stroke-width="1.5"/></svg>
       </button>
+      <div class="nav-prefs" id="nav-prefs">
+        <span class="nav-pref"><span class="nav-pref-name" data-i18n="lang.group">語言</span>
+          <button type="button" class="switch" role="switch" aria-checked="false" aria-label="English" data-lang-toggle hidden data-reserve><span lang="zh-Hant">中</span><span lang="en">EN</span></button></span>
+        <span class="nav-pref"><span class="nav-pref-name" data-i18n="theme.group">主題</span>
+          <button type="button" class="switch" role="switch" aria-checked="false" data-i18n-attr="aria-label:theme.dark" aria-label="夜間" data-theme-toggle hidden data-reserve>
+            <span><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><path d="M8 1.5v1.5M8 13v1.5M1.5 8h1.5M13 8h1.5M3.4 3.4l1 1M11.6 11.6l1 1M3.4 12.6l1-1M11.6 4.4l1-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            <span><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 10A6 6 0 0 1 6 2.5a6 6 0 1 0 7.5 7.5z" fill="currentColor"/></svg></span>
+          </button></span>
+      </div>
     </div>
   </div>
 </header>
