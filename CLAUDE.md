@@ -28,9 +28,12 @@
   右邊一步一則 `story`。截圖嵌在板子裡(裱框),連續幾步用同一張圖時不換板子,只移動鏡頭(`focus: x y 倍率`);
   程式碼放文字欄的 `.groove`,數字放標題上方的大字,展示台只放真畫面。首頁卡片捲進畫面時「放上桌」、換頁有 View Transition,
   都只動 transform / opacity,書架不套(3D 會被壓平)。
-  整頁是「書房主人的卷宗」(求職讀者優先):封面紙板(自介、頭像下的聯絡圖示鍵 email / GitHub / LinkedIn / Goodreads(網址在 `_data/profile.yml`,圖示取自 Simple Icons,CC0)、白文印)→ Projects → 履歷紙(經歷、技能、學歷,上緣索引標籤)
-  → 書房近況(研究方向便利貼 + 最近轉發 3 篇 + 最近讀完 3 本)。寬螢幕(≥ 85rem)左側有段落捲軸(閱讀進度 + 跳轉),手機不做。
-  技能只寫認得出的工具與業界術語(Tool use、Structured output、MCP、Evals、RAG…),做法交給 project 敘事證明。
+  整頁是「書房主人的卷宗」(求職讀者優先):封面紙板(自介、頭像下的聯絡圖示鍵 email / GitHub / LinkedIn / Goodreads(網址在 `_data/profile.yml`,圖示取自 Simple Icons,CC0)+ 履歷 PDF 鍵、白文印)→ Projects → 履歷紙(經歷、技能、學歷,上緣索引標籤)
+  → 存根(撕線 + 騎縫章,捲進畫面時微微撕開,點了撕落再補一張)→ 書房近況(研究方向便利貼 + 最近轉發 3 篇 + 最近讀完 3 本)。寬螢幕(≥ 85rem)左側有段落捲軸(閱讀進度 + 跳轉),手機不做。
+  技能只寫認得出的工具與業界術語(Structured output、MCP、Prompt caching…),做法交給 project 敘事證明;經歷與技能的說法跟履歷 PDF 一致,沒做過的不寫。
+  **履歷 PDF**:原稿 `docs/resume/resume.typ`(Typst,單欄、ATS 友善、老書房配色,字型 Inter 自帶在 `docs/resume/fonts/`),
+  跑 `bash docs/resume/build.sh` 輸出到 `assets/resume/Randy-Xu-Resume.pdf`,同時把日期寫進 `_data/resume.yml`(存根的「更新」)。
+  兩個下載入口是同一顆 `.key.primary`(實心訊號色,`--primary`,只用在這裡),點了顯示「已下載」2 秒,不記住。
 - **版面不寫個人資料**:名字、自介、導覽在 `_config.yml`,projects 在 `_data/projects.yml`,自介全文在 `_tabs/about.md`。
 - **分享預覽卡**(og:image):全站同一張 `assets/img/og.png`(英文、白天配色、書房一角,剪報與書都是抽象的,不放真的文章與書名)。
   原稿 `docs/og/og.html`,改完跑 `uv run --with playwright python docs/og/render.py` 重出。

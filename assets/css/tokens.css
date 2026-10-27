@@ -42,6 +42,7 @@
   --ink-2:        #4a3d35;
   --ink-3:        #5c4f45;                 /* 文字一律接近黑色,層次靠字級與粗細 */
   --accent:       #793327;                 /* 當成文字用的訊號色 */
+  --primary:      var(--accent);           /* 實心的主要按鍵 */
   --line:         rgb(42 31 25 / 0.14);
   --spec:         rgb(255 255 255 / 0.9);  /* 上緣反光 */
   --sheen:        rgb(255 255 255 / 0.5);  /* 跟著游標的光澤 */
@@ -72,10 +73,10 @@
     --paper: #cdbb9c; --paper-deep: #9a8668;
     --shelf: var(--face);
     --ink: #f0e3cc; --ink-2: #c9b8a0; --ink-3: #a8957d;
-    --accent: #e3a07c; --line: rgb(240 227 204 / 0.08);
+    --accent: #e3a07c; --primary: color-mix(in srgb, var(--accent) 80%, var(--face)); --line: rgb(240 227 204 / 0.08);
     --spec: rgb(255 230 200 / 0.22); --sheen: rgb(255 210 150 / 0.3);
     --drop-near: rgb(0 0 0 / 0.55); --drop-far: rgb(0 0 0 / 0.6); --unlit: #0c0806; --lamp: #e6bc8a;
-    --rule: #3e3a33; --redline: #e08a74; --sticky: #c9a95a;
+    --rule: #3e3a33; --redline: #e08a74; --sticky: #a98d4f;
     --tag-1: #e07a68; --tag-2: #7fa3b3; --tag-3: #e0c25a; --tag-4: #8fae78;
     --tag-5: #b88aa6; --tag-6: #b4c6de; --tag-7: #b8584a; --tag-8: #e09a62;
     --map-1: #9a6038; --map-2: #b9713a; --map-3: #d4853a; --map-4: #ea9c34; --map-5: #f9b730;
@@ -94,10 +95,10 @@
   --paper: #cdbb9c; --paper-deep: #9a8668;
   --shelf: var(--face);
   --ink: #f0e3cc; --ink-2: #c9b8a0; --ink-3: #a8957d;
-  --accent: #e3a07c; --line: rgb(240 227 204 / 0.08);
+  --accent: #e3a07c; --primary: color-mix(in srgb, var(--accent) 80%, var(--face)); --line: rgb(240 227 204 / 0.08);
   --spec: rgb(255 230 200 / 0.22); --sheen: rgb(255 210 150 / 0.3);
   --drop-near: rgb(0 0 0 / 0.55); --drop-far: rgb(0 0 0 / 0.6); --unlit: #0c0806; --lamp: #e6bc8a;
-  --rule: #3e3a33; --redline: #e08a74; --sticky: #c9a95a;
+  --rule: #3e3a33; --redline: #e08a74; --sticky: #a98d4f;
   --tag-1: #e07a68; --tag-2: #7fa3b3; --tag-3: #e0c25a; --tag-4: #8fae78;
   --tag-5: #b88aa6; --tag-6: #b4c6de; --tag-7: #b8584a; --tag-8: #e09a62;
   --map-1: #9a6038; --map-2: #b9713a; --map-3: #d4853a; --map-4: #ea9c34; --map-5: #f9b730;
