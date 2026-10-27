@@ -103,5 +103,16 @@
     document.querySelectorAll(sel).forEach(function (el) { io.observe(el); });
   };
   once('[data-in]:not(.as-item)', '0px 0px -12% 0px');
-  once('.as-item', '0px 0px -45% 0px');
+  once('.as-item', '0px 0px -25% 0px');
+
+  document.querySelectorAll('[data-dl]').forEach(function (a) {
+    var t;
+    a.addEventListener('click', function () {
+      a.classList.remove('done');
+      void a.offsetWidth;
+      a.classList.add('done');
+      clearTimeout(t);
+      t = setTimeout(function () { a.classList.remove('done'); }, 2000);
+    });
+  });
 })();

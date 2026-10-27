@@ -50,8 +50,8 @@
   repo: randyxu0711/wpSBOOT
   image: /assets/img/projects/wpSBOOT.webp
   summary:
-    zh: 政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法,我負責開發它的網頁伺服器:上傳序列,以四種比對工具產生 Super-MSA。
-    en: "A phylogenetic method from Prof. Jia-Ming Chang's lab at NCCU, published in <i>Bioinformatics</i>. I build its web server: upload sequences, get a Super-MSA built from four aligners."
+    zh: 政大資科張家銘教授實驗室發表於 <i>Bioinformatics</i> 的演化樹分析方法，我負責開發它的網頁伺服器：上傳序列，以四種比對工具產生 Super-MSA。2019 年的原版，2026 年用 AI coding agent 一天內重新架構。
+    en: "A phylogenetic method from Prof. Jia-Ming Chang's lab at NCCU, published in <i>Bioinformatics</i>. I build its web server: upload sequences, get a Super-MSA built from four aligners. The 2019 original was re-architected in one day with an AI coding agent in 2026."
   stack: [Python, FastAPI, PostgreSQL, Docker]
   story:
     - shot: /assets/img/projects/wpSBOOT/result.webp
@@ -72,7 +72,7 @@
                       ORDER BY created_at
                       FOR UPDATE SKIP LOCKED LIMIT 1)
     - shot: /assets/img/projects/wpSBOOT/admin.webp
-      focus: 64 25 2
+      focus: 44 22 1.1
       stat: 120 s
       stat_label: { zh: 沒有心跳就重新排隊, en: No heartbeat, back in the queue }
       title: { zh: worker 當掉，工作不會卡住, en: A crashed worker doesn't strand the job }
@@ -80,7 +80,7 @@
         zh: 維護程序定期找出超過 120 秒沒有心跳的工作，放回佇列給其他 worker 接手；同一份工作被中斷兩次就標成失敗並告知原因，不會無限重試。正常關機的 worker 會主動把工作交回，不算一次失敗。
         en: A maintenance pass finds running jobs with no heartbeat for 120 seconds and puts them back in the queue for another worker. A job interrupted twice is marked failed with a reason instead of retrying forever, and a worker shutting down cleanly hands its job back without counting it as an attempt.
     - shot: /assets/img/projects/wpSBOOT/details.webp
-      focus: 50 68 2.1
+      focus: 49.5 68.3 2.9
       title: { zh: 結果可以重現, en: Reproducible results }
       text:
         zh: 每份結果都記下當次使用的工具版本，論文引用或日後重跑時對得上。整套服務用 Docker Compose 部署，測試會在容器裡實際跑過四種比對工具。

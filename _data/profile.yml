@@ -4,18 +4,19 @@
 name: Randy Xu
 avatar: /assets/img/avatar.jpg
 goodreads: https://www.goodreads.com/user/show/178569619-randy-xu   # 卷宗封面頭像下的圖示鍵
-linkedin: https://www.linkedin.com/in/randy-xu-6899b8162/
+linkedin: https://www.linkedin.com/in/randy-xu0711/
+resume: /assets/resume/Randy-Xu-Resume.pdf   # docs/resume/build.sh 產生
 
 role:
-  zh: 軟體工程師，探索有趣的 AI 應用
-  en: Software engineer exploring interesting AI applications
+  zh: AI 工程師，全端開發者
+  en: AI engineer and full‑stack developer   # 不斷行連字號,手機上不會斷在 full- 後面
 
 intro:   # 卷宗封面上的自介:你是誰、現在在做什麼、工作之外。細節交給 projects 與經歷,不在這裡重複
   zh:
-    - Hi，我是 Randy，軟體工程師。在 Openfind 做了兩年半企業郵件系統 Mail2000 的核心開發；現在專注在研究 AI agent 相關的應用，也動手做一些自己有興趣的東西。
+    - Hi，我是 Randy，AI 工程師與全端開發者。在 Openfind 做了兩年半企業郵件平台 Mail2000 的核心開發，平台授權使用者超過一千萬；2024 年起用 Claude Agent SDK 開發 LLM agent 應用，重點是讓它可驗證、成本可控。
     - 工作之外，我讀世界經典文學，偶爾也寫短篇。這個網站收錄我的 projects、值得一讀的技術文章，以及讀過的書。
   en:
-    - Hi, I'm Randy, a software engineer. I spent two and a half years on the core of Mail2000, Openfind's enterprise email system; these days I'm researching applications of AI agents, and building things I find interesting along the way.
+    - Hi, I'm Randy, an AI engineer and full-stack developer. I spent two and a half years on the core of Mail2000, Openfind's enterprise email platform with 10M+ licensed users. Since 2024 I've been building LLM agent applications on the Claude Agent SDK, with a focus on keeping them verifiable and cost-aware.
     - Outside of work I read world classic literature and occasionally write short stories. This site collects my projects, technical articles worth reading, and the books I've read.
 
 # 每一節的小標
@@ -26,6 +27,10 @@ headings:
   skills:     { zh: 技能, en: Skills }
   education:  { zh: 學歷, en: Education }
   resume:     { zh: 履歷, en: Résumé }
+  download:   { zh: 英文履歷 PDF, en: Résumé PDF }
+  take:       { zh: 下載, en: Download }
+  taken:      { zh: 已下載, en: Downloaded }
+  updated:    { zh: 更新, en: Updated }
   now:        { zh: 書房近況, en: From the study }
   shares:     { zh: 最近轉發, en: Recently shared }
   books:      { zh: 最近讀完, en: Recently read }
@@ -50,34 +55,40 @@ exploring:   # 書房近況裡的研究方向,一項一句
       en: "Read its source, wrote literary-analysis skills for it on MemPalace's semantic memory, and hooked it up to Spotify's MCP server; it was hyenovel's predecessor."
 
 experience:
+  - org:   { zh: 獨立開發, en: Independent }
+    title: { zh: AI Agent Developer, en: AI Agent Developer }
+    when:  { zh: 2024/4 – 至今, en: Apr 2024 – Present }
+    lead:
+      zh: 以 Claude Agent SDK 開發 LLM agent 應用，主要作品是上方的 hyenovel。
+      en: Building LLM agent applications on the Claude Agent SDK; hyenovel above is the main one.
   - org:   { zh: Openfind 網擎資訊, en: Openfind }
     title: { zh: Software Engineer, en: Software Engineer }
     when:  { zh: 2021/10 – 2024/4, en: Oct 2021 – Apr 2024 }
     lead:
-      zh: 企業郵件系統 Mail2000 核心開發。
-      en: Core developer on Mail2000, an enterprise email system.
-    # 每一點:**標題** 是做了什麼(整體一點),冒號後面寫對使用者與團隊的好處,不寫技術細節
+      zh: 企業郵件平台 Mail2000 核心開發，平台授權使用者超過一千萬。
+      en: Core developer on Mail2000, an enterprise email platform with 10M+ licensed users.
+    # 每一點:**標題** 是做了什麼,冒號後面用業界術語寫做法與規模;跟 docs/resume/resume.typ 的說法一致
     items:
       zh:
-        - "**系統開發與架構轉型**:負責新功能開發與既有功能的架構轉換。新版介面上線時不必重寫功能,團隊只需維護一份邏輯;客戶的開發團隊也能直接串接,把郵件功能整合進自家系統。"
-        - "**自動容錯切換**:伺服器出問題時由備援機自動接手。在維運人員接手排查之前,服務不中斷、有保障。"
-        - "**雙因素登入**:讓使用者透過手機 App 完成驗證,安全、方便一把抓。"
-        - "**無痛轉移方案**:開發 Outlook 同步工具。企業轉換到 Mail2000 之後,員工照樣用熟悉的 Outlook 收信、排行程、找聯絡人。"
+        - "**舊系統現代化**:把 30 多支 C 語言 CGI 程式重構成共用函式庫，並在上面建立 REST API 層，網頁介面、手機 App 與客戶的系統整合共用同一套後端。"
+        - "**Exchange 移轉**:負責 C# 的 Windows 用戶端，透過 MAPI（Redemption 函式庫）與 Mail2000 同步 Outlook 的郵件、聯絡人與行事曆，服務從 Exchange 移轉過來的客戶，使用者超過一萬人。"
+        - "**雙因素驗證（2FA）**:負責登入流程與合作夥伴驗證 API 的整合，支援 OTP 動態密碼與推播核准。"
+        - "**高可用性**:負責容錯切換模組，用 Perl 串接 keepalived（VRRP）、lsyncd 檔案同步與 MongoDB replica set，主機故障時備援機約 10 秒內接手。"
       en:
-        - "**Feature development and architecture migration**: Built new features and migrated existing ones to a shared backend. The new interface launched without rewriting features, the team maintains one codebase, and customers' developers can integrate mail into their own systems."
-        - "**Automatic failover**: A standby takes over automatically when a server fails, so service keeps running until operators step in to investigate."
-        - "**Two-factor sign-in**: Users verify through a mobile app, getting security and convenience in one step."
-        - "**Seamless migration**: Built the Outlook sync tool. After a company moves to Mail2000, employees keep using Outlook for mail, calendars and contacts."
+        - "**Legacy system modernization**: Refactored 30+ legacy C CGI programs into shared libraries and built a REST API layer on top, so the web UI, mobile app and customer integrations share one backend."
+        - "**Exchange migration**: Owned a C# Windows client that syncs Outlook mail, contacts and calendars with Mail2000 over MAPI (Redemption library), used by 10,000+ end users at customers migrating off Exchange."
+        - "**Two-factor authentication (2FA)**: Owned the login integration with a partner's authentication API, supporting OTP codes and push-notification approval."
+        - "**High availability**: Owned the failover module, Perl scripts driving keepalived (VRRP), lsyncd file replication and MongoDB replica sets; the standby takes over within ~10 seconds."
 
 skills:
-  - name:  { zh: LLM / Agents, en: LLM / Agents }
-    items: [Claude Agent SDK, Tool use & hooks, Structured output (JSON Schema), Evals & validation gates, MCP, "RAG (SQLite FTS, MemPalace)", Token / cost tracking]
-  - name:  { zh: 後端, en: Backend }
-    items: [Python, FastAPI, PostgreSQL, C, C#, Perl]
-  - name:  { zh: 前端, en: Frontend }
-    items: [React, TypeScript]
-  - name:  { zh: 維運, en: Ops }
-    items: [Linux, Git, Docker, Shell, GitHub Actions]
+  - name:  { zh: 程式語言, en: Languages }
+    items: [Python, TypeScript, JavaScript, C, C#, Perl, SQL]
+  - name:  { zh: AI / LLM, en: AI / LLM }
+    items: [Claude Agent SDK, MCP, Multi-agent orchestration, Structured output (JSON Schema), Guardrails, Prompt caching]
+  - name:  { zh: Web 與後端, en: Web & Backend }
+    items: [FastAPI, React, REST API design, three.js / WebGL, Jekyll]
+  - name:  { zh: 資料庫與基礎設施, en: Databases & Infrastructure }
+    items: [PostgreSQL, MongoDB, Docker, GitHub Actions, Linux, keepalived (VRRP), Git]
 
 education:
   - school: { zh: 國立政治大學 資訊科學系, en: "B.S. in Computer Science, National Chengchi University" }
