@@ -28,7 +28,7 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js, room.js, s
 {%- for m in layout.modules %}
 <link rel="modulepreload" href="{{ '/assets/books3d/' | append: m | relative_url }}?v={{ v }}">
 {%- endfor %}
-<section class="b3d s3d" id="b3d" data-atlas="{{ '/assets/vendor/world-atlas/countries-110m.json' | relative_url }}">
+<section class="b3d s3d" id="b3d" data-atlas="{{ '/assets/vendor/world-atlas/countries-50m.json' | relative_url }}">
   <h1 class="visually-hidden" data-i18n="nav.books">{{ page.title }}</h1>
   <div class="b3d-bar s3d-tray" id="b3d-bar" hidden>
     <button type="button" class="key s3d-ico b3d-view-key" id="b3d-view" aria-pressed="false" aria-label="陳列" title="陳列" data-i18n-attr="aria-label:books3d.covers;title:books3d.covers">
