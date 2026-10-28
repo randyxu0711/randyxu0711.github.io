@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { FOV, RING, reach, decode, area, dirOf, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, FOCUS } from 'books3d/geo.js';
+import { FOV, RING, reach, decode, decodeArcs, tessellate, strokes, graticule, area, dirOf, lonLatOf, bounds, inBounds, thin, toPixel, distAt, zoomAt, spread, focusDist, pinSpots, cull, ranking, nearestAngle, contains, SMALL, FOCUS } from 'books3d/geo.js';
 import { readTokens } from 'scene3d/colors.js';
 import { smallCover, titleOf, authorOf } from 'books3d/textures.js';
 import { clamp, lerp, easeInOut } from 'scene3d/anim.js';
@@ -13,7 +13,16 @@ const NEAR = 1.55;
 const TAN = Math.tan((FOV / 2) * Math.PI / 180);
 const TURN = 1800;
 const STEP = 0.15;
-const DOT = 13;
+const DOT_PX = 5;
+const GRID_R = 1.001;
+const LAND_R = 1.002;
+const LINE_R = 1.003;
+const LAND_DEG = 4;
+const LINE_PX = 1.2;
+const RIM_PX = 2.5;
+const GRID_PX = 1;
+const SEA_GLOW = [0x2b / 255, 0x22 / 255, 0x19 / 255];
+const LAND_GLOW = [0x3d / 255, 0x32 / 255, 0x26 / 255];
 const LIFT = 0.022;
 const NIGHT_DARK = 0.565;
 const CABINET = { W: 4.67, D: 2.33, H: 5, BACK: -1.2 };
@@ -22,25 +31,32 @@ const PIN_N = 80;
 const PIN_PX = 6;
 const PIN_RISE = 260;
 const PIN_STAGGER = 18;
-const TOKENS = ['globe-sea', 'globe-land', 'globe-grid', 'oak', 'wall', 'brass', 'wood', 'edge', 'desk', 'paper', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
-const RAW = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid'];
+const TOKENS = ['globe-sea', 'globe-land', 'globe-line', 'globe-grid', 'oak', 'wall', 'brass', 'wood', 'edge', 'desk', 'paper', 'map-1', 'map-2', 'map-3', 'map-4', 'map-5'];
 
-const css = (c) => 'rgb(' + c.slice(0, 3).map((v) => Math.round(v * 255)).join(' ') + ')';
 const dark = (c, k) => [c[0] * k, c[1] * k, c[2] * k, 1];
+
+let slice = 0;
+async function breathe() {
+  if (performance.now() - slice < 12) return;
+  await new Promise((r) => setTimeout(r));
+  slice = performance.now();
+}
 
 export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, root, t, lang, reduce, onClosed, invalidate }) {
   const topo = await (await fetch(atlas)).json();
+  slice = performance.now();
   const shapes = decode(topo);
   const ranks = ranking(books, (k) => k);
   const total = ranks.reduce((s, r) => s + r.count, 0);
   const C = new Map();
-  ranks.forEach((r) => {
+  for (const r of ranks) {
+    await breathe();
     const g = geo.countries[r.country];
     const polys = g && shapes.get(g.topo);
-    if (!polys) return;
+    if (!polys) continue;
     const a = area(polys);
-    C.set(r.country, { ...r, ids: books.map((b, i) => (b.g === r.country ? i : -1)).filter((i) => i >= 0).sort((x, y) => (books[y].r || 0) - (books[x].r || 0)), g, polys, area: a, small: a < SMALL, spread: Math.max(MIN_SPREAD, spread(polys, g.at)), dir: new THREE.Vector3(...dirOf(g.at[0], g.at[1])) });
-  });
+    C.set(r.country, { ...r, ids: books.map((b, i) => (b.g === r.country ? i : -1)).filter((i) => i >= 0).sort((x, y) => (books[y].r || 0) - (books[x].r || 0)), g, polys, area: a, small: a < SMALL, box: bounds(polys), boxes: polys.map((p) => bounds([p])), low: thin(polys, 0.25), spread: Math.max(MIN_SPREAD, spread(polys, g.at)), dir: new THREE.Vector3(...dirOf(g.at[0], g.at[1])) });
+  }
   const sub = new Map(geo.subregions.map((s) => [s.id, s]));
   const conts = geo.continents.map((c) => {
     const list = [...C.values()].filter((x) => (sub.get(x.g.subregion) || {}).continent === c.id);
@@ -78,16 +94,12 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     c.height = h;
     return c;
   };
-  const mapC = canvas2d(TW, TH);
-  const emitC = canvas2d(TW / 2, TH / 2);
   const dropC = canvas2d(TW / 2, TH / 2);
   const tex = (c) => {
     const x = new THREE.CanvasTexture(c);
     x.anisotropy = 8;
     return x;
   };
-  const mapT = tex(mapC);
-  const emitT = tex(emitC);
   const dropT = tex(dropC);
 
   const root3 = new THREE.Group();
@@ -95,32 +107,129 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   scene.add(root3);
   root3.add(spin);
   const sphere = new THREE.SphereGeometry(1, 128, 96);
-  const ballMat = new THREE.MeshStandardMaterial({ map: mapT, emissiveMap: emitT, emissive: 0xffffff, emissiveIntensity: 0, roughness: 0.62 });
+  const ballMat = new THREE.MeshStandardMaterial({ emissiveIntensity: 0, roughness: 0.62 });
   const ball = new THREE.Mesh(sphere, ballMat);
   ball.castShadow = true;
   spin.add(ball);
 
   const glowU = { value: 0 };
-  const topGeo = new THREE.BufferGeometry();
-  const topMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.65 });
-  topMat.onBeforeCompile = (sh) => {
+  const sphereNormal = (sh) => {
+    sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>', 'vec3 objectNormal = normalize(position);');
+  };
+  const earcut = (c, h) => THREE.ShapeUtils.triangulateShape(c.map(([x, y]) => new THREE.Vector2(x, y)), h.map((r) => r.map(([x, y]) => new THREE.Vector2(x, y))));
+
+  const kindOf = new Map([...C.values()].map((c) => [c.g.topo, c.cls + 1]));
+  const landU = { uCol: { value: Array.from({ length: 6 }, () => new THREE.Color()) }, uGlowCol: { value: Array.from({ length: 6 }, () => new THREE.Color()) }, uGlow: glowU };
+  const landGeo = await (async () => {
+    const parts = [];
+    for (const [k, polys] of shapes) {
+      await breathe();
+      parts.push([tessellate(polys, LAND_DEG, earcut), kindOf.get(k) || 0]);
+    }
+    const n = parts.reduce((s, [f]) => s + f.length / 2, 0);
+    const pos = new Float32Array(n * 3);
+    const kind = new Float32Array(n);
+    let v = 0;
+    for (const [f, k] of parts) {
+      await breathe();
+      for (let i = 0; i < f.length; i += 2, v++) {
+        const d = dirOf(f[i], f[i + 1]);
+        pos[v * 3] = d[0] * LAND_R;
+        pos[v * 3 + 1] = d[1] * LAND_R;
+        pos[v * 3 + 2] = d[2] * LAND_R;
+        kind[v] = k;
+      }
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aKind', new THREE.BufferAttribute(kind, 1));
+    return g;
+  })();
+  const landMat = new THREE.MeshStandardMaterial({ roughness: 0.62 });
+  landMat.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, landU);
+    sphereNormal(sh);
+    sh.vertexShader = 'attribute float aKind;\nuniform vec3 uCol[6];\nuniform vec3 uGlowCol[6];\nvarying vec3 vLand;\nvarying vec3 vGlowC;\n'
+      + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvLand = uCol[int(aKind + 0.5)];\nvGlowC = uGlowCol[int(aKind + 0.5)];');
+    sh.fragmentShader = 'uniform float uGlow;\nvarying vec3 vLand;\nvarying vec3 vGlowC;\n'
+      + sh.fragmentShader
+        .replace('#include <color_fragment>', 'diffuseColor.rgb *= vLand;')
+        .replace('#include <emissivemap_fragment>', 'totalEmissiveRadiance = vGlowC * uGlow;');
+  };
+  const land = new THREE.Mesh(landGeo, landMat);
+
+  const lineK = { value: 0 };
+  const widen = (px) => (sh) => {
+    sh.uniforms.uK = lineK;
+    sh.vertexShader = 'attribute vec3 aSide;\nattribute float aS;\nuniform float uK;\n'
+      + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed += aSide * aS * ' + px.toFixed(2) + ' * uK * -(modelViewMatrix * vec4(transformed, 1.0)).z;');
+  };
+  const strokeGeo = ({ pos, side, s, index }) => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aSide', new THREE.BufferAttribute(side, 3));
+    g.setAttribute('aS', new THREE.BufferAttribute(s, 1));
+    g.setIndex(new THREE.BufferAttribute(index, 1));
+    return g;
+  };
+  const lineMesh = async (lines, r, px, cut) => {
+    const parts = [];
+    for (let i = 0; i < lines.length; i += 500) {
+      await breathe();
+      parts.push(strokes(lines.slice(i, i + 500), r, 1, cut));
+    }
+    const join = (key) => {
+      const out = new parts[0][key].constructor(parts.reduce((n, p) => n + p[key].length, 0));
+      let at = 0;
+      let base = 0;
+      parts.forEach((p) => {
+        if (key === 'index') p.index.forEach((x, i) => { out[at + i] = x + base; });
+        else out.set(p[key], at);
+        at += p[key].length;
+        base += p.s.length;
+      });
+      return out;
+    };
+    const g = strokeGeo({ pos: join('pos'), side: join('side'), s: join('s'), index: join('index') });
+    const m = new THREE.MeshStandardMaterial({ roughness: 0.62, emissiveIntensity: 0 });
+    m.onBeforeCompile = (sh) => {
+      sphereNormal(sh);
+      widen(px)(sh);
+    };
+    return new THREE.Mesh(g, m);
+  };
+  const borders = await lineMesh(decodeArcs(topo), LINE_R, LINE_PX, true);
+  const grid = await lineMesh(graticule(15), GRID_R, GRID_PX);
+  land.frustumCulled = borders.frustumCulled = grid.frustumCulled = false;
+  spin.add(grid, land, borders);
+  const vertexGlow = (sh) => {
     sh.uniforms.uGlow = glowU;
     sh.fragmentShader = 'uniform float uGlow;\n' + sh.fragmentShader.replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\ntotalEmissiveRadiance = vColor.rgb * uGlow;');
   };
-  const top = new THREE.Mesh(topGeo, topMat);
-  const rimGeo = new THREE.BufferGeometry();
+  const liftH = { value: 0 };
   const rimMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-  const rim = new THREE.Mesh(rimGeo, rimMat);
-  top.frustumCulled = rim.frustumCulled = false;
+  rimMat.onBeforeCompile = widen(RIM_PX);
   const dropMat = new THREE.MeshBasicMaterial({ map: dropT, transparent: true, depthWrite: false, opacity: 0 });
   const drop = new THREE.Mesh(sphere, dropMat);
-  drop.scale.setScalar(1.0008);
-  const wallGeo = new THREE.BufferGeometry();
+  drop.scale.setScalar(1.004);
   const wallMat = new THREE.MeshBasicMaterial({ side: THREE.DoubleSide });
-  const walls = new THREE.Mesh(wallGeo, wallMat);
-  top.visible = drop.visible = walls.visible = rim.visible = false;
-  walls.frustumCulled = false;
-  spin.add(drop, top, walls, rim);
+  wallMat.onBeforeCompile = (sh) => {
+    sh.uniforms.uH = liftH;
+    sh.vertexShader = 'attribute float aTop;\nuniform float uH;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed *= 1.0 + aTop * uH;');
+  };
+  const tops = new THREE.Group();
+  const rims = new THREE.Group();
+  const walls = new THREE.Group();
+  tops.visible = drop.visible = walls.visible = rims.visible = false;
+  spin.add(drop, tops, walls, rims);
+
+  const smalls = [...C.values()].filter((c) => c.small);
+  const dotMat = new THREE.MeshStandardMaterial({ roughness: 0.62 });
+  dotMat.onBeforeCompile = vertexGlow;
+  const dots = new THREE.InstancedMesh(new THREE.CircleGeometry(1, 32), dotMat, Math.max(1, smalls.length));
+  dots.frustumCulled = false;
+  dots.count = smalls.length;
+  spin.add(dots);
 
   const brass = new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.6 });
   const wood = new THREE.MeshStandardMaterial({ roughness: 0.6 });
@@ -147,7 +256,6 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
   root3.add(ring, post, base, desk, wall);
 
   let tok = {};
-  let raw = {};
   let night = false;
   const ramp = (k, glowing) => (glowing ? tok['map-' + (k + 1)] : night ? dark(tok['map-' + (k + 1)], NIGHT_DARK) : tok['map-' + (k + 1)]);
 
@@ -162,130 +270,36 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       g.closePath();
     })));
   }
-  function dot(g, c, sx, r) {
-    const [x, y] = toPixel(c.g.at[0], c.g.at[1], TW, TH);
-    g.moveTo((x + r) * sx, y * sx);
-    g.arc(x * sx, y * sx, r * sx, 0, Math.PI * 2);
-  }
 
-  function paint() {
-    const g = mapC.getContext('2d');
-    const e = emitC.getContext('2d');
-    g.fillStyle = raw['globe-sea'];
-    g.fillRect(0, 0, TW, TH);
-    e.fillStyle = '#2b2219';
-    e.fillRect(0, 0, TW / 2, TH / 2);
-    g.beginPath();
-    for (let lon = -180; lon <= 180; lon += 15) {
-      g.moveTo(toPixel(lon, 0, TW, TH)[0], 0);
-      g.lineTo(toPixel(lon, 0, TW, TH)[0], TH);
-    }
-    for (let lat = -75; lat <= 75; lat += 15) {
-      g.moveTo(0, toPixel(0, lat, TW, TH)[1]);
-      g.lineTo(TW, toPixel(0, lat, TW, TH)[1]);
-    }
-    g.strokeStyle = raw['globe-grid'];
-    g.lineWidth = 2;
-    g.stroke();
-    shapes.forEach((polys) => {
-      trace(g, polys, 1);
-      g.fillStyle = raw['globe-land'];
-      g.fill('evenodd');
-      trace(e, polys, 0.5);
-      e.fillStyle = '#3d3226';
-      e.fill('evenodd');
-    });
-    C.forEach((c) => {
-      trace(g, c.polys, 1);
-      if (c.small) dot(g, c, 1, DOT);
-      g.fillStyle = css(ramp(c.cls));
-      g.fill('evenodd');
-      trace(e, c.polys, 0.5);
-      if (c.small) dot(e, c, 0.5, DOT);
-      e.fillStyle = css(ramp(c.cls, true));
-      e.fill('evenodd');
-    });
-    g.strokeStyle = raw['globe-line'];
-    g.lineWidth = 1.6;
-    shapes.forEach((polys) => {
-      trace(g, polys, 1);
-      g.stroke();
-    });
-    mapT.needsUpdate = true;
-    emitT.needsUpdate = true;
-  }
 
   let lifted = [];
-  const shapeOf = (c) => (c.small ? [[circle(c.g.at, (DOT * 1.3 * 360) / TW)]] : c.polys);
-  const SPLIT = 2;
 
-  function buildTop() {
-    const pos = [];
-    const col = [];
-    const add = (pts, rgb) => pts.forEach(([lon, lat]) => {
-      pos.push(...dirOf(lon, lat));
-      col.push(...rgb);
-    });
-    const split = (a, b, c, rgb) => {
-      const ab = Math.hypot(a[0] - b[0], a[1] - b[1]);
-      const bc = Math.hypot(b[0] - c[0], b[1] - c[1]);
-      const ca = Math.hypot(c[0] - a[0], c[1] - a[1]);
-      if (Math.max(ab, bc, ca) <= SPLIT) return add([a, b, c], rgb);
-      const m = (p, q) => [(p[0] + q[0]) / 2, (p[1] + q[1]) / 2];
-      const x = m(a, b);
-      const y = m(b, c);
-      const z = m(c, a);
-      split(a, x, z, rgb);
-      split(x, b, y, rgb);
-      split(z, y, c, rgb);
-      split(x, y, z, rgb);
-    };
-    const strip = (r) => {
-      const pts = r.map(([x, y]) => new THREE.Vector2(x, y));
-      if (pts.length > 1 && pts[0].equals(pts[pts.length - 1])) pts.pop();
-      return pts;
-    };
-    lifted.forEach((k) => {
-      const c = C.get(k);
-      const rgb = tok['map-' + (c.cls + 1)].slice(0, 3);
-      shapeOf(c).forEach((rings) => {
-        const contour = strip(rings[0]);
-        const holes = rings.slice(1).map(strip);
-        const faces = THREE.ShapeUtils.triangulateShape(contour, holes);
-        const all = contour.concat(...holes).map((v) => [v.x, v.y]);
-        faces.forEach(([a, b, d]) => split(all[a], all[b], all[d], rgb));
-      });
-    });
-    topGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    topGeo.setAttribute('normal', new THREE.Float32BufferAttribute(pos, 3));
-    topGeo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  }
+  const dotR = () => (DOT_PX * (dist() - 1) * 2 * TAN) / window.innerHeight;
 
-  let rimW = 0;
-  function buildRim(w) {
-    rimW = w;
-    const pos = [];
-    const _a = new THREE.Vector3();
-    const _b = new THREE.Vector3();
-    const _s = new THREE.Vector3();
-    lifted.forEach((k) => {
-      shapeOf(C.get(k)).flat().forEach((r) => {
-        for (let i = 0; i < r.length - 1; i++) {
-          _a.set(...dirOf(r[i][0], r[i][1]));
-          _b.set(...dirOf(r[i + 1][0], r[i + 1][1]));
-          _s.subVectors(_b, _a).cross(_a).normalize().multiplyScalar(w / 2);
-          const p = [_a.clone().add(_s), _a.clone().sub(_s), _b.clone().sub(_s), _b.clone().add(_s)];
-          [0, 1, 2, 0, 2, 3].forEach((j) => pos.push(p[j].x, p[j].y, p[j].z));
-        }
-      });
+  const _dz = new THREE.Vector3(0, 0, 1);
+  const _dq = new THREE.Quaternion();
+  const _dm = new THREE.Matrix4();
+  const _dp = new THREE.Vector3();
+  const _ds = new THREE.Vector3();
+  function placeDots() {
+    const r = dotR();
+    smalls.forEach((c, j) => {
+      const q = Math.sqrt(c.area / Math.PI) / r;
+      const s = lifted.includes(c.country) ? 0 : r * clamp(2 - 2 * q, 0, 1);
+      _dq.setFromUnitVectors(_dz, c.dir);
+      dots.setMatrixAt(j, _dm.compose(_dp.copy(c.dir).multiplyScalar(1.0045), _dq, _ds.setScalar(s)));
     });
-    rimGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    dots.instanceMatrix.needsUpdate = true;
   }
-  const rimWant = () => (2.5 * (dist() - 1) * 2 * TAN) / window.innerHeight;
+  function paintDots() {
+    smalls.forEach((c, j) => dots.setColorAt(j, _pc.setRGB(...tok['map-' + (c.cls + 1)].slice(0, 3))));
+    if (dots.instanceColor) dots.instanceColor.needsUpdate = true;
+  }
 
   const heads = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 20, 14), new THREE.MeshStandardMaterial({ roughness: 0.28 }), PIN_N);
   const needles = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.11, 0.05, 1, 8).translate(0, 0.5, 0), new THREE.MeshStandardMaterial({ roughness: 0.35, metalness: 0.7 }), PIN_N);
   heads.frustumCulled = needles.frustumCulled = false;
+  heads.setColorAt(0, new THREE.Color());
   heads.count = needles.count = 0;
   spin.add(needles, heads);
   const pins = { k: null, list: [], t0: 0, out: false, r: 0, hot: -1 };
@@ -299,7 +313,8 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   function setPins(k) {
     const c = C.get(k);
-    const spots = pinSpots(shapeOf(c), Math.min(PIN_N, c.ids.length));
+    c.spots = c.spots || pinSpots(c.polys, PIN_N);
+    const spots = c.spots.slice(0, Math.min(PIN_N, c.ids.length));
     pins.list = spots.map(([lon, lat], j) => {
       const d = new THREE.Vector3(...dirOf(lon, lat));
       const away = d.clone().sub(c.dir).projectOnPlane(d);
@@ -388,79 +403,77 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       const c = C.get(k);
       d.save();
       d.translate(2.5, 3.5);
-      trace(d, c.polys, 0.5);
-      if (c.small) dot(d, c, 0.5, DOT * 1.3);
+      trace(d, c.low, 0.5);
       d.fill('evenodd');
       d.restore();
     });
     d.filter = 'none';
     dropT.needsUpdate = true;
-    buildTop();
-    buildRim(rimWant());
-    buildWalls();
+    [tops, rims, walls].forEach((g) => g.clear());
+    lifted.forEach((k) => {
+      const p = piece(k);
+      tops.add(p.top);
+      rims.add(p.rim);
+      walls.add(p.wall);
+    });
   }
 
-  let wallBase = new Float32Array(0);
-  let wallTop = new Uint8Array(0);
-  function buildWalls() {
+  const pieces = new Map();
+  function piece(k) {
+    if (pieces.has(k)) return pieces.get(k);
+    const c = C.get(k);
+    const f = tessellate(c.polys, LAND_DEG, earcut);
+    const pos = new Float32Array((f.length / 2) * 3);
+    for (let i = 0; i < f.length; i += 2) pos.set(dirOf(f[i], f[i + 1]), (i / 2) * 3);
+    const tg = new THREE.BufferGeometry();
+    tg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    tg.setAttribute('aKind', new THREE.BufferAttribute(new Float32Array(pos.length / 3).fill(c.cls + 1), 1));
+    const rings = c.polys.flat();
     const pts = [];
-    const tops = [];
+    const ups = [];
     const add = (a, b) => {
       const p = dirOf(a[0], a[1]);
       const q = dirOf(b[0], b[1]);
       [[p, 0], [q, 0], [q, 1], [p, 0], [q, 1], [p, 1]].forEach(([v, up]) => {
         pts.push(...v);
-        tops.push(up);
+        ups.push(up);
       });
     };
-    lifted.forEach((k) => {
-      const c = C.get(k);
-      const rings = shapeOf(c).flat();
-      rings.forEach((r) => {
-        for (let i = 0; i < r.length - 1; i++) {
-          const a = r[i];
-          const b = r[i + 1];
-          const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 2));
-          for (let s = 0; s < steps; s++) add([lerp(a[0], b[0], s / steps), lerp(a[1], b[1], s / steps)], [lerp(a[0], b[0], (s + 1) / steps), lerp(a[1], b[1], (s + 1) / steps)]);
-        }
-      });
+    rings.forEach((r) => {
+      for (let i = 0; i < r.length - 1; i++) {
+        const a = r[i];
+        const b = r[i + 1];
+        const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 2));
+        for (let s = 0; s < steps; s++) add([lerp(a[0], b[0], s / steps), lerp(a[1], b[1], s / steps)], [lerp(a[0], b[0], (s + 1) / steps), lerp(a[1], b[1], (s + 1) / steps)]);
+      }
     });
-    wallBase = new Float32Array(pts);
-    wallTop = new Uint8Array(tops);
-    wallGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(pts.length), 3));
-    setWalls(1);
+    const wg = new THREE.BufferGeometry();
+    wg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    wg.setAttribute('aTop', new THREE.Float32BufferAttribute(ups, 1));
+    const p = { top: new THREE.Mesh(tg, landMat), rim: new THREE.Mesh(strokeGeo(strokes(rings, 1, 2)), rimMat), wall: new THREE.Mesh(wg, wallMat) };
+    Object.values(p).forEach((m) => { m.frustumCulled = false; });
+    pieces.set(k, p);
+    return p;
   }
-  function circle([lon, lat], r) {
-    const out = [];
-    for (let k = 0; k <= 24; k++) {
-      const a = (k / 24) * Math.PI * 2;
-      out.push([lon + (r * Math.cos(a)) / Math.cos(lat * Math.PI / 180), lat + r * Math.sin(a)]);
-    }
-    return out;
-  }
-  function setWalls(s) {
-    const pos = wallGeo.getAttribute('position');
-    if (!pos) return;
-    for (let i = 0; i < wallTop.length; i++) {
-      const k = wallTop[i] ? s : 1;
-      pos.array[i * 3] = wallBase[i * 3] * k;
-      pos.array[i * 3 + 1] = wallBase[i * 3 + 1] * k;
-      pos.array[i * 3 + 2] = wallBase[i * 3 + 2] * k;
-    }
-    pos.needsUpdate = true;
-  }
+
 
   let stale = true;
   function fresh() {
     if (!stale) return;
     stale = false;
-    paint();
     paintLift();
   }
 
   function warm() {
     fresh();
-    [mapT, emitT, dropT].forEach((x) => renderer.initTexture(x));
+    renderer.initTexture(dropT);
+    const hidden = [tops, rims, walls, drop];
+    const p = piece(conts[0].list[0].country);
+    tops.add(p.top);
+    rims.add(p.rim);
+    walls.add(p.wall);
+    hidden.forEach((m) => { m.visible = true; });
+    heads.count = needles.count = 1;
     camera.position.set(0, 0, far());
     camera.quaternion.identity();
     camera.aspect = aspect();
@@ -472,19 +485,20 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       renderer.render(scene, camera);
       renderer.setRenderTarget(null);
       rt.dispose();
+      hidden.forEach((m) => { m.visible = false; });
+      heads.count = needles.count = 0;
+      paintLift();
     });
   }
 
   renderer.domElement.addEventListener('webglcontextrestored', () => {
-    [mapT, emitT, dropT].forEach((x) => { x.needsUpdate = true; });
+    dropT.needsUpdate = true;
     invalidate();
   });
 
   function colors(isNight) {
     night = isNight;
     tok = readTokens(TOKENS);
-    const cs = getComputedStyle(document.documentElement);
-    RAW.forEach((k) => { raw[k] = cs.getPropertyValue('--' + k).trim() || '#808080'; });
     brass.color.setRGB(...tok.brass.slice(0, 3));
     brass.roughness = night ? 0.4 : 0.35;
     brass.metalness = night ? 0.55 : 0.6;
@@ -495,9 +509,23 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
     wallM.emissive.setRGB(...tok.wall.slice(0, 3));
     wallM.emissiveIntensity = night ? 0.22 : 0.05;
     wallMat.color.setRGB(...dark(tok.edge, 0.85).slice(0, 3));
+    ballMat.color.setRGB(...tok['globe-sea'].slice(0, 3));
+    ballMat.emissive.setRGB(...SEA_GLOW);
     ballMat.emissiveIntensity = night ? 0.8 : 0;
+    landU.uCol.value[0].setRGB(...tok['globe-land'].slice(0, 3));
+    landU.uGlowCol.value[0].setRGB(...LAND_GLOW);
+    for (let k = 0; k < 5; k++) {
+      landU.uCol.value[k + 1].setRGB(...ramp(k).slice(0, 3));
+      landU.uGlowCol.value[k + 1].setRGB(...ramp(k, true).slice(0, 3));
+    }
+    [[borders, 'globe-line', LAND_GLOW], [grid, 'globe-grid', SEA_GLOW]].forEach(([m, k, g]) => {
+      m.material.color.setRGB(...tok[k].slice(0, 3));
+      m.material.emissive.setRGB(...g);
+      m.material.emissiveIntensity = night ? 0.8 : 0;
+    });
     glowU.value = night ? 0.8 : 0;
-    topMat.color.setScalar(night ? NIGHT_DARK : 1);
+    dotMat.color.setScalar(night ? NIGHT_DARK : 1);
+    paintDots();
     rimMat.color.setRGB(...tok.edge.slice(0, 3));
     needles.material.color.setRGB(...tok.brass.slice(0, 3));
     paintPins();
@@ -780,18 +808,18 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
       busy = true;
     }
     const shown = S.h > 1e-4 && lifted.length;
-    top.visible = drop.visible = walls.visible = rim.visible = !!shown;
+    tops.visible = drop.visible = walls.visible = rims.visible = !!shown;
     if (shown) {
-      top.scale.setScalar(1 + S.h);
-      rim.scale.setScalar((1 + S.h) * 1.0004);
-      const w = rimWant();
-      if (Math.abs(w - rimW) > rimW * 0.15) buildRim(w);
-      setWalls(1 + S.h);
+      tops.scale.setScalar(1 + S.h);
+      rims.scale.setScalar((1 + S.h) * 1.0004);
+      liftH.value = S.h;
       dropMat.opacity = clamp(S.h / LIFT, 0, 1);
     }
+    placeDots();
     spin.rotation.set(S.tilt, S.yaw, 0, 'XYZ');
     const e = S.p;
     sceneCam(e);
+    lineK.value = TAN / window.innerHeight;
     if (S.mode === 'on' && pointer.in && pointer.moved && !drag) {
       pointer.moved = false;
       hoverAt(pointer.x, pointer.y);
@@ -877,18 +905,26 @@ export async function createGlobe({ renderer, shelfCamera, books, geo, atlas, ro
 
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
+  const _inv = new THREE.Matrix4();
+  const _ro = new THREE.Vector3();
+  const _rd = new THREE.Vector3();
   function pickAt(x, y) {
     ndc.set((x / window.innerWidth) * 2 - 1, 1 - (y / window.innerHeight) * 2);
     ray.setFromCamera(ndc, camera);
-    const h = ray.intersectObject(ball, false)[0];
-    if (!h) return { ball: false, k: null };
-    const lon = h.uv.x * 360 - 180;
-    const lat = h.uv.y * 180 - 90;
-    const dotR = (DOT * 1.3 * 360) / TW;
-    for (const [k, c] of C) {
-      if (c.small && Math.hypot((lon - c.g.at[0]) * Math.cos(lat * Math.PI / 180), lat - c.g.at[1]) < dotR) return { ball: true, k };
+    _inv.copy(ball.matrixWorld).invert();
+    _ro.copy(ray.ray.origin).applyMatrix4(_inv);
+    _rd.copy(ray.ray.direction).transformDirection(_inv);
+    const b = _ro.dot(_rd);
+    const disc = b * b - _ro.lengthSq() + 1;
+    if (disc < 0) return { ball: false, k: null };
+    const along = -b - Math.sqrt(disc);
+    if (along < 0) return { ball: false, k: null };
+    const [lon, lat] = lonLatOf(_ro.addScaledVector(_rd, along).toArray());
+    const reachR = (dotR() * 1.3 * 180) / Math.PI;
+    for (const c of smalls) {
+      if (Math.hypot((lon - c.g.at[0]) * Math.cos(lat * Math.PI / 180), lat - c.g.at[1]) < reachR) return { ball: true, k: c.country };
     }
-    for (const [k, c] of C) if (contains(c.polys, lon, lat)) return { ball: true, k };
+    for (const [k, c] of C) if (inBounds(c.box, lon, lat) && c.polys.some((p, i) => inBounds(c.boxes[i], lon, lat) && contains([p], lon, lat))) return { ball: true, k };
     return { ball: true, k: null };
   }
 

@@ -1,5 +1,5 @@
 # 洲、UN M49 次區域、國家:地球儀與書架的地區排序共用。
-# countries 的鍵 = authors.yml 的 literature。at: [經度, 緯度]。topo: world-atlas countries-110m 的名稱不同時才寫。
+# countries 的鍵 = authors.yml 的 literature。at: [經度, 緯度]。topo: world-atlas countries-50m 的名稱不同時才寫。
 # qid: Wikidata 的國家,給 issue 加書時比對作者國籍(P27)。
 
 continents:

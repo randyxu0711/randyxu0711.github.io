@@ -7,7 +7,7 @@ ROOT = Path(__file__).resolve().parents[2]
 AUTHORS = yaml.safe_load((ROOT / "_data/authors.yml").read_text(encoding="utf-8"))
 GEO = yaml.safe_load((ROOT / "_data/geo.yml").read_text(encoding="utf-8"))
 BOOKS = json.loads((ROOT / "_data/books.json").read_text(encoding="utf-8"))
-ATLAS = json.loads((ROOT / "assets/vendor/world-atlas/countries-110m.json").read_text(encoding="utf-8"))
+ATLAS = json.loads((ROOT / "assets/vendor/world-atlas/countries-50m.json").read_text(encoding="utf-8"))
 
 
 def test_every_author_resolves_to_a_geo_country():
