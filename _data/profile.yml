@@ -31,28 +31,28 @@ headings:
   take:       { zh: 下載, en: Download }
   taken:      { zh: 已下載, en: Downloaded }
   updated:    { zh: 更新, en: Updated }
-  now:        { zh: 書房近況, en: From the study }
+  now:        { zh: 書房近況, en: Now }
   shares:     { zh: 最近轉發, en: Recently shared }
   books:      { zh: 最近讀完, en: Recently read }
   all:        { zh: 全部, en: All }
 
 exploring:   # 書房近況裡的研究方向,一項一句
-  - title: { zh: 讓 AI agent 可控、可驗證, en: Making AI agents controllable and verifiable }
+  - title: { zh: 可控、可驗證的 AI agent, en: "Controllable, verifiable AI agents" }
     text:
-      zh: LLM 只負責判斷；格式、引用與權限交給程式驗證，沒過就帶著錯誤明細重試。
-      en: "The LLM only makes judgment calls; code checks the format, the citations and the permissions, and failures go back with the errors for a retry."
-  - title: { zh: 用 Claude Agent SDK 打造多 agent 執行框架, en: A multi-agent harness on the Claude Agent SDK }
+      zh: 模型只處理需要判斷的部分；輸出格式、引用來源與操作權限由程式檢查，未通過便附上錯誤明細重試。
+      en: "The model handles only the judgment calls. Code validates output format, citations and permissions, and any failed check is retried with the specific errors attached."
+  - title: { zh: 基於 Claude Agent SDK 的多 agent 執行框架, en: A multi-agent harness on the Claude Agent SDK }
     text:
-      zh: 每個 agent 各有工具白名單、可寫路徑與輪數上限，流程交給確定性的程式，每一輪的用量都記進帳本。
-      en: "Each agent has its own tool allowlist, writable paths and turn limit; deterministic code runs the flow, and every turn's usage goes into a ledger."
-  - title: { zh: 資訊不完全遊戲的 AI 教練, en: An AI coach for imperfect-information games }
+      zh: 每個 agent 各有工具白名單、可寫入路徑與輪數上限；流程由確定性程式編排，每一輪的用量都記入帳本。
+      en: "Each agent runs with its own tool allowlist, writable paths and turn limit. Deterministic code orchestrates the workflow, and every turn's usage is recorded in a ledger."
+  - title: { zh: 不完全資訊遊戲的 AI 教練, en: An AI coach for imperfect-information games }
     text:
-      zh: 以日本麻將為題，解說的 agent 只看得到當下可見的資訊，不能拿結果倒推道理。
-      en: "Japanese mahjong as the subject: the explaining agent only sees what was visible at the time, so it can't reason backwards from the outcome."
+      zh: 以日本麻將為對象；負責解說的 agent 只取得每一步當下可見的資訊，分析不能以結果倒推。
+      en: "Built around Japanese mahjong. The explaining agent sees only what was visible at each decision, so its analysis cannot lean on hindsight."
   - title: { zh: Hermes Agent, en: Hermes Agent }
     text:
-      zh: 讀過它的原始碼，替它寫文學分析技能、接 MemPalace 語意記憶與 Spotify 的 MCP server；這是 hyenovel 的前身。
-      en: "Read its source, wrote literary-analysis skills for it on MemPalace's semantic memory, and hooked it up to Spotify's MCP server; it was hyenovel's predecessor."
+      zh: 研讀其原始碼，以 MemPalace 語意記憶為基礎開發文學分析技能，並接上 Spotify 的 MCP server；這套做法是 hyenovel 的前身。
+      en: "Studied its source, built literary-analysis skills on MemPalace semantic memory, and integrated Spotify's MCP server. This work was the precursor to hyenovel."
 
 experience:
   - org:   { zh: 獨立開發, en: Independent }
