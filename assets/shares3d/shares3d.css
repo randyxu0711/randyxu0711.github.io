@@ -11,6 +11,8 @@ html.js .sh3d:not(.fail) .sh3d-list .thumb { display: none; }
 .sh3d-stage { position: fixed; left: 0; right: 0; top: var(--sh3d-top, 0px); bottom: 0; touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 .main:has(> .sh3d.on) { padding-bottom: 0; }
 html:has(.sh3d.on), body:has(.sh3d.on) { overflow: hidden; overscroll-behavior: none; }
+/* 內容全是 fixed,body 只剩導覽列高;WebKit 會把導覽列裡 fixed 的偏好面板裁在 body 的 overflow 範圍內,撐滿一個畫面才看得到 */
+body:has(.sh3d.on) { min-height: 100vh; }
 body:has(.sh3d.on) .footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 21; pointer-events: none; transition: opacity 250ms, visibility 250ms; }
 body:has(.sh3d.on) .footer-inner { padding: 0 16px calc(env(safe-area-inset-bottom, 0px) + 0.35rem); }
 body:has(.sh3d.on) .footer-inner > * { pointer-events: auto; }
