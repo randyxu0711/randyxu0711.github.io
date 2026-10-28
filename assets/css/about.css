@@ -149,14 +149,14 @@
 .as-now > .as-h { position: static; margin-bottom: 1.5rem; }
 .as-now-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr); gap: clamp(1.5rem, 4vw, 3rem); align-items: start; }
 .as-now h3 { margin: 0 0 1rem; font-size: var(--t-sm); font-weight: 700; color: var(--ink-2); }
-.as-note { position: relative; padding: 1.75rem 1.6rem 1.75rem; background: color-mix(in srgb, var(--sticky) 85%, var(--desk)); color: var(--unlit); box-shadow: 0 2px 6px var(--drop-near), 0 18px 30px -18px var(--drop-far); }
+.as-note { position: relative; margin-top: 0.75rem; padding: 1.75rem 1.6rem 1.75rem; border-radius: 6px; rotate: 0.4deg; background: color-mix(in srgb, var(--sticky) 85%, var(--desk)); color: var(--unlit); box-shadow: 0 2px 6px var(--drop-near), 0 18px 30px -18px var(--drop-far); }
 .as-note::before { content: ""; position: absolute; top: -0.65rem; left: 50%; width: 6.5rem; height: 1.4rem; transform: translateX(-50%) rotate(-2deg);
   background: color-mix(in srgb, var(--paper) 55%, transparent); box-shadow: 0 1px 2px var(--drop-near); }
 .as-note h3, .as-note strong, .as-note p { color: var(--unlit); }
 .as-note ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; }
 .as-note strong { display: block; font-size: var(--t-md); line-height: 1.45; }
 .as-note p { margin: 0.2rem 0 0; font-size: var(--t-sm); line-height: 1.7; opacity: 0.78; }
-.as-list { padding-top: 1.5rem; }
+.as-list { padding-top: 2.25rem; }
 .as-list ul { list-style: none; margin: 0 0 1rem; padding: 0; }
 .as-list li { display: grid; gap: 0.15rem; padding: 0.75rem 0; border-top: 1px solid var(--line); }
 .as-list li:last-child { border-bottom: 1px solid var(--line); }
