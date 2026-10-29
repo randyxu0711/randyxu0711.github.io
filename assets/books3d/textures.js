@@ -380,6 +380,7 @@ export function drawBack(b, w, h, t) {
   const skip = all.length - rows.length;
   const place = b.cn ? b.cn[l] || b.cn.en : '';
   const meta = [b.p ? t('books.pages', b.p) : '', place].filter(Boolean);
+  let gr;
   const draw = (scale, titleMax) => {
     g.globalAlpha = 1;
     g.fillStyle = b.c || '#888';
@@ -411,16 +412,18 @@ export function drawBack(b, w, h, t) {
     };
 
     let bottom = ch - 1.5 * em;
-    if (meta.length) {
-      g.font = `400 ${(0.8 * em).toFixed(1)}px ${ui}`;
-      const one = meta.join(' · ');
-      const lines = g.measureText(one).width <= maxW ? [one] : meta;
-      lines.reverse().forEach((line) => {
-        text(line, `400 % ${ui}`, 0.8, 0.75, padX, bottom, 'left', 'alphabetic');
-        bottom -= 1.15 * em;
-      });
-      bottom -= 0.7 * em;
-    }
+    const grSize = 0.72 * em;
+    g.font = `400 ${grSize.toFixed(1)}px ${ui}`;
+    const grW = g.measureText('Goodreads').width + 1.8 * grSize;
+    gr = { x: (padX + maxW - grW / 2) / S, y: (bottom - 0.3 * em) / S, size: grSize / S };
+    g.font = `400 ${(0.8 * em).toFixed(1)}px ${ui}`;
+    const one = meta.join(' · ');
+    const lines = g.measureText(one).width <= maxW - grW - 0.8 * em ? [one] : meta;
+    lines.reverse().forEach((line) => {
+      text(line, `400 % ${ui}`, 0.8, 0.75, padX, bottom, 'left', 'alphabetic');
+      bottom -= 1.15 * em;
+    });
+    bottom -= 0.7 * em;
     const inX = 0.85 * em;
     const headH = 1.9 * em;
     const rowH = 2 * em;
@@ -482,9 +485,11 @@ export function drawBack(b, w, h, t) {
     }
     return y <= cardTop - 1 * em;
   };
-  if ([5, 4, 3, 2].some((max) => draw(1, max))) return c;
-  let scale = 1;
-  while (!draw(scale, 2) && scale > 0.6) scale *= 0.9;
+  if (![5, 4, 3, 2].some((max) => draw(1, max))) {
+    let scale = 1;
+    while (!draw(scale, 2) && scale > 0.6) scale *= 0.9;
+  }
+  c.gr = gr;
   return c;
 }
 
