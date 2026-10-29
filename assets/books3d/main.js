@@ -409,7 +409,11 @@ async function start() {
     heldPose.sx = dims[h.i].t;
     heldPose.sy = dims[h.i].h;
     gl.setHeld(heldPose);
-    const p = gl.project(-0.5, 23 / dims[h.i].h, 0.25);
+    const bh = dims[h.i].h;
+    const gz = h.gr.x / W - 0.5;
+    const p = gl.project(-0.5, 1 - h.gr.y / bh, gz);
+    const q = gl.project(-0.5, 1 - (h.gr.y + 10) / bh, gz);
+    grLink.style.fontSize = (h.gr.size * Math.hypot(q.x - p.x, q.y - p.y) / 10).toFixed(1) + 'px';
     grLink.style.transform = 'translate(' + p.x.toFixed(1) + 'px, ' + p.y.toFixed(1) + 'px) translate(-50%, -50%)';
     const settled = e === 1 && re === 1;
     if (h.phase === 'down') {
@@ -443,8 +447,10 @@ async function start() {
     }
     const now = performance.now();
     bookPose(i, pose);
-    const backTex = gl.canvasTexture(drawBack(books[i], W, dims[i].h, t));
+    const backCanvas = drawBack(books[i], W, dims[i].h, t);
+    const backTex = gl.canvasTexture(backCanvas);
     held = {
+      gr: backCanvas.gr,
       i,
       phase: 'up',
       pf: { x: pose.x, y: pose.y, z: pose.z },
@@ -1254,7 +1260,9 @@ async function start() {
     scheduleList(0);
     if (held && held.phase !== 'down') {
       const old = held.back;
-      held.back = gl.canvasTexture(drawBack(books[held.i], W, dims[held.i].h, t));
+      const backCanvas = drawBack(books[held.i], W, dims[held.i].h, t);
+      held.gr = backCanvas.gr;
+      held.back = gl.canvasTexture(backCanvas);
       gl.holdBook(held.i, held.back);
       if (held.big) gl.heldCover(held.big);
       old.dispose();
