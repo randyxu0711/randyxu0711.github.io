@@ -144,6 +144,23 @@
   "read_count": 1
  },
  {
+  "id": "40409718",
+  "title": "Post Office",
+  "author": "Charles Bukowski",
+  "rating": 4,
+  "pages": 162,
+  "read": "2026-10-26",
+  "added": "2026-10-26",
+  "shelves": [],
+  "url": "https://www.goodreads.com/book/show/40409718",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1555887577i/40409718.jpg",
+  "color": "#7a5a3b",
+  "ink": "#f7f3ea",
+  "ratio": 0.668,
+  "read_count": 1,
+  "issue": 81
+ },
+ {
   "id": "112714",
   "title": "Allah is Not Obliged",
   "author": "Ahmadou Kourouma",
@@ -4303,23 +4320,6 @@
   "ink": "#f7f3ea",
   "ratio": 0.64,
   "read_count": 1
- },
- {
-  "id": "40409718",
-  "title": "Post Office",
-  "author": "Charles Bukowski",
-  "rating": 0,
-  "pages": 162,
-  "read": "2026-10-26",
-  "added": "2026-10-26",
-  "shelves": [],
-  "url": "https://www.goodreads.com/book/show/40409718",
-  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1555887577i/40409718.jpg",
-  "color": "#7a5a3b",
-  "ink": "#f7f3ea",
-  "ratio": 0.668,
-  "read_count": 1,
-  "issue": 81
  },
  {
   "id": "119630",
