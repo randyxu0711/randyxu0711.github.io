@@ -11,6 +11,7 @@ const IN_FLIGHT = 8;
 const MIP_EVERY = 500;
 
 export function smallCover(u) {
+  if (u && u.indexOf('//cdn.readmoo.com/cover/') > -1 && /\.jpg$/.test(u)) return u.slice(0, -4) + '_210x315.jpg';
   return u && u.indexOf('//m.media-amazon.com/') > -1 && /\.jpg$/.test(u) ? u.slice(0, -4) + '._SX150_.jpg' : u;
 }
 
