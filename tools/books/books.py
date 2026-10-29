@@ -7,7 +7,7 @@
   只抓快取裡沒有的,成功的才進快取。
 - 主色用 Pillow 算(只有這裡需要 Pillow)。
 - 用 issue 加的書(_data/books_added.json)會合進來,同一本以 CSV 為準。
-- _data/books_fix.json 修正 Goodreads 匯出不對的讀完日期與次數(id → {read, read_count})。
+- _data/books_fix.json 修正 Goodreads 匯出不對的讀完日期與次數(id → {read, read_count});reads 補每一次的日期(CSV 只有最後一次)。
 - 轉完列出 _data/authors.yml 沒有的作者(不連網查,手動補)。
 CSV 本身含私人資料,不要 commit(books/ 在 .gitignore)。
 """
@@ -89,7 +89,7 @@ def select(rows, hide_shelf):
 def apply_fixes(items, fixes):
     for b in items:
         fix = fixes.get(b["id"]) or {}
-        for k in ("read", "read_count"):
+        for k in ("read", "read_count", "reads"):
             if k in fix:
                 b[k] = fix[k]
     return items

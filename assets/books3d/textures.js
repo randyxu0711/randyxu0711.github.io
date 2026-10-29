@@ -349,6 +349,18 @@ export function createTextures(gl, books, dims, opts) {
   };
 }
 
+const STAR = new Path2D('M10 1.6l2.55 5.4 5.9.72-4.35 4.06 1.12 5.86L10 14.76l-5.22 2.88 1.12-5.86L1.55 7.72l5.9-.72z');
+
+const shortTitle = (s) => (s || '').replace(/(\s*\([^()]*\))+\s*$/, '') || s;
+
+const MAX_ROWS = 3;
+
+function readRows(b) {
+  const known = b.rs && b.rs.length ? b.rs.slice().sort() : b.d ? [b.d] : [];
+  const total = Math.max(b.n || 1, known.length);
+  return Array(total - known.length).fill(null).concat(known);
+}
+
 export function drawBack(b, w, h, t) {
   const S = 4;
   const cw = Math.round(w * S);
@@ -358,9 +370,16 @@ export function drawBack(b, w, h, t) {
   c.height = ch;
   const g = c.getContext('2d');
   const display = displayFont();
-  const ui = getComputedStyle(document.documentElement).getPropertyValue('--font-ui').trim() || 'sans-serif';
+  const css = getComputedStyle(document.documentElement);
+  const ui = css.getPropertyValue('--font-ui').trim() || 'sans-serif';
+  const code = css.getPropertyValue('--font-code').trim() || 'monospace';
   const l = lang();
-  const draw = (scale) => {
+  const all = readRows(b);
+  const rows = all.slice(-MAX_ROWS);
+  const skip = all.length - rows.length;
+  const place = b.cn ? b.cn[l] || b.cn.en : '';
+  const meta = [b.p ? t('books.pages', b.p) : '', place].filter(Boolean);
+  const draw = (scale, titleMax) => {
     g.globalAlpha = 1;
     g.fillStyle = b.c || '#888';
     g.fillRect(0, 0, cw, ch);
@@ -369,17 +388,65 @@ export function drawBack(b, w, h, t) {
     grad.addColorStop(0.5, 'rgba(255,255,255,0)');
     g.fillStyle = grad;
     g.fillRect(0, 0, cw, ch);
-    const em = 13.6 * S * scale;
+    const em = 9.8 * S * scale;
     const padX = 1.1 * 13.6 * S;
     const maxW = cw - 2 * padX;
-    g.fillStyle = b.k || '#f7f3ea';
-    g.textBaseline = 'top';
-    let y = 1.2 * em;
-    const para = (text, font, size, lh, alpha, max) => {
-      if (!text) return;
+    const ink = b.k || '#f7f3ea';
+    g.fillStyle = ink;
+    g.strokeStyle = ink;
+    const text = (str, font, size, alpha, x, y, align = 'left', base = 'top') => {
       g.font = font.replace('%', (size * em).toFixed(1) + 'px');
       g.globalAlpha = alpha;
-      const lines = wrap(g, text, maxW);
+      g.textAlign = align;
+      g.textBaseline = base;
+      g.fillText(str, x, y);
+      g.globalAlpha = 1;
+      g.textAlign = 'left';
+    };
+    const rule = (x0, x1, y, alpha) => {
+      g.globalAlpha = alpha;
+      g.fillRect(x0, y, x1 - x0, S * 0.75);
+      g.globalAlpha = 1;
+    };
+
+    let bottom = ch - 1.5 * em;
+    if (meta.length) {
+      g.font = `400 ${(0.8 * em).toFixed(1)}px ${ui}`;
+      const one = meta.join(' · ');
+      const lines = g.measureText(one).width <= maxW ? [one] : meta;
+      lines.reverse().forEach((line) => {
+        text(line, `400 % ${ui}`, 0.8, 0.75, padX, bottom, 'left', 'alphabetic');
+        bottom -= 1.15 * em;
+      });
+      bottom -= 0.7 * em;
+    }
+    const inX = 0.85 * em;
+    const headH = 1.9 * em;
+    const rowH = 2 * em;
+    const cardTop = bottom - headH - rows.length * rowH;
+    g.globalAlpha = 0.45;
+    g.lineWidth = S * 0.75;
+    g.beginPath();
+    if (g.roundRect) g.roundRect(padX, cardTop, maxW, bottom - cardTop, 0.35 * em);
+    else g.rect(padX, cardTop, maxW, bottom - cardTop);
+    g.stroke();
+    g.globalAlpha = 1;
+    text(t('books.log'), `400 % ${ui}`, 0.76, 0.65, padX + inX, cardTop + headH / 2, 'left', 'middle');
+    if (all.length > 1) text(t('books.read_times', all.length), `400 % ${ui}`, 0.76, 0.65, padX + maxW - inX, cardTop + headH / 2, 'right', 'middle');
+    rows.forEach((d, k) => {
+      const top = cardTop + headH + k * rowH;
+      rule(padX, padX + maxW, top, k ? 0.15 : 0.3);
+      if (all.length > 1) text(String(skip + k + 1), `400 % ${code}`, 0.72, 0.5, padX + inX, top + rowH / 2, 'left', 'middle');
+      text(d ? d.replace(/-/g, '.') : '—', `400 % ${code}`, 0.85, d ? 1 : 0.6, padX + maxW - inX, top + rowH / 2, 'right', 'middle');
+    });
+
+    let y = 1.6 * em;
+    const para = (str, font, size, lh, alpha, max) => {
+      if (!str) return;
+      g.font = font.replace('%', (size * em).toFixed(1) + 'px');
+      g.globalAlpha = alpha;
+      g.textBaseline = 'top';
+      const lines = wrap(g, str, maxW);
       if (lines.length > max) {
         lines.length = max;
         let last = lines[max - 1];
@@ -392,36 +459,31 @@ export function drawBack(b, w, h, t) {
       });
       g.globalAlpha = 1;
     };
-    para(titleOf(b, l), `700 % ${display}`, 1.25, 1.3, 1, 4);
-    const other = l === 'en' ? b.tz : b.t;
+    para(shortTitle(titleOf(b, l)), `700 % ${display}`, 1.4, 1.25, 1, titleMax);
+    y += 0.45 * em;
+    para(authorOf(b, l), `400 % ${ui}`, 0.95, 1.4, 0.85, 2);
     if (b.tz && b.tz !== b.t) {
       y += 0.2 * em;
-      para(other, `400 % ${ui}`, 1, 1.45, 0.8, 3);
+      para(shortTitle(l === 'en' ? b.tz : b.t), `400 % ${ui}`, 0.78, 1.4, 0.6, 2);
     }
-    y += 0.2 * em;
-    para(authorOf(b, l), `400 % ${ui}`, 1, 1.45, 0.8, 2);
-    y += 0.75 * em;
-    g.globalAlpha = 0.22;
-    g.fillRect(padX, y, maxW, S);
-    g.globalAlpha = 1;
-    y += 0.75 * em + S;
-    if (b.d) {
-      para(t('books.log'), `400 % ${ui}`, 0.88, 1.45, 0.7, 1);
-      y += 0.1 * em;
-      para(t('books.read_in', b.d.slice(0, 4)), `400 % ${ui}`, 1, 1.45, 1, 1);
-      if (b.n > 1) para(t('books.read_times', b.n), `400 % ${ui}`, 1, 1.45, 1, 1);
+    if (b.r) {
+      y += 0.8 * em;
+      const size = 0.9 * em;
+      for (let k = 0; k < 5; k++) {
+        g.save();
+        g.globalAlpha = k < b.r ? 1 : 0.25;
+        g.translate(padX + k * size * 1.2, y);
+        g.scale(size / 20, size / 20);
+        g.fill(STAR);
+        g.restore();
+      }
+      y += size;
     }
-    if (b.p) {
-      g.font = `400 ${(0.9 * em).toFixed(1)}px ${ui}`;
-      g.globalAlpha = 0.8;
-      g.textBaseline = 'alphabetic';
-      g.fillText(t('books.pages', b.p), padX, ch - 1.4 * em);
-      g.globalAlpha = 1;
-    }
-    return y <= ch - (b.p ? 2.8 : 1) * em;
+    return y <= cardTop - 1 * em;
   };
+  if ([5, 4, 3, 2].some((max) => draw(1, max))) return c;
   let scale = 1;
-  while (!draw(scale) && scale > 0.6) scale *= 0.9;
+  while (!draw(scale, 2) && scale > 0.6) scale *= 0.9;
   return c;
 }
 

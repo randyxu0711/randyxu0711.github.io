@@ -97,7 +97,7 @@ shared: [anim.js, colors.js, intro.js, text.js, glsl.js, geometry.js, room.js, s
   {%- assign geo = site.data.book_geo[b.author] -%}
   {%- unless forloop.first %},{% endunless -%}
   {"id":{{ b.id | jsonify }},"t":{{ b.title | jsonify }},"tz":{{ zh.title | jsonify }},"a":{{ b.author | jsonify }},"az":{{ zh.author | jsonify }},
-  "r":{{ b.rating | default: 0 }},"p":{{ b.pages | jsonify }},"d":{{ b.read | jsonify }},"n":{{ b.read_count | default: 1 }},
+  "r":{{ b.rating | default: 0 }},"p":{{ b.pages | jsonify }},"d":{{ b.read | jsonify }},"n":{{ b.read_count | default: 1 }},"rs":{{ b.reads | jsonify }},
   "c":{{ b.color | jsonify }},"k":{{ b.ink | jsonify }},"q":{{ b.ratio | default: 0.66 }},"cv":{{ b.cover | jsonify }},"u":{{ b.url | jsonify }},
   "lz":{{ t_zh | spine_length }},"le":{{ b.title | spine_length }},"g":{{ geo.g | jsonify }},"go":{{ geo.go | jsonify }}}
 {%- endfor -%}]
