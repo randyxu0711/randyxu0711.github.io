@@ -276,7 +276,22 @@ def handle(event, data_dir, fetch_page=books.fetch_page, fetch_image=books.fetch
              f"- **封面**:{info['cover'] or '(無,會用書名排的備用封面)'}"]
     if info["cover"]:
         lines += ["", f'<img src="{info["cover"]}" width="120">']
-    lines += ["", "要改評分、中文書名或作者國家,編輯這個 issue;要撤下,把 issue 關成 not planned。"]
+    lines += ["", "<details><summary>要修改或撤下</summary>", "",
+              "**修改**:編輯這個 issue 最上面那則內文(issue 關了也能編輯),改 `### 欄位` 底下那一行,存檔後會自動重跑、"
+              "覆蓋這本書並重新部署,這裡會再留一則確認。",
+              "",
+              "| 欄位 | 怎麼改 |", "| --- | --- |",
+              "| 評分 | 填 `1`～`5` 的數字;其他寫法(★、「4 星」)都算未評分 |",
+              "| 中文書名 / 中文作者 | 填新的譯名會取代舊的;兩欄都清空不會刪掉已有的譯名 |",
+              "| 作者國家 | 只在作者還不在名單時用得到;上面標「已在名單」的,改這欄沒有作用 |",
+              "",
+              "**改不了的**:書名、作者、頁數、封面每次重跑都重新從 Goodreads 書頁抓;"
+              "讀完日期固定是開 issue 那天,閱讀次數是 1。",
+              "",
+              "**撤下**:把 issue 關成 not planned。",
+              "",
+              "**Goodreads 也要評分**:這本出現在匯出的 CSV 之後,書單以 CSV 為準,這個 issue 的內容就不再用到。",
+              "</details>"]
     if fix:
         lines[0] = "已加到書架(約一分鐘後可見),但作者國家對不到,補上之前地圖上不會有這本"
         return Result("published_needs_fix", "\n".join(lines), info["title"])

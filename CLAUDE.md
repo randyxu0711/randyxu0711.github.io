@@ -132,7 +132,8 @@ front matter:`title`(og:title)/ `link`(原文)/ `archive`(Wayback 最新快照�
 - **單本加書走 issue**(`.github/ISSUE_TEMPLATE/book.yml` → `book.yml` → `tools/books/add_book.py`,規格 `docs/books-issue.md`):
   從 Goodreads 書頁的 JSON-LD 抓書目,寫進 `_data/books_added.json` + `books.json`(+ `books_zh.yml`);
   CSV 匯入時合併,同一本以 CSV 為準。撤下 = 關成 not planned。
-- **修正 Goodreads 匯出不對的讀完日期與次數**:`_data/books_fix.json`(Goodreads ID → `read` / `read_count`),`books.py` 轉檔時套用。
+- **修正 Goodreads 匯出不對的讀完日期與次數**:`_data/books_fix.json`(Goodreads ID → `read` / `read_count` / `reads`),`books.py` 轉檔時套用。
+  CSV 只有最後一次的日期,重讀的舊日期寫在 `reads`(`["2018-06", "2022-03-14"]`,精度隨意),封底的閱讀紀錄一次一行。
   手動加書時 Goodreads 常多記一筆沒日期的閱讀,Read Count 會多 1。
 - **中文書名**在 `_data/books_zh.yml`(Goodreads ID → 台灣譯本書名 / 作者譯名,附查證來源),CSV 重新匯入不會動它。
   網站切到中文時顯示譯名,沒列在裡面的書顯示原文。

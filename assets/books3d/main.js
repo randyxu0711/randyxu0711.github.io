@@ -29,6 +29,7 @@ const subregions = new Map((geo.subregions || []).map((s) => [s.id, s]));
 books.forEach((b) => {
   const c = geo.countries && b.g ? geo.countries[b.g] : null;
   const s = c ? subregions.get(c.subregion) : null;
+  b.cn = c ? { zh: c.zh, en: c.en } : null;
   b.sr = s ? s.id : null;
   b.ct = s ? s.continent || c.continent || null : null;
 });
@@ -428,6 +429,7 @@ async function start() {
   function describe(i) {
     const b = books[i];
     const parts = [titleOf(b) + ', ' + authorOf(b)];
+    if (b.r) parts.push(t('books.stars_of', b.r));
     if (b.d) parts.push(t('books.read_in', b.d.slice(0, 4)));
     if (b.n > 1) parts.push(t('books.read_times', b.n));
     if (b.p) parts.push(t('books.pages', b.p));

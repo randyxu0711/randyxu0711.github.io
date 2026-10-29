@@ -184,11 +184,12 @@ def test_fetch_page_raises_on_empty_response(monkeypatch):
         books.fetch_page("1")
 
 
-def test_apply_fixes_overrides_only_read_date_and_count():
+def test_apply_fixes_overrides_only_read_dates_and_count():
     items = [{"id": "1", "title": "A", "read": "2024-02-07", "read_count": 3, "rating": 4},
              {"id": "2", "title": "B", "read": "2024-01-01", "read_count": 2, "rating": 3}]
-    books.apply_fixes(items, {"1": {"read": "2025-03-19", "read_count": 2, "title": "X"}, "2": {"read_count": 1}, "9": {"read_count": 5}})
-    assert items[0] == {"id": "1", "title": "A", "read": "2025-03-19", "read_count": 2, "rating": 4}
+    books.apply_fixes(items, {"1": {"read": "2025-03-19", "read_count": 2, "reads": ["2019", "2025-03-19"], "title": "X"},
+                              "2": {"read_count": 1}, "9": {"read_count": 5}})
+    assert items[0] == {"id": "1", "title": "A", "read": "2025-03-19", "read_count": 2, "reads": ["2019", "2025-03-19"], "rating": 4}
     assert items[1]["read"] == "2024-01-01" and items[1]["read_count"] == 1
 
 
