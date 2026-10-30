@@ -45,6 +45,7 @@ const TURN = 600;
 const SLIDE_OUT = 14;
 const FLY = 620;
 const FLIP = 520;
+const DROP = 780;
 const LEAN = (7 * Math.PI) / 180;
 const STAR = '<svg class="%" viewBox="0 0 20 20" aria-hidden="true"><path d="M10 1.6l2.55 5.4 5.9.72-4.35 4.06 1.12 5.86L10 14.76l-5.22 2.88 1.12-5.86L1.55 7.72l5.9-.72z"/></svg>';
 const CHEVRON = {
@@ -399,11 +400,27 @@ async function start() {
   function stepHeld(now) {
     const h = held;
     const ms = reduce.matches ? 0 : 1;
-    const e = ms ? ease(clamp((now - h.pt0) / FLY, 0, 1)) : 1;
-    const to = h.phase === 'down' ? { x: P[h.i * 4], y: P[h.i * 4 + 1], z: P[h.i * 4 + 2] } : heldTarget();
-    heldPose.x = lerp(h.pf.x, to.x, e);
-    heldPose.y = lerp(h.pf.y, to.y, e);
-    heldPose.z = lerp(h.pf.z, to.z, e);
+    let e;
+    if (h.phase === 'down') {
+      const t = ms ? clamp((now - h.pt0) / DROP, 0, 1) : 1;
+      const to = { x: P[h.i * 4], y: P[h.i * 4 + 1], z: P[h.i * 4 + 2] };
+      const a = ease(clamp(t / 0.55, 0, 1));
+      const b = easeInOut(clamp((t - 0.45) / 0.55, 0, 1));
+      const front = to.z + W + 12;
+      heldPose.x = lerp(h.pf.x, to.x, a);
+      heldPose.y = lerp(h.pf.y, to.y, a);
+      heldPose.z = lerp(h.pf.z, front, a) + (to.z - front) * b;
+      e = t === 1 ? 1 : b;
+    } else {
+      const t = ms ? clamp((now - h.pt0) / FLY, 0, 1) : 1;
+      const to = heldTarget();
+      const out = lerp(h.pf.z, h.sz + W + 12, easeInOut(clamp(t / 0.45, 0, 1)));
+      e = ease(clamp((t - 0.3) / 0.7, 0, 1));
+      heldPose.x = lerp(h.pf.x, to.x, e);
+      heldPose.y = lerp(h.pf.y, to.y, e);
+      heldPose.z = lerp(out, to.z, e);
+      gl.setHeldOnTop(t >= 0.45);
+    }
     const re = ms ? ease(clamp((now - h.rt0) / h.rdur, 0, 1)) : 1;
     heldPose.rot = lerp(h.rf, h.rt, re);
     heldPose.sx = dims[h.i].t;
@@ -417,7 +434,7 @@ async function start() {
     grLink.style.transform = 'translate(' + p.x.toFixed(1) + 'px, ' + p.y.toFixed(1) + 'px) translate(-50%, -50%)';
     const settled = e === 1 && re === 1;
     if (h.phase === 'down') {
-      if (e > 0.6) neighbours(h.i).forEach((j) => { if (j !== undefined) lnT[j] = 0; });
+      if (e > 0.85) neighbours(h.i).forEach((j) => { if (j !== undefined) lnT[j] = 0; });
       if (e === 1) {
         gl.holdBook(-1);
         if (h.big) h.big.dispose();
@@ -454,10 +471,11 @@ async function start() {
       i,
       phase: 'up',
       pf: { x: pose.x, y: pose.y, z: pose.z },
+      sz: pose.z,
       pt0: now,
       rf: pose.rot,
       rt: -Math.PI / 2,
-      rt0: now + (state.view === 'covers' ? 0 : 180),
+      rt0: now + (state.view === 'covers' ? 0 : FLY * 0.4),
       rdur: FLIP,
       rear: false,
       back: backTex,
@@ -518,7 +536,8 @@ async function start() {
     held.rf = heldPose.rot;
     held.rt = covers ? (held.rear ? -2.5 * Math.PI : -Math.PI / 2) : (held.rear ? -2 * Math.PI : 0);
     held.rt0 = now;
-    held.rdur = FLY;
+    held.rdur = DROP * 0.5;
+    gl.setHeldOnTop(false);
     const back = held.returnTo;
     const inside = heldEl.contains(document.activeElement);
     heldEl.hidden = true;

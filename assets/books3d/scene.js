@@ -344,7 +344,8 @@ export function createScene(books, dims) {
   held.frustumCulled = false;
   held.visible = false;
   held.renderOrder = 1;
-  held.onBeforeRender = (r) => r.clearDepth();
+  let heldOnTop = true;
+  held.onBeforeRender = (r) => { if (heldOnTop) r.clearDepth(); };
   scene.add(held);
 
   function holdBook(i, back) {
@@ -367,6 +368,10 @@ export function createScene(books, dims) {
     heldUniforms.uCovers.value = tex;
     heldUniforms.iCover.value.set(0, 0, 1, 1);
     heldUniforms.iState.value.x = 1;
+  }
+
+  function setHeldOnTop(on) {
+    heldOnTop = on;
   }
 
   function setHeld(b) {
@@ -556,5 +561,5 @@ export function createScene(books, dims) {
     renderer.render(scene, camera);
   }
 
-  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, warm, setCorner };
+  return { renderer, canvas, camera, bookMesh, setBook, booksChanged, setState, setAttr, setTextures, setShelves, setColors, resize, render, draw, frustum, pick, pickHeld, holdBook, heldCover, setHeld, setHeldOnTop, setDim, setUnlit, setSketch, project, view, canvasTexture, imageTexture, setLamp, warm, setCorner };
 }
