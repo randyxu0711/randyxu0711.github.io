@@ -54,6 +54,7 @@ countries:
   "Turkey": { zh: 土耳其, subregion: western-asia, at: [32.5, 39.2], qid: Q43 }
   "Vietnam": { zh: 越南, subregion: south-eastern-asia, at: [105.8, 19], qid: Q881 }
   "Myanmar": { zh: 緬甸, subregion: south-eastern-asia, at: [96, 20.5], qid: Q836 }
+  "Thailand": { zh: 泰國, subregion: south-eastern-asia, at: [101, 15], qid: Q869 }
   "South Africa": { zh: 南非, subregion: sub-saharan-africa, at: [24, -30], qid: Q258 }
   "Ivory Coast": { zh: 象牙海岸, subregion: sub-saharan-africa, at: [-5.3, 7.5], topo: "Côte d'Ivoire", qid: Q1008 }
   "Nigeria": { zh: 奈及利亞, subregion: sub-saharan-africa, at: [8, 9.5], qid: Q1033 }
