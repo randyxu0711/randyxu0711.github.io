@@ -21,6 +21,12 @@ subregions:
   south-eastern-asia: { zh: 東南亞, en: "South-eastern Asia", continent: asia }
   sub-saharan-africa: { zh: 撒哈拉以南非洲, en: "Sub-Saharan Africa", continent: africa }
   australia-and-new-zealand: { zh: 澳洲與紐西蘭, en: "Australia and New Zealand", continent: oceania }
+  southern-asia: { zh: 南亞, en: "Southern Asia", continent: asia }
+  central-asia: { zh: 中亞, en: "Central Asia", continent: asia }
+  northern-africa: { zh: 北非, en: "Northern Africa", continent: africa }
+  melanesia: { zh: 美拉尼西亞, en: "Melanesia", continent: oceania }
+  micronesia: { zh: 密克羅尼西亞, en: "Micronesia", continent: oceania }
+  polynesia: { zh: 玻里尼西亞, en: "Polynesia", continent: oceania }
 
 countries:
   "United Kingdom": { zh: 英國, subregion: northern-europe, at: [-2, 53], qid: Q145 }
@@ -61,3 +67,196 @@ countries:
   "Angola": { zh: 安哥拉, subregion: sub-saharan-africa, at: [17.5, -12], qid: Q916 }
   "Mozambique": { zh: 莫三比克, subregion: sub-saharan-africa, at: [35.5, -17], qid: Q1029 }
   "Australia": { zh: 澳洲, subregion: australia-and-new-zealand, at: [146, -33], qid: Q408 }
+  "Zimbabwe": { zh: 辛巴威, subregion: sub-saharan-africa, at: [30, -19], qid: Q954 }
+  "Zambia": { zh: 尚比亞, subregion: sub-saharan-africa, at: [28, -14], qid: Q953 }
+  "Yemen": { zh: 葉門, subregion: western-asia, at: [48, 15.5], qid: Q805 }
+  "Venezuela": { zh: 委內瑞拉, subregion: latin-america-and-the-caribbean, at: [-67, 8], qid: Q717 }
+  "Vatican": { zh: 梵蒂岡, subregion: southern-europe, at: [12.5, 41.9], qid: Q237 }
+  "Vanuatu": { zh: 萬那杜, subregion: melanesia, at: [168, -16.6], qid: Q686 }
+  "Uzbekistan": { zh: 烏茲別克, subregion: central-asia, at: [66, 41], qid: Q265 }
+  "Uruguay": { zh: 烏拉圭, subregion: latin-america-and-the-caribbean, at: [-56, -33], qid: Q77 }
+  "Micronesia": { zh: 密克羅尼西亞聯邦, subregion: micronesia, at: [158.2, 6.9], qid: Q702 }
+  "Marshall Islands": { zh: 馬紹爾群島, subregion: micronesia, at: [169.3, 9.8], topo: "Marshall Is.", qid: Q709 }
+  "Northern Mariana Islands": { zh: 北馬里亞納群島, subregion: micronesia, at: [145.8, 16.7], topo: "N. Mariana Is.", qid: Q16644 }
+  "United States Virgin Islands": { zh: 美屬維京群島, subregion: latin-america-and-the-caribbean, at: [-64.8, 18.3], topo: "U.S. Virgin Is.", qid: Q11703 }
+  "Guam": { zh: 關島, subregion: micronesia, at: [144.8, 13.5], qid: Q16635 }
+  "American Samoa": { zh: 美屬薩摩亞, subregion: polynesia, at: [-170.7, -14.3], qid: Q16641 }
+  "Puerto Rico": { zh: 波多黎各, subregion: latin-america-and-the-caribbean, at: [-66.5, 18.2], qid: Q1183 }
+  "Saint Helena": { zh: 聖赫勒拿, subregion: sub-saharan-africa, at: [-5.7, -15.9], qid: Q192184 }
+  "Pitcairn Islands": { zh: 皮特肯群島, subregion: polynesia, at: [-128.3, -24.4], topo: "Pitcairn Is.", qid: Q35672 }
+  "Anguilla": { zh: 安吉拉, subregion: latin-america-and-the-caribbean, at: [-63, 18.2], qid: Q25228 }
+  "Falkland Islands": { zh: 福克蘭群島, subregion: latin-america-and-the-caribbean, at: [-59.2, -51.7], topo: "Falkland Is.", qid: Q9648 }
+  "Cayman Islands": { zh: 開曼群島, subregion: latin-america-and-the-caribbean, at: [-80.5, 19.5], topo: "Cayman Is.", qid: Q5785 }
+  "Bermuda": { zh: 百慕達, subregion: northern-america, at: [-64.7, 32.3], qid: Q23635 }
+  "British Virgin Islands": { zh: 英屬維京群島, subregion: latin-america-and-the-caribbean, at: [-64.5, 18.4], topo: "British Virgin Is.", qid: Q25305 }
+  "Turks and Caicos Islands": { zh: 土克凱可群島, subregion: latin-america-and-the-caribbean, at: [-71.8, 21.8], topo: "Turks and Caicos Is.", qid: Q18221 }
+  "Montserrat": { zh: 蒙哲臘, subregion: latin-america-and-the-caribbean, at: [-62.2, 16.8], qid: Q13353 }
+  "Jersey": { zh: 澤西, subregion: northern-europe, at: [-2.1, 49.2], qid: Q785 }
+  "Guernsey": { zh: 根西, subregion: northern-europe, at: [-2.6, 49.5], qid: Q25230 }
+  "Isle of Man": { zh: 曼島, subregion: northern-europe, at: [-4.5, 54.2], qid: Q9676 }
+  "United Arab Emirates": { zh: 阿拉伯聯合大公國, subregion: western-asia, at: [54.3, 24.4], qid: Q878 }
+  "Ukraine": { zh: 烏克蘭, subregion: eastern-europe, at: [32, 49], qid: Q212 }
+  "Uganda": { zh: 烏干達, subregion: sub-saharan-africa, at: [32.4, 1.3], qid: Q1036 }
+  "Turkmenistan": { zh: 土庫曼, subregion: central-asia, at: [60, 39], qid: Q874 }
+  "Tunisia": { zh: 突尼西亞, subregion: northern-africa, at: [10, 34], qid: Q948 }
+  "Trinidad and Tobago": { zh: 千里達及托巴哥, subregion: latin-america-and-the-caribbean, at: [-61.5, 10.7], qid: Q754 }
+  "Tonga": { zh: 東加, subregion: polynesia, at: [-174.8, -20.6], qid: Q678 }
+  "Togo": { zh: 多哥, subregion: sub-saharan-africa, at: [1.2, 8.2], qid: Q945 }
+  "Timor-Leste": { zh: 東帝汶, subregion: south-eastern-asia, at: [125.8, -9], qid: Q574 }
+  "Tanzania": { zh: 坦尚尼亞, subregion: sub-saharan-africa, at: [34.9, -6.3], qid: Q924 }
+  "Tajikistan": { zh: 塔吉克, subregion: central-asia, at: [71.4, 38.6], qid: Q863 }
+  "Syria": { zh: 敘利亞, subregion: western-asia, at: [38.6, 35.2], qid: Q858 }
+  "Switzerland": { zh: 瑞士, subregion: western-europe, at: [8.2, 46.8], qid: Q39 }
+  "Sweden": { zh: 瑞典, subregion: northern-europe, at: [15, 61], qid: Q34 }
+  "Eswatini": { zh: 史瓦帝尼, subregion: sub-saharan-africa, at: [31.4, -26.5], topo: "eSwatini", qid: Q1050 }
+  "Suriname": { zh: 蘇利南, subregion: latin-america-and-the-caribbean, at: [-56, 4], qid: Q730 }
+  "South Sudan": { zh: 南蘇丹, subregion: sub-saharan-africa, at: [30, 7], topo: "S. Sudan", qid: Q958 }
+  "Sudan": { zh: 蘇丹, subregion: northern-africa, at: [32, 15], qid: Q1049 }
+  "Sri Lanka": { zh: 斯里蘭卡, subregion: southern-asia, at: [81, 7], qid: Q854 }
+  "Somalia": { zh: 索馬利亞, subregion: sub-saharan-africa, at: [47, 6], qid: Q1045 }
+  "Solomon Islands": { zh: 索羅門群島, subregion: melanesia, at: [159.8, -9.5], topo: "Solomon Is.", qid: Q685 }
+  "Slovakia": { zh: 斯洛伐克, subregion: eastern-europe, at: [19.7, 48.7], qid: Q214 }
+  "Slovenia": { zh: 斯洛維尼亞, subregion: southern-europe, at: [15, 46], qid: Q215 }
+  "Singapore": { zh: 新加坡, subregion: south-eastern-asia, at: [103.8, 1.3], qid: Q334 }
+  "Sierra Leone": { zh: 獅子山, subregion: sub-saharan-africa, at: [-12.1, 8.5], qid: Q1044 }
+  "Seychelles": { zh: 塞席爾, subregion: sub-saharan-africa, at: [55.5, -4.7], qid: Q1042 }
+  "Serbia": { zh: 塞爾維亞, subregion: southern-europe, at: [20.9, 44], qid: Q403 }
+  "Senegal": { zh: 塞內加爾, subregion: sub-saharan-africa, at: [-14.3, 14.4], qid: Q1041 }
+  "Saudi Arabia": { zh: 沙烏地阿拉伯, subregion: western-asia, at: [44.1, 23.7], qid: Q851 }
+  "São Tomé and Principe": { zh: 聖多美普林西比, subregion: sub-saharan-africa, at: [6.6, 0.3], qid: Q1039 }
+  "San Marino": { zh: 聖馬利諾, subregion: southern-europe, at: [12.5, 43.9], qid: Q238 }
+  "Samoa": { zh: 薩摩亞, subregion: polynesia, at: [-172.2, -13.7], qid: Q683 }
+  "Saint Vincent and the Grenadines": { zh: 聖文森及格瑞那丁, subregion: latin-america-and-the-caribbean, at: [-61.2, 13.2], topo: "St. Vin. and Gren.", qid: Q757 }
+  "Saint Lucia": { zh: 聖露西亞, subregion: latin-america-and-the-caribbean, at: [-61, 13.9], qid: Q760 }
+  "Saint Kitts and Nevis": { zh: 聖克里斯多福及尼維斯, subregion: latin-america-and-the-caribbean, at: [-62.7, 17.3], topo: "St. Kitts and Nevis", qid: Q763 }
+  "Rwanda": { zh: 盧安達, subregion: sub-saharan-africa, at: [30, -2], qid: Q1037 }
+  "Romania": { zh: 羅馬尼亞, subregion: eastern-europe, at: [25, 46], qid: Q218 }
+  "Qatar": { zh: 卡達, subregion: western-asia, at: [51.2, 25.3], qid: Q846 }
+  "Philippines": { zh: 菲律賓, subregion: south-eastern-asia, at: [123, 12], qid: Q928 }
+  "Paraguay": { zh: 巴拉圭, subregion: latin-america-and-the-caribbean, at: [-58, -23.5], qid: Q733 }
+  "Papua New Guinea": { zh: 巴布亞紐幾內亞, subregion: melanesia, at: [147, -6.3], qid: Q691 }
+  "Panama": { zh: 巴拿馬, subregion: latin-america-and-the-caribbean, at: [-80.4, 8.6], qid: Q804 }
+  "Palau": { zh: 帛琉, subregion: micronesia, at: [134.6, 7.5], qid: Q695 }
+  "Pakistan": { zh: 巴基斯坦, subregion: southern-asia, at: [71, 30], qid: Q843 }
+  "Oman": { zh: 阿曼, subregion: western-asia, at: [57, 21], qid: Q842 }
+  "North Korea": { zh: 北韓, subregion: eastern-asia, at: [127, 40], qid: Q423 }
+  "Niger": { zh: 尼日, subregion: sub-saharan-africa, at: [10, 17], qid: Q1032 }
+  "Nicaragua": { zh: 尼加拉瓜, subregion: latin-america-and-the-caribbean, at: [-85, 13], qid: Q811 }
+  "New Zealand": { zh: 紐西蘭, subregion: australia-and-new-zealand, at: [174, -41.2], qid: Q664 }
+  "Niue": { zh: 紐埃, subregion: polynesia, at: [-169.9, -19.1], qid: Q34020 }
+  "Cook Islands": { zh: 庫克群島, subregion: polynesia, at: [-159.8, -21.2], topo: "Cook Is.", qid: Q26988 }
+  "Netherlands": { zh: 荷蘭, subregion: western-europe, at: [5.5, 52.3], qid: Q55 }
+  "Aruba": { zh: 阿魯巴, subregion: latin-america-and-the-caribbean, at: [-70, 12.5], qid: Q21203 }
+  "Curaçao": { zh: 古拉索, subregion: latin-america-and-the-caribbean, at: [-69, 12.2], qid: Q25279 }
+  "Nepal": { zh: 尼泊爾, subregion: southern-asia, at: [84, 28], qid: Q837 }
+  "Nauru": { zh: 諾魯, subregion: micronesia, at: [166.9, -0.5], qid: Q697 }
+  "Namibia": { zh: 納米比亞, subregion: sub-saharan-africa, at: [17, -23], qid: Q1030 }
+  "Morocco": { zh: 摩洛哥, subregion: northern-africa, at: [-6, 32], qid: Q1028 }
+  "Western Sahara": { zh: 西撒哈拉, subregion: northern-africa, at: [-13, 25], topo: "W. Sahara", qid: Q6250 }
+  "Montenegro": { zh: 蒙特內哥羅, subregion: southern-europe, at: [19.2, 42.8], qid: Q236 }
+  "Mongolia": { zh: 蒙古, subregion: eastern-asia, at: [105, 46], qid: Q711 }
+  "Moldova": { zh: 摩爾多瓦, subregion: eastern-europe, at: [28.5, 47.2], qid: Q217 }
+  "Monaco": { zh: 摩納哥, subregion: western-europe, at: [7.4, 43.7], qid: Q235 }
+  "Mauritius": { zh: 模里西斯, subregion: sub-saharan-africa, at: [57.5, -20.2], qid: Q1027 }
+  "Mauritania": { zh: 茅利塔尼亞, subregion: sub-saharan-africa, at: [-11, 21], qid: Q1025 }
+  "Malta": { zh: 馬爾他, subregion: southern-europe, at: [14.4, 35.9], qid: Q233 }
+  "Mali": { zh: 馬利, subregion: sub-saharan-africa, at: [-4, 17], qid: Q912 }
+  "Maldives": { zh: 馬爾地夫, subregion: southern-asia, at: [73.5, 4.2], qid: Q826 }
+  "Malaysia": { zh: 馬來西亞, subregion: south-eastern-asia, at: [102.3, 3.8], qid: Q833 }
+  "Malawi": { zh: 馬拉威, subregion: sub-saharan-africa, at: [34, -13], qid: Q1020 }
+  "Madagascar": { zh: 馬達加斯加, subregion: sub-saharan-africa, at: [47, -20], qid: Q1019 }
+  "North Macedonia": { zh: 北馬其頓, subregion: southern-europe, at: [21.7, 41.6], topo: "Macedonia", qid: Q221 }
+  "Luxembourg": { zh: 盧森堡, subregion: western-europe, at: [6.1, 49.8], qid: Q32 }
+  "Lithuania": { zh: 立陶宛, subregion: northern-europe, at: [24, 55.2], qid: Q37 }
+  "Liechtenstein": { zh: 列支敦斯登, subregion: western-europe, at: [9.6, 47.1], qid: Q347 }
+  "Libya": { zh: 利比亞, subregion: northern-africa, at: [17, 27], qid: Q1016 }
+  "Liberia": { zh: 賴比瑞亞, subregion: sub-saharan-africa, at: [-9.8, 6.5], qid: Q1014 }
+  "Lesotho": { zh: 賴索托, subregion: sub-saharan-africa, at: [28.2, -29.6], qid: Q1013 }
+  "Lebanon": { zh: 黎巴嫩, subregion: western-asia, at: [35.8, 33.8], qid: Q822 }
+  "Latvia": { zh: 拉脫維亞, subregion: northern-europe, at: [25, 57], qid: Q211 }
+  "Laos": { zh: 寮國, subregion: south-eastern-asia, at: [104.1, 18.2], qid: Q819 }
+  "Kyrgyzstan": { zh: 吉爾吉斯, subregion: central-asia, at: [75, 41], qid: Q813 }
+  "Kuwait": { zh: 科威特, subregion: western-asia, at: [47.6, 29.2], qid: Q817 }
+  "Kiribati": { zh: 吉里巴斯, subregion: micronesia, at: [173, 1.5], qid: Q710 }
+  "Kenya": { zh: 肯亞, subregion: sub-saharan-africa, at: [38, 0.1], qid: Q114 }
+  "Kazakhstan": { zh: 哈薩克, subregion: central-asia, at: [68, 48], qid: Q232 }
+  "Jordan": { zh: 約旦, subregion: western-asia, at: [36.5, 31.2], qid: Q810 }
+  "Palestine": { zh: 巴勒斯坦, subregion: western-asia, at: [35.2, 32], qid: Q219060 }
+  "Iraq": { zh: 伊拉克, subregion: western-asia, at: [43, 33], qid: Q796 }
+  "Iran": { zh: 伊朗, subregion: southern-asia, at: [53, 32], qid: Q794 }
+  "Indonesia": { zh: 印尼, subregion: south-eastern-asia, at: [118, -2], qid: Q252 }
+  "India": { zh: 印度, subregion: southern-asia, at: [83, 22.8], qid: Q668 }
+  "Iceland": { zh: 冰島, subregion: northern-europe, at: [-19, 65], qid: Q189 }
+  "Honduras": { zh: 宏都拉斯, subregion: latin-america-and-the-caribbean, at: [-86.8, 14.6], qid: Q783 }
+  "Haiti": { zh: 海地, subregion: latin-america-and-the-caribbean, at: [-72.8, 19], qid: Q790 }
+  "Guyana": { zh: 蓋亞那, subregion: latin-america-and-the-caribbean, at: [-59.3, 5.7], qid: Q734 }
+  "Guinea-Bissau": { zh: 幾內亞比索, subregion: sub-saharan-africa, at: [-15, 12], qid: Q1007 }
+  "Guinea": { zh: 幾內亞, subregion: sub-saharan-africa, at: [-11, 10], qid: Q1006 }
+  "Grenada": { zh: 格瑞那達, subregion: latin-america-and-the-caribbean, at: [-61.7, 12.1], qid: Q769 }
+  "Greece": { zh: 希臘, subregion: southern-europe, at: [23, 38.5], qid: Q41 }
+  "Ghana": { zh: 迦納, subregion: sub-saharan-africa, at: [-1, 7.9], qid: Q117 }
+  "Georgia": { zh: 喬治亞, subregion: western-asia, at: [44, 42], qid: Q230 }
+  "Gambia": { zh: 甘比亞, subregion: sub-saharan-africa, at: [-15.5, 13.5], qid: Q1005 }
+  "Gabon": { zh: 加彭, subregion: sub-saharan-africa, at: [11.5, -0.7], qid: Q1000 }
+  "Saint Pierre and Miquelon": { zh: 聖皮埃與密克隆群島, subregion: northern-america, at: [-56.3, 46.9], topo: "St. Pierre and Miquelon", qid: Q34617 }
+  "Wallis and Futuna": { zh: 瓦利斯和富圖納, subregion: polynesia, at: [-178.1, -14.3], topo: "Wallis and Futuna Is.", qid: Q35555 }
+  "Saint Martin": { zh: 法屬聖馬丁, subregion: latin-america-and-the-caribbean, at: [-63.1, 18.1], topo: "St-Martin", qid: Q126125 }
+  "Saint Barthélemy": { zh: 聖巴瑟米, subregion: latin-america-and-the-caribbean, at: [-62.8, 17.9], topo: "St-Barthélemy", qid: Q25362 }
+  "French Polynesia": { zh: 法屬玻里尼西亞, subregion: polynesia, at: [-149.4, -17.7], topo: "Fr. Polynesia", qid: Q30971 }
+  "New Caledonia": { zh: 新喀里多尼亞, subregion: melanesia, at: [165.3, -21.2], qid: Q33788 }
+  "Åland": { zh: 奧蘭, subregion: northern-europe, at: [20, 60.2], qid: Q5689 }
+  "Finland": { zh: 芬蘭, subregion: northern-europe, at: [27, 65], qid: Q33 }
+  "Fiji": { zh: 斐濟, subregion: melanesia, at: [178, -18], qid: Q712 }
+  "Ethiopia": { zh: 衣索比亞, subregion: sub-saharan-africa, at: [40, 9], qid: Q115 }
+  "Estonia": { zh: 愛沙尼亞, subregion: northern-europe, at: [26, 59], qid: Q191 }
+  "Eritrea": { zh: 厄利垂亞, subregion: sub-saharan-africa, at: [38.2, 15.5], qid: Q986 }
+  "Equatorial Guinea": { zh: 赤道幾內亞, subregion: sub-saharan-africa, at: [10, 1.5], topo: "Eq. Guinea", qid: Q983 }
+  "El Salvador": { zh: 薩爾瓦多, subregion: latin-america-and-the-caribbean, at: [-88.9, 13.7], qid: Q792 }
+  "Egypt": { zh: 埃及, subregion: northern-africa, at: [29, 27], qid: Q79 }
+  "Ecuador": { zh: 厄瓜多, subregion: latin-america-and-the-caribbean, at: [-78, -1], qid: Q736 }
+  "Dominican Republic": { zh: 多明尼加, subregion: latin-america-and-the-caribbean, at: [-70.2, 18.8], topo: "Dominican Rep.", qid: Q786 }
+  "Dominica": { zh: 多米尼克, subregion: latin-america-and-the-caribbean, at: [-61.3, 15.4], qid: Q784 }
+  "Djibouti": { zh: 吉布地, subregion: sub-saharan-africa, at: [42.4, 11.8], qid: Q977 }
+  "Greenland": { zh: 格陵蘭, subregion: northern-america, at: [-40, 72], qid: Q223 }
+  "Faroe Islands": { zh: 法羅群島, subregion: northern-europe, at: [-6.8, 62], topo: "Faeroe Is.", qid: Q4628 }
+  "Cyprus": { zh: 賽普勒斯, subregion: western-asia, at: [33, 35], qid: Q229 }
+  "Cuba": { zh: 古巴, subregion: latin-america-and-the-caribbean, at: [-79.5, 22], qid: Q241 }
+  "Croatia": { zh: 克羅埃西亞, subregion: southern-europe, at: [15.5, 45.2], qid: Q224 }
+  "Costa Rica": { zh: 哥斯大黎加, subregion: latin-america-and-the-caribbean, at: [-84, 10], qid: Q800 }
+  "Democratic Republic of the Congo": { zh: 剛果民主共和國, subregion: sub-saharan-africa, at: [23.7, -2.9], topo: "Dem. Rep. Congo", qid: Q974 }
+  "Congo": { zh: 剛果共和國, subregion: sub-saharan-africa, at: [15.4, -0.8], qid: Q971 }
+  "Comoros": { zh: 葛摩, subregion: sub-saharan-africa, at: [43.7, -12.3], qid: Q970 }
+  "Macao": { zh: 澳門, subregion: eastern-asia, at: [113.5, 22.2], qid: Q14773 }
+  "Hong Kong": { zh: 香港, subregion: eastern-asia, at: [114.2, 22.3], qid: Q8646 }
+  "Chile": { zh: 智利, subregion: latin-america-and-the-caribbean, at: [-71, -33], qid: Q298 }
+  "Chad": { zh: 查德, subregion: sub-saharan-africa, at: [19.4, 15.5], qid: Q657 }
+  "Central African Republic": { zh: 中非共和國, subregion: sub-saharan-africa, at: [20.9, 6.7], topo: "Central African Rep.", qid: Q929 }
+  "Cabo Verde": { zh: 維德角, subregion: sub-saharan-africa, at: [-23.7, 15.3], qid: Q1011 }
+  "Cameroon": { zh: 喀麥隆, subregion: sub-saharan-africa, at: [12.7, 5.1], qid: Q1009 }
+  "Cambodia": { zh: 柬埔寨, subregion: south-eastern-asia, at: [105, 12.5], qid: Q424 }
+  "Burundi": { zh: 蒲隆地, subregion: sub-saharan-africa, at: [29.8, -3.7], qid: Q967 }
+  "Burkina Faso": { zh: 布吉納法索, subregion: sub-saharan-africa, at: [-2.1, 12.3], qid: Q965 }
+  "Bulgaria": { zh: 保加利亞, subregion: eastern-europe, at: [25.5, 42.8], qid: Q219 }
+  "Brunei": { zh: 汶萊, subregion: south-eastern-asia, at: [114.6, 4.4], qid: Q921 }
+  "Brazil": { zh: 巴西, subregion: latin-america-and-the-caribbean, at: [-53, -14], qid: Q155 }
+  "Botswana": { zh: 波札那, subregion: sub-saharan-africa, at: [23.7, -22.2], qid: Q963 }
+  "Bosnia and Herzegovina": { zh: 波士尼亞與赫塞哥維納, subregion: southern-europe, at: [18, 44], topo: "Bosnia and Herz.", qid: Q225 }
+  "Bolivia": { zh: 玻利維亞, subregion: latin-america-and-the-caribbean, at: [-65, -17.1], qid: Q750 }
+  "Bhutan": { zh: 不丹, subregion: southern-asia, at: [90.5, 27.4], qid: Q917 }
+  "Benin": { zh: 貝南, subregion: sub-saharan-africa, at: [2.2, 8.8], qid: Q962 }
+  "Belize": { zh: 貝里斯, subregion: latin-america-and-the-caribbean, at: [-88.7, 17.1], qid: Q242 }
+  "Belgium": { zh: 比利時, subregion: western-europe, at: [4.7, 50.6], qid: Q31 }
+  "Barbados": { zh: 巴貝多, subregion: latin-america-and-the-caribbean, at: [-59.6, 13.2], qid: Q244 }
+  "Bangladesh": { zh: 孟加拉, subregion: southern-asia, at: [89.9, 24], qid: Q902 }
+  "Bahrain": { zh: 巴林, subregion: western-asia, at: [50.6, 26.1], qid: Q398 }
+  "Bahamas": { zh: 巴哈馬, subregion: latin-america-and-the-caribbean, at: [-77.4, 25], qid: Q778 }
+  "Azerbaijan": { zh: 亞塞拜然, subregion: western-asia, at: [47.7, 40.3], qid: Q227 }
+  "Norfolk Island": { zh: 諾福克島, subregion: australia-and-new-zealand, at: [167.9, -29], qid: Q31057 }
+  "Armenia": { zh: 亞美尼亞, subregion: western-asia, at: [45, 40.4], qid: Q399 }
+  "Antigua and Barbuda": { zh: 安地卡及巴布達, subregion: latin-america-and-the-caribbean, at: [-61.9, 17.1], topo: "Antigua and Barb.", qid: Q781 }
+  "Andorra": { zh: 安道爾, subregion: southern-europe, at: [1.6, 42.5], qid: Q228 }
+  "Algeria": { zh: 阿爾及利亞, subregion: northern-africa, at: [1, 28], qid: Q262 }
+  "Albania": { zh: 阿爾巴尼亞, subregion: southern-europe, at: [20, 41], qid: Q222 }
+  "Afghanistan": { zh: 阿富汗, subregion: southern-asia, at: [66, 33], qid: Q889 }
+  "Sint Maarten": { zh: 荷屬聖馬丁, subregion: latin-america-and-the-caribbean, at: [-63.1, 18], qid: Q26273 }
+  "Kosovo": { zh: 科索沃, subregion: southern-europe, at: [20.9, 42.6], qid: Q1246 }
