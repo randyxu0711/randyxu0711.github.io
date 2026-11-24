@@ -117,5 +117,22 @@
   "ratio": 0.682,
   "read_count": 1,
   "issue": 109
+ },
+ {
+  "id": "259407503",
+  "title": "反抗的憂鬱",
+  "author": "László Krasznahorkai",
+  "rating": 3,
+  "pages": 376,
+  "read": "2026-11-24",
+  "added": "2026-11-24",
+  "shelves": [],
+  "url": "https://www.goodreads.com/book/show/259407503",
+  "cover": "https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1791642774i/259407503.jpg",
+  "color": "#807571",
+  "ink": "#f7f3ea",
+  "ratio": 0.706,
+  "read_count": 1,
+  "issue": 113
  }
 ]
